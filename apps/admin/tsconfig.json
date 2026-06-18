@@ -1,0 +1,15 @@
+{
+  "extends": "@repo/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@repo/codegen/*": ["../../packages/codegen/src/*"],
+      "@repo/tenant-orm/*": ["../../packages/tenant-orm/src/*"],
+      "@repo/ui/*": ["../../packages/ui/src/*"],
+      "@repo/shared-utils/*": ["../../packages/shared-utils/src/*"]
+    }
+  },
+  "include": ["src", "next-env.d.ts"]
+}

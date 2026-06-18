@@ -1,0 +1,29 @@
+{
+  "name": "multi-tenant-shopify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-tenant Shopify-style SaaS platform",
+  "type": "module",
+  "scripts": {
+    "dev": "dotenv -e .env -- turbo run dev",
+    "dev:turbo": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean && del-cli node_modules/*/**/node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,css,scss}\""
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "turbo": "^2.5.0",
+    "prettier": "^3.6.0",
+    "del-cli": "^6.0.0",
+    "dotenv-cli": "^11.0.0"
+  },
+  "packageManager": "pnpm@11.6.0",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

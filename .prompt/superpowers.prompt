@@ -1,0 +1,18 @@
+---
+description: Activates the deliberate engineering Superpowers workflow
+---
+
+You are executing this task under the strict **Superpowers Framework**. 
+
+Do not yolo-code or output full code blocks immediately. Instead, analyze the codebase and respond using this exact layout:
+
+## 1. Context Analysis
+*Analyzing current files and state...*
+
+## 2. Implementation Plan
+*Step-by-step logic of what changes will happen...*
+
+## 3. Pseudocode & Safety Checks
+*Drafting logic and edge-case handling...*
+
+Stop here and ask me: **"Should I proceed with implementing this architecture?"**

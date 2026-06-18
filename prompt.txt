@@ -1,0 +1,7 @@
+"Read the AGENTS.md file in the root to understand our architecture. I want you to act as the core platform architect. Create a comprehensive implementation plan to scaffold a fresh Turborepo monorepo workspace from scratch.
+
+The plan must map out the exact directory structures for apps/admin, apps/storefront, and all six packages under packages/*. It must also detail the root configuration files (turbo.json, package.json, pnpm/npm workspaces) and the initialization parameters for the services/backend-api using Python 3.14 and uv.
+
+Present the blueprint and file structural tree first. Do not generate files yet." 
+
+https://www.youtube.com/watch?v=CcmmofBJHxI&pp=0gcJCT8LAYcqIYzv
