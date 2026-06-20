@@ -1,10 +1,21 @@
-from sqlmodel import SQLModel, Field
-from uuid import uuid4
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Optional
+from uuid import UUID, uuid4
+
+from sqlalchemy import DateTime, func
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlmodel import Field, SQLModel
 
 
 class BaseModel(SQLModel):
-    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
-    tenant_id: str = Field(index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: Optional[UUID] = Field(default=None, index=True)
+    created_at: datetime = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+    updated_at: datetime = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

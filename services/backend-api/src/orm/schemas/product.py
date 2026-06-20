@@ -1,29 +1,190 @@
-from pydantic import BaseModel as PydanticBaseModel
+from datetime import datetime
+from enum import Enum
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel as PydanticBaseModel, Field, validator
+from sqlmodel import Field as SQLModelField
+
+
+# ── Product ──────────────────────────────────────────────────────────────
 
 
 class ProductCreate(PydanticBaseModel):
-    name: str
-    description: str | None = None
-    price: int
-    sku: str | None = None
+    name: str = Field(..., min_length=1, max_length=255)
+    slug: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
     status: str = "draft"
+    sku: Optional[str] = None
+    weight: Optional[float] = None
+    weight_unit: str = "kg"
+    is_active: bool = True
 
 
 class ProductUpdate(PydanticBaseModel):
-    name: str | None = None
-    description: str | None = None
-    price: int | None = None
-    sku: str | None = None
-    status: str | None = None
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    slug: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    status: Optional[str] = None
+    sku: Optional[str] = None
+    weight: Optional[float] = None
+    weight_unit: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class ProductResponse(PydanticBaseModel):
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     name: str
-    description: str | None
-    price: int
-    sku: str | None
+    slug: str
+    description: Optional[str] = None
     status: str
-    created_at: str
-    updated_at: str
+    sku: Optional[str] = None
+    weight: Optional[float] = None
+    weight_unit: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class VariantCreate(PydanticBaseModel):
+    sku: str = Field(..., min_length=1, max_length=100)
+    barcode: Optional[str] = None
+    price: float = Field(..., ge=0)
+    compare_at_price: Optional[float] = Field(None, ge=0)
+    weight: Optional[float] = None
+    weight_unit: str = "kg"
+    inventory_quantity: int = Field(default=0, ge=0)
+    is_active: bool = True
+    options: dict = Field(default_factory=dict)
+
+
+class VariantUpdate(PydanticBaseModel):
+    sku: Optional[str] = Field(None, min_length=1, max_length=100)
+    barcode: Optional[str] = None
+    price: Optional[float] = Field(None, ge=0)
+    compare_at_price: Optional[float] = Field(None, ge=0)
+    weight: Optional[float] = None
+    weight_unit: Optional[str] = None
+    inventory_quantity: Optional[int] = Field(None, ge=0)
+    is_active: Optional[bool] = None
+    options: Optional[dict] = None
+
+
+class VariantResponse(PydanticBaseModel):
+    id: UUID
+    product_id: UUID
+    sku: str
+    barcode: Optional[str] = None
+    price: float
+    compare_at_price: Optional[float] = None
+    weight: Optional[float] = None
+    weight_unit: str
+    inventory_quantity: int
+    is_active: bool
+    options: dict
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProductImageCreate(PydanticBaseModel):
+    url: str = Field(..., min_length=1, max_length=2048)
+    alt_text: Optional[str] = Field(None, max_length=500)
+    sort_order: int = 0
+
+
+# ── Customer ─────────────────────────────────────────────────────────────
+
+
+class CustomerCreate(PydanticBaseModel):
+    email: str = Field(..., max_length=255)
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=50)
+
+
+class CustomerUpdate(PydanticBaseModel):
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=50)
+    is_verified: Optional[bool] = None
+
+
+class CustomerResponse(PydanticBaseModel):
+    id: UUID
+    tenant_id: UUID
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    is_verified: bool
+    total_orders: int
+    total_spent: float
+    last_order_at: Optional[datetime] = None
+
+
+# ── Order ────────────────────────────────────────────────────────────────
+
+
+class OrderItemCreate(PydanticBaseModel):
+    variant_id: UUID
+    quantity: int = Field(..., ge=1)
+    unit_price: float = Field(..., ge=0)
+    discount: float = Field(default=0, ge=0)
+
+
+class OrderCreate(PydanticBaseModel):
+    customer_id: UUID
+    items: list[OrderItemCreate]
+    shipping_address: dict = Field(default_factory=dict)
+    billing_address: dict = Field(default_factory=dict)
+    notes: Optional[str] = None
+    currency: str = "USD"
+
+
+class OrderUpdate(PydanticBaseModel):
+    status: Optional[str] = None
+    payment_status: Optional[str] = None
+    shipping_address: Optional[dict] = None
+    billing_address: Optional[dict] = None
+    notes: Optional[str] = None
+
+
+class OrderResponse(PydanticBaseModel):
+    id: UUID
+    tenant_id: UUID
+    customer_id: Optional[UUID] = None
+    order_number: str
+    status: str
+    payment_status: str
+    payment_method: Optional[str] = None
+    payment_intent_id: Optional[str] = None
+    subtotal: float
+    tax: float
+    shipping: float
+    discount: float
+    total: float
+    currency: str
+    shipping_address: dict
+    billing_address: dict
+    notes: Optional[str] = None
+    metadata: dict
+    items: list["OrderItemResponse"]
+    customer: Optional["CustomerResponse"] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class OrderItemResponse(PydanticBaseModel):
+    id: UUID
+    order_id: UUID
+    variant_id: Optional[UUID] = None
+    product_id: Optional[UUID] = None
+    product_name: str
+    variant_name: Optional[str] = None
+    sku: str
+    quantity: int
+    unit_price: float
+    total_price: float
+    discount: float
+    created_at: datetime

@@ -1,16 +1,53 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=None)
 
-    supabase_url: str
-    supabase_key: str
+    # Database
+    database_url: str
+
+    # Upstash Redis
+    redis_url: Optional[str] = None
+    redis_enabled: bool = False
+
+    # Clerk
     clerk_secret_key: str
     clerk_publishable_key: str
-    svix_webhook_secret: str
-    doppler_pr: str
+    clerk_webhook_secret: str
+
+    # Svix (optional)
+    svix_webhook_secret: Optional[str] = None
+
+    # Stripe (optional)
+    stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
+    stripe_api_version: str = "2024-12-18.acacia"
+
+    # Doppler project reference
+    doppler_pr: str = "dev"
+
+    # App
+    app_env: str = "development"
+    debug: bool = False
+    allowed_origins: str = "*"
 
     @property
     def is_production(self) -> bool:
         return self.doppler_pr == "prod"
+
+    @property
+    def is_development(self) -> bool:
+        return self.app_env == "development"
+    
+    @property
+    def stripe_enabled(self) -> bool:
+        return self.stripe_secret_key is not None and not self.stripe_secret_key.startswith("sk_test_placeholder")
+    
+    @property
+    def svix_enabled(self) -> bool:
+        return self.svix_webhook_secret is not None and not self.svix_webhook_secret.startswith("whsec_placeholder")
+
+
+settings = Settings()  # type: ignore[call-arg]

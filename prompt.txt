@@ -5,3 +5,10 @@ The plan must map out the exact directory structures for apps/admin, apps/storef
 Present the blueprint and file structural tree first. Do not generate files yet." 
 
 https://www.youtube.com/watch?v=CcmmofBJHxI&pp=0gcJCT8LAYcqIYzv
+
+
+. Add defaults for development — give all fields sensible defaults so the app runs locally without Doppler:
+database_url: str = "postgresql+psycopg://..."
+redis_url: str = "redis://localhost:6379"
+doppler_pr: str = "dev"
+# etc.

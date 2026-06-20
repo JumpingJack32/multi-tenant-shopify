@@ -1,18 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from src.config import Settings
 
-settings = Settings()
+from src.config import settings
+from src.database import init_db
+from src.core.cache import redis_client
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Validate all required env vars on startup (fail-fast)
-    _ = settings.supabase_url
-    _ = settings.supabase_key
+    """Initialize resources on startup and cleanup on shutdown."""
+    # Validate config
+    _ = settings.database_url
+    _ = settings.redis_url
     _ = settings.clerk_secret_key
-    _ = settings.svix_webhook_secret
+    
+    # Only validate if enabled
+    if settings.stripe_enabled:
+        _ = settings.stripe_secret_key
+        _ = settings.stripe_webhook_secret
+
+    # Initialize database
+    await init_db()
+
+    # Verify Redis connection
+    if settings.redis_enabled:
+        connected = await redis_client.ping()
+        if not connected:
+            settings.redis_enabled = False
+
     yield
+
+    # Cleanup
+    await redis_client.close()
 
 app = FastAPI(
     title="Multi-Tenant Shopify API",
@@ -33,11 +53,15 @@ from src.routes.tenants import router as tenants_router  # noqa: E402
 from src.routes.products import router as products_router  # noqa: E402
 from src.routes.orders import router as orders_router  # noqa: E402
 from src.routes.webhooks import router as webhooks_router  # noqa: E402
+from src.routes.auth import router as auth_router  # noqa: E402
+from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
 
 app.include_router(tenants_router, prefix="/api/v1/tenants")
 app.include_router(products_router, prefix="/api/v1/products")
 app.include_router(orders_router, prefix="/api/v1/orders")
 app.include_router(webhooks_router)
+app.include_router(auth_router)
+app.include_router(admin_auth_router)
 
 
 @app.get("/health")
