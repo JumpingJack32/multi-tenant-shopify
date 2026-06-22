@@ -2,6 +2,8 @@ from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from src.dependencies import current_tenant_id
 
+from src.core.clerk_jwks import verify_clerk_token
+
 
 class TenantMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -11,18 +13,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
             authorization = request.headers.get("authorization")
             if authorization and authorization.startswith("Bearer "):
                 token = authorization[7:]
-                parts = token.split(".")
-                if len(parts) >= 2:
-                    import base64
-                    import json
-
-                    payload = parts[1]
-                    payload += "=" * (4 - len(payload) % 4)
-                    try:
-                        decoded = json.loads(base64.urlsafe_b64decode(payload))
-                        tenant_id = decoded.get("tenant_id") or decoded.get("sub")
-                    except Exception:
-                        pass
+                try:
+                    claims = await verify_clerk_token(token)
+                    tenant_id = claims.get("tenant_id") or claims.get("sub")
+                except Exception:
+                    pass
 
         if tenant_id:
             current_tenant_id.set(tenant_id)

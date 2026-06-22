@@ -71,3 +71,4 @@ coverage/
 # misc
 *.log
 .DS_Store
+docs/

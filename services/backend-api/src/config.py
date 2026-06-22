@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     clerk_secret_key: str
     clerk_publishable_key: str
     clerk_webhook_secret: str
+    clerk_jwks_url: str
+
+    # JWT
+    jwt_secret: str
 
     # Svix (optional)
     svix_webhook_secret: Optional[str] = None

@@ -37,6 +37,7 @@ class TenantUserAuthResponse(BaseModel):
     email: str
     tenant_id: UUID
     role: str
+    is_platform_superuser: bool = False
 
 
 class TenantUserAuthLogin(BaseModel):

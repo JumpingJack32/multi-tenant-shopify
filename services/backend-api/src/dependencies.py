@@ -31,8 +31,9 @@ async def get_current_tenant_id(
     authorization: str | None = Header(None),
 ) -> UUID:
     """Extract tenant ID from header or Bearer token payload."""
+    from src.core.clerk_jwks import verify_clerk_token
     from src.core.tenant_isolation import set_tenant_context
-    
+
     if x_tenant_id:
         try:
             tenant = UUID(x_tenant_id)
@@ -43,25 +44,18 @@ async def get_current_tenant_id(
 
     if authorization and authorization.startswith("Bearer "):
         token = authorization[7:]
-        parts = token.split(".")
-        if len(parts) >= 2:
-            import base64
-            import json
-
-            payload = parts[1]
-            payload += "=" * (4 - len(payload) % 4)
-            try:
-                decoded = json.loads(base64.urlsafe_b64decode(payload))
-                tenant = decoded.get("tenant_id") or decoded.get("sub")
-                if tenant:
-                    try:
-                        uuid_tenant = UUID(tenant)
-                        set_tenant_context(uuid_tenant)
-                        return uuid_tenant
-                    except ValueError:
-                        pass
-            except Exception:
-                pass
+        try:
+            claims = await verify_clerk_token(token)
+            tenant = claims.get("tenant_id") or claims.get("sub")
+            if tenant:
+                try:
+                    uuid_tenant = UUID(tenant)
+                    set_tenant_context(uuid_tenant)
+                    return uuid_tenant
+                except ValueError:
+                    pass
+        except Exception:
+            pass
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,6 +65,8 @@ async def get_current_tenant_id(
 
 async def get_current_user(request: Request) -> dict:
     """Extract and validate the current user from Clerk Bearer token."""
+    from src.core.clerk_jwks import verify_clerk_token
+
     auth_header = request.headers.get("authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -85,23 +81,9 @@ async def get_current_user(request: Request) -> dict:
             detail="Empty token",
         )
 
-    # TODO: Validate token with Clerk SDK or JWT verification
-    # For now, decode the JWT payload to extract user info
-    parts = token.split(".")
-    if len(parts) < 2:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format",
-        )
-
-    import base64
-    import json
-
-    payload = parts[1]
-    payload += "=" * (4 - len(payload) % 4)
     try:
-        decoded = json.loads(base64.urlsafe_b64decode(payload))
-        user_id = decoded.get("sub") or decoded.get("oid")
+        claims = await verify_clerk_token(token)
+        user_id = claims.get("sub") or claims.get("oid")
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -109,13 +91,13 @@ async def get_current_user(request: Request) -> dict:
             )
         return {
             "user_id": user_id,
-            "email": decoded.get("email"),
-            "tenant_id": decoded.get("tenant_id"),
+            "email": claims.get("email"),
+            "tenant_id": claims.get("tenant_id"),
         }
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Failed to decode token",
+            detail=f"Invalid Clerk token: {e}",
         )
 
 

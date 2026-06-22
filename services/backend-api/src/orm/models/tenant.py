@@ -63,6 +63,7 @@ class TenantUser(SQLModel, table=True):
     password_hash: str = Field(max_length=255)
     role: str = Field(default="member", max_length=50)
     is_active: bool = Field(default=True)
+    is_platform_superuser: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now())
     updated_at: datetime = Field(default_factory=lambda: datetime.now())
 
