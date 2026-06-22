@@ -43,7 +43,7 @@ class RegisterResponse(BaseModel):
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest, db):
+async def register(payload: RegisterRequest, db=Depends(get_db)):
     """Register a new customer account."""
     from sqlmodel import select
 
@@ -78,7 +78,7 @@ async def register(payload: RegisterRequest, db):
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(payload: LoginRequest, db):
+async def login(payload: LoginRequest, db=Depends(get_db)):
     """Authenticate and return JWT tokens."""
     from sqlmodel import select
 

@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
@@ -31,10 +31,12 @@ async def get_current_tenant_id(
     authorization: str | None = Header(None),
 ) -> UUID:
     """Extract tenant ID from header or Bearer token payload."""
+    from src.core.tenant_isolation import set_tenant_context
+    
     if x_tenant_id:
         try:
             tenant = UUID(x_tenant_id)
-            current_tenant_id.set(tenant)
+            set_tenant_context(tenant)
             return tenant
         except ValueError:
             pass
@@ -54,7 +56,7 @@ async def get_current_tenant_id(
                 if tenant:
                     try:
                         uuid_tenant = UUID(tenant)
-                        current_tenant_id.set(uuid_tenant)
+                        set_tenant_context(uuid_tenant)
                         return uuid_tenant
                     except ValueError:
                         pass

@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from src.config import settings
 from src.database import init_db
 from src.core.cache import redis_client
+from src.core.tenant_isolation import reset_tenant_context, setup_tenant_isolation
 
 
 @asynccontextmanager
@@ -22,6 +23,9 @@ async def lifespan(app: FastAPI):
 
     # Initialize database
     await init_db()
+
+    # Set up tenant isolation event listeners (once at startup)
+    setup_tenant_isolation()
 
     # Verify Redis connection
     if settings.redis_enabled:
@@ -48,6 +52,15 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Tenant-ID"],
 )
+
+
+@app.middleware("http")
+async def tenant_isolation_middleware(request: Request, call_next):
+    """Reset tenant context for each request."""
+    reset_tenant_context()
+    response = await call_next(request)
+    reset_tenant_context()
+    return response
 
 from src.routes.tenants import router as tenants_router  # noqa: E402
 from src.routes.products import router as products_router  # noqa: E402

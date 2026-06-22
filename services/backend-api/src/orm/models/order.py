@@ -36,7 +36,6 @@ class Order(BaseModel, table=True):
         Index("ix_orders_tenant_number", "tenant_id", "order_number"),
     )
     
-    tenant_id: UUID = Field(foreign_key="tenants.id")
     customer_id: Optional[UUID] = Field(default=None, foreign_key="customers.id", ondelete="SET NULL")
     # customer_id: UUID = Field(foreign_key="customers.id", ondelete="SET NULL")
     order_number: str = Field(max_length=50, unique=True)

@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     debug: bool = False
     allowed_origins: str = "*"
+    tenant_isolation_enabled: bool = True
 
     @property
     def is_production(self) -> bool:

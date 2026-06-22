@@ -1,9 +1,9 @@
-from datetime import datetime
+# from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, DateTime, Index, Text
+from sqlalchemy import JSON, Index, Text
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
@@ -87,7 +87,6 @@ class Inventory(BaseModel, table=True):
         Index("ix_inventory_tenant_variant", "tenant_id", "variant_id"),
         Index("ix_inventory_tenant_location", "tenant_id", "location_id"),
     )
-    tenant_id: UUID = Field(foreign_key="tenants.id")
     variant_id: UUID = Field(foreign_key="variants.id", ondelete="CASCADE")
     # location_id: UUID = Field(foreign_key="locations.id", ondelete="SET NULL")
     location_id: Optional[UUID] = Field(default=None, foreign_key="locations.id", ondelete="SET NULL")

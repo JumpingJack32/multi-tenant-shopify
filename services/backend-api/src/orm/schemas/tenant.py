@@ -17,7 +17,6 @@ class TenantUpdate(BaseModel):
 
 class TenantResponse(BaseModel):
     id: UUID
-    tenant_id: UUID
     name: str
     slug: str
     status: str
