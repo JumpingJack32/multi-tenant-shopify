@@ -11,10 +11,10 @@ metadata:
 
 ## What I Do
 
-- Generate interactive UI confirmation blocks inside `apps/web/src/components/`.
+- Generate interactive UI confirmation blocks inside `apps/admin/src/components/`.
 - Scaffolds clean form integrations leveraging React 19 `SubmitEvent` instead of deprecated event types.
 - Orchestrates animations using the modern `motion/react` package instead of the legacy `framer-motion` entry point.
-- Hardcodes safe frontend authorization patterns that request standard Clerk Supabase JWTs to proxy requests directly to local FastAPI backends running on OrbStack.
+- Hardcodes safe frontend authorization patterns that request standard Clerk Supabase JWTs to proxy requests directly to local FastAPI backends.
 
 ## Core Directives & Styling Rules
 
@@ -29,17 +29,17 @@ metadata:
 - Stick to standard utility classes (`size-16` instead of `w-16 h-16`, native alpha modifiers like `bg-green-500/20`).
 
 ### 3. Shadcn ui (base-ui/react)
-
-- Use standard, shadcn block where possible
+- Use standard shadcn components where possible. `@base-ui/react` does not have all components (e.g. `Card`).
 
   ```typescript
-  import { card, ... } from "@base-ui/react";
+  import { Button, Select, Dialog } from "@repo/ui/base-ui";
+  import { Card } from "@repo/ui/components/card";
   ```
 
 ### 4. Animation (`motion/react`)
 
-- DO NOT import from `framer-motion`. Import from `motion/react`:
+- DO NOT import from `framer-motion`. Import for example: `import { motion, FadeIn } from '@repo/ui/components/motion';`:
   
   ```typescript
-  import { motion, AnimatePresence } from "motion/react";
+  import { motion, AnimatePresence } from "@repo/ui/components/motion";
   ```
