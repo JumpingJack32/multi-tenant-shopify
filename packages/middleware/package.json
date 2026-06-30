@@ -1,0 +1,22 @@
+{
+  "name": "@repo/middleware",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.19.21"
+  },
+  "peerDependencies": {}
+    
+}

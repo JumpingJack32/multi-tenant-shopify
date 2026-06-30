@@ -1,8 +1,14 @@
+import base64
+import hashlib
+import hmac
 import json
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
+from svix.webhooks import Webhook as SvixWebhook
+from svix.webhooks import WebhookVerificationError
 
+from src.config import settings
 from src.dependencies import get_db
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
@@ -17,7 +23,7 @@ async def svix_webhook(
     svix_signature: str = Header(None, alias="Svix-Signature"),
     svix_timestamp: str = Header(None, alias="Svix-Timestamp"),
 ):
-    """Handle Svix webhook relay."""
+    """Handle Svix webhook relay with signature verification."""
     body = await request.body()
 
     if not svix_signature or not svix_timestamp:
@@ -26,8 +32,24 @@ async def svix_webhook(
             detail="Missing Svix headers",
         )
 
-    # TODO: Verify Svix signature
-    # For now, process the event
+    if not settings.svix_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Svix webhooks not configured",
+        )
+
+    try:
+        wh = SvixWebhook(settings.svix_webhook_secret)
+        wh.verify(body, {
+            "svix-signature": svix_signature,
+            "svix-timestamp": svix_timestamp,
+        })
+    except WebhookVerificationError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Svix signature",
+        )
+
     try:
         event_data = json.loads(body.decode("utf-8"))
     except json.JSONDecodeError:
@@ -37,13 +59,10 @@ async def svix_webhook(
         )
 
     event_type = event_data.get("type", "")
-    payload = event_data.get("payload", {})
 
     if event_type == "user.created":
-        # Handle new user creation
         pass
     elif event_type == "order.created":
-        # Handle order creation
         pass
 
     return {"status": "received"}
@@ -60,7 +79,7 @@ async def shopify_webhook(
     topic: str = Header(None, alias="X-Shopify-Topic"),
     db: AsyncSession = Depends(get_db),
 ):
-    """Handle Shopify webhooks."""
+    """Handle Shopify webhooks with HMAC verification."""
     body = await request.body()
 
     if not hmac_header or not shop:
@@ -69,10 +88,28 @@ async def shopify_webhook(
             detail="Missing Shopify headers",
         )
 
-    # TODO: Verify Shopify HMAC signature
-    # For now, process the event
+    if not settings.shopify_webhook_secret:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Shopify webhooks not configured",
+        )
+
+    expected_hmac = base64.b64encode(
+        hmac.new(
+            settings.shopify_webhook_secret.encode("utf-8"),
+            body,
+            hashlib.sha256,
+        ).digest()
+    ).decode()
+
+    if not hmac.compare_digest(expected_hmac, hmac_header):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Shopify HMAC signature",
+        )
+
     try:
-        payload = json.loads(body.decode("utf-8"))
+        json.loads(body.decode("utf-8"))
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -80,10 +117,8 @@ async def shopify_webhook(
         )
 
     if topic == "orders/create":
-        # Process new order from Shopify
         pass
     elif topic == "orders/paid":
-        # Update payment status
         pass
 
     return {"status": "received"}

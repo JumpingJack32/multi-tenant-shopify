@@ -72,3 +72,8 @@ coverage/
 *.log
 .DS_Store
 docs/
+
+# files
+apps/admin/src/components/ui/drawer copy.tsx
+apps/admin/src/components/layout/sidebar copy.tsx
+packages/ui/src/components/data-table copy.tsx

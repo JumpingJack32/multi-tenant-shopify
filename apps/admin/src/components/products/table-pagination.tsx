@@ -1,40 +1,35 @@
+"use client";
+
 interface TablePaginationProps {
-  page: number;
-  pageSize: number;
-  total: number;
+  currentPage: number;
+  totalPages: number;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
 }
 
-export function TablePagination({ page, pageSize, total, onPageChange, onPageSizeChange }: TablePaginationProps) {
-  const totalPages = Math.ceil(total / pageSize);
-
+export function TablePagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: TablePaginationProps) {
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="text-sm text-gray-500">
-        Showing {Math.min(page * pageSize, total)} of {total} products
-      </div>
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
       <div className="flex items-center gap-2">
-        <select
-          value={pageSize}
-          onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="rounded-md border px-2 py-1"
-        >
-          <option value={10}>10</option>
-          <option value={25}>25</option>
-          <option value={50}>50</option>
-        </select>
         <button
-          disabled={page === 1}
-          onClick={() => onPageChange(page - 1)}
-          className="rounded-md border px-3 py-1"
+          type="button"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+          className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm disabled:opacity-50 disabled:pointer-events-none hover:bg-accent"
         >
           Previous
         </button>
         <button
-          disabled={page === totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="rounded-md border px-3 py-1"
+          type="button"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+          className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm disabled:opacity-50 disabled:pointer-events-none hover:bg-accent"
         >
           Next
         </button>

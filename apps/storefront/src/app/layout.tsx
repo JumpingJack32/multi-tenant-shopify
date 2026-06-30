@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Providers } from "@/components/providers";
 import "@repo/ui/globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
-
-const queryClient = new QueryClient();
 
 export const metadata: Metadata = {
   title: "Storefront",
@@ -22,12 +20,9 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>
-          {/* <QueryClientProvider client={queryClient}> */}
-          {children}
-          {/* </QueryClientProvider> */}
+          <Providers>{children}</Providers>
         </body>
       </html>
     </ClerkProvider>
-
   );
 }

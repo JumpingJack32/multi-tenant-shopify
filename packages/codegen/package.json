@@ -4,18 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "hey-api openapi-ts"
+    "generate": "hey-api openapi-ts",
+    "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@hey-api/openapi-ts": "^0.60.0",
-    "@hey-api/plugin-zod": "^0.8.0"
-  },
+  
   "exports": {
     "./schemas": "./src/generated/schemas/index.ts",
     "./clients": "./src/generated/clients/index.ts"
   },
+  
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^26.0.1"
+    
   }
 }

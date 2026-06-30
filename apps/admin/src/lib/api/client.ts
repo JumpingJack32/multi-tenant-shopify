@@ -32,8 +32,11 @@ export async function request<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...rest.headers,
   };
+
+  if (rest.headers) {
+    Object.assign(headers, rest.headers);
+  }
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -64,42 +67,44 @@ export async function request<T>(
     return null as T;
   }
 
-  return response.json();
+  return response.json() as T;
 }
 
 export const api = {
   products: {
-    list(params?: Record<string, string>) {
+    list(params?: Record<string, string>, options?: { tenantId?: string | null }) {
       const query = new URLSearchParams(params).toString();
       return request<Product[]>(
         `/products/${query ? `?${query}` : ""}`,
+        options ?? {},
       );
     },
 
-    get(id: string) {
+    get(id: string, options?: { tenantId?: string | null }) {
       return request<Product>(
         `/products/${id}`,
+        options ?? {},
       );
     },
 
-    create(data: ProductCreate) {
+    create(data: ProductCreate, options?: { tenantId?: string | null }) {
       return request<Product>(
         "/products",
-        { method: "POST", body: JSON.stringify(data) },
+        { method: "POST", body: JSON.stringify(data), ...options },
       );
     },
 
-    update(id: string, data: ProductUpdate) {
+    update(id: string, data: ProductUpdate, options?: { tenantId?: string | null }) {
       return request<Product>(
         `/products/${id}`,
-        { method: "PUT", body: JSON.stringify(data) },
+        { method: "PUT", body: JSON.stringify(data), ...options },
       );
     },
 
-    delete(id: string) {
+    delete(id: string, options?: { tenantId?: string | null }) {
       return request<void>(
         `/products/${id}`,
-        { method: "DELETE" },
+        { method: "DELETE", ...options },
       );
     },
   },

@@ -8,7 +8,7 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
-} from "@/hooks/use-products";
+} from "@/features/products/hooks/use-products";
 import { ProductTable } from "@/components/products/product-table";
 import { ProductDrawer } from "@/components/products/product-drawer";
 import { ProductDeleteDialog } from "@/components/products/product-delete-dialog";

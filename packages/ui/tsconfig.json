@@ -2,14 +2,12 @@
   "extends": [
     "@repo/typescript-config/base.json",
     "@repo/typescript-config/nextjs.json",
-    "@repo/typescript-config/react-library.json"
   ],
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
     "paths": {
+      "*": [ "./*" ],
       "@repo/ui/*": [ "./src/*" ]
     }
   },

@@ -3,16 +3,39 @@ import { z } from "zod";
 export const ProductSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid(),
-  name: z.string().min(1),
-  description: z.string().nullable(),
-  price: z.number().int().positive(),
-  sku: z.string().nullable(),
-  status: z.enum(["draft", "active", "archived"]),
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  description: z.string().nullable().optional(),
+  sku: z.string().nullable().optional(),
+  status: z.enum(["draft", "published", "archived"]),
+  weight: z.number().nullable().optional(),
+  weight_unit: z.string(),
+  is_active: z.boolean(),
   created_at: z.string(),
   updated_at: z.string(),
 });
 
-export const ProductCreateSchema = ProductSchema.omit({ id: true, created_at: true, updated_at: true });
+export const ProductCreateSchema = z.object({
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  description: z.string().nullable().optional(),
+  sku: z.string().nullable().optional(),
+  status: z.enum(["draft", "published", "archived"]).default("draft"),
+  weight: z.number().nullable().optional(),
+  weight_unit: z.string().default("kg"),
+  is_active: z.boolean().default(true),
+});
+
+export const ProductUpdateSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  slug: z.string().min(1).max(255).optional(),
+  description: z.string().nullable().optional(),
+  sku: z.string().nullable().optional(),
+  status: z.enum(["draft", "published", "archived"]).optional(),
+  weight: z.number().nullable().optional(),
+  weight_unit: z.string().optional(),
+  is_active: z.boolean().optional(),
+});
 
 export const OrderSchema = z.object({
   id: z.string().uuid(),

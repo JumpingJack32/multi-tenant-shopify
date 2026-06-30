@@ -3,8 +3,8 @@
   "extends": "./base.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "baseUrl": ".",
     "paths": {
+      "*": [ "./*" ],
       "@/*": ["./*"]
     },
     "types": ["@types/node"]

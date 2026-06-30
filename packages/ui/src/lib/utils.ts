@@ -1,3 +1,3 @@
-import { cn as cnBase } from "@repo/shared-utils/cn";
+import { cn as cnBase } from "@repo/shared-utils/index";
 
 export const cn = cnBase;

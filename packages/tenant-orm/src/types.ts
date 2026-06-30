@@ -19,12 +19,37 @@ export interface Product {
   id: string;
   tenant_id: string;
   name: string;
+  slug: string;
   description: string | null;
-  price: number;
   sku: string | null;
-  status: "draft" | "active" | "archived";
+  status: "draft" | "published" | "archived";
+  weight: number | null;
+  weight_unit: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProductCreate {
+  name: string;
+  slug: string;
+  description?: string | null;
+  sku?: string | null;
+  status?: "draft" | "published" | "archived";
+  weight?: number | null;
+  weight_unit?: string;
+  is_active?: boolean;
+}
+
+export interface ProductUpdate {
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  sku?: string | null;
+  status?: "draft" | "published" | "archived";
+  weight?: number | null;
+  weight_unit?: string;
+  is_active?: boolean;
 }
 
 export interface Order {

@@ -31,12 +31,12 @@ const TableRow = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElem
     <tr className={`border-b ${className || ""}`} {...props} />
 );
 
-const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
+const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableHeaderCellElement>) => (
     <th className={`h-10 px-2 text-left align-middle font-medium ${className || ""}`} {...props} />
 );
 
 // 👇 FIX: TableCell now accepts all standard <td> attributes (including colSpan and className)
-const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableDataCellElement>) => (
     <td className={`p-2 align-middle ${className || ""}`} {...props} />
 );
 

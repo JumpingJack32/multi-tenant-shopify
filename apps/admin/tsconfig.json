@@ -1,8 +1,7 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+     "lib": ["ES2022", "DOM"],
     "paths": {
       "@/*": ["./src/*"],
       "@repo/codegen/*": ["../../packages/codegen/src/*"],

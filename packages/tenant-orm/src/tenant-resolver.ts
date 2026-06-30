@@ -5,7 +5,7 @@ export function resolveTenantFromHeaders(headers: Headers): string | null {
   const host = headers.get("host");
   if (host) {
     const parts = host.split(".");
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[0]) {
       return parts[0];
     }
   }
@@ -15,7 +15,9 @@ export function resolveTenantFromHeaders(headers: Headers): string | null {
 
 export function resolveTenantFromClerkToken(token: string): string | null {
   try {
-    const payload = token.split(".")[1];
+    const parts = token.split(".");
+    const payload = parts[1];
+    if (!payload) return null;
     const decoded = JSON.parse(
       Buffer.from(payload, "base64url").toString("utf-8"),
     );

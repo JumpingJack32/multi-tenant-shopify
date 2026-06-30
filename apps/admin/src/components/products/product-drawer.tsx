@@ -20,10 +20,7 @@ export function ProductDrawer({
   return (
     <Drawer
       open={open}
-      onOpenChange={(isOpen) => {
-        onOpenChange(isOpen);
-        if (!isOpen) onOpenChange(false);
-      }}
+      onOpenChange={onOpenChange}
       title={product ? "Edit Product" : "Create Product"}
       size="md"
     >

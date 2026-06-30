@@ -6,15 +6,19 @@ import {
   deleteProduct,
 } from "../api/products-service";
 import type { Product, ProductCreate, ProductUpdate } from "@repo/tenant-orm/types";
+// import { useTenant } from "@/hooks/use-tenant"; // Adjust based on your actual use-tenant hook
+// import { useRbac } from "@/context/rbac-context"; // Adjust based on your rbac-context path
 
 export function useProducts(params?: {
   search?: string;
   page?: string;
   limit?: string;
 }) {
+
   return useQuery({
     queryKey: ["products", params],
     queryFn: () => fetchProducts(params),
+
   });
 }
 

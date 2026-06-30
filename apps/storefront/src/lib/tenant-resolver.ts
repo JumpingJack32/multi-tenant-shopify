@@ -3,7 +3,7 @@ export function resolveTenantFromRequest(req: Request): string | null {
   if (host) {
     const parts = host.split(".");
     if (parts.length > 1) {
-      return parts[0];
+      return parts[0] ?? null;
     }
   }
 

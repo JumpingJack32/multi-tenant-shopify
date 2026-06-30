@@ -1,0 +1,35 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./provider": "./src/provider.tsx",
+    "./hooks": "./src/hooks.ts",
+    "./tenant": "./src/tenant.tsx",
+    "./middleware": "./src/middleware.ts",
+    "./client": "./src/client.ts"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.8.0",
+    "@clerk/nextjs": "^7.5.7"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "next": "^16.2.6"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.19.21",
+    "@types/react": "^19.0.0",
+    "next": "^16.2.6"
+  }
+}

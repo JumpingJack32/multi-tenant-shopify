@@ -27,9 +27,6 @@ export function createTenantClient(
             "X-Tenant-ID": this.tenantId,
           },
         },
-        db: {
-          customFetch: fetch,
-        },
         auth: {
           persistSession: false,
         },

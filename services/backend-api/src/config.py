@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Svix (optional)
     svix_webhook_secret: Optional[str] = None
 
+    # Shopify (optional)
+    shopify_webhook_secret: Optional[str] = None
+
     # Stripe (optional)
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None

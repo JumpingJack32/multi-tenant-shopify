@@ -188,6 +188,37 @@ importers:
         specifier: ^3.0.0
         version: 3.2.6(@types/node@22.19.21)(jiti@2.7.0)(lightningcss@1.32.0)(msw@2.14.6(@types/node@22.19.21)(typescript@5.9.3))
 
+  packages/auth:
+    dependencies:
+      '@clerk/backend':
+        specifier: ^3.8.0
+        version: 3.8.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@clerk/nextjs':
+        specifier: ^7.5.7
+        version: 7.5.7(next@16.2.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^18.0.0 || ^19.0.0
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.19.21
+        version: 22.19.21
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.17
+      next:
+        specifier: ^16.2.6
+        version: 16.2.9(@babel/core@7.29.7)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+
   packages/codegen:
     devDependencies:
       '@repo/eslint-config':
@@ -196,6 +227,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^26.0.1
+        version: 26.0.1
 
   packages/db: {}
 
@@ -229,6 +263,22 @@ importers:
         specifier: ^5.0.0
         version: 5.2.0(eslint@9.39.4(jiti@2.7.0))
 
+  packages/middleware:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.27
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.19.21
+        version: 22.19.21
+
   packages/shared-utils:
     dependencies:
       clsx:
@@ -247,6 +297,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.19.21
+        version: 22.19.21
 
   packages/tenant-orm:
     dependencies:
@@ -266,6 +319,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.19.21
+        version: 22.19.21
 
   packages/typescript-config: {}
 
@@ -277,6 +333,12 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.3.1(vite@7.3.5(@types/node@22.19.21)(jiti@2.7.0)(lightningcss@1.32.0))
+      '@tanstack/react-table':
+        specifier: ^8.21.3
+        version: 8.21.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.17
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -289,6 +351,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
@@ -299,6 +364,9 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      '@repo/shared-utils':
+        specifier: workspace:*
+        version: link:../shared-utils
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
@@ -1293,6 +1361,17 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
+  '@tanstack/react-table@8.21.3':
+    resolution: {integrity: sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
+
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
     engines: {node: '>=18'}
@@ -1381,6 +1460,9 @@ packages:
 
   '@types/node@22.19.21':
     resolution: {integrity: sha512-VMeFBSCKQKmm2swI2kW51SFusDqekC6q9trBCvJ/JliDchFSuoYYKN7yVNjPthP1HKZcx3U1gI/wTcEBjEFKTA==}
+
+  '@types/node@26.0.1':
+    resolution: {integrity: sha512-fc3KiUoBt6kie0N9bIW3E47vZsuaMf0PM2AaUpLCLT0s/LvX1nxAim6Fc049cNxODPpGm6qRAuUOB86SkRuPQw==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -2234,6 +2316,10 @@ packages:
 
   headers-polyfill@5.0.1:
     resolution: {integrity: sha512-1TJ6Fih/b8h5TIcv+1+Hw0PDQWJTKDKzFZzcKOiW1wJza3XoAQlkCuXLbymPYB8+ZQyw8mHvdw560e8zVFIWyA==}
+
+  hono@4.12.27:
+    resolution: {integrity: sha512-1yrb/+w6HWQJrUCLkJ2IF5jNIPvvFkblV5RNOYl6bV+OA6p9GLcMpHFFGTosSvHvcAUibuUukRqhlYI4z32C7Q==}
+    engines: {node: '>=16.9.0'}
 
   iceberg-js@0.8.1:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
@@ -3100,6 +3186,9 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
+  undici-types@8.3.0:
+    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   unicorn-magic@0.3.0:
     resolution: {integrity: sha512-+QBBXBCvifc56fsbuxZQ6Sic3wqqc3WWaqxs58gvJrcOuN83HGTCwz3oS5phzU9LthRNE9VrJCFCLUgHeeFnfA==}
@@ -4046,6 +4135,14 @@ snapshots:
       '@tanstack/query-core': 5.101.0
       react: 19.2.7
 
+  '@tanstack/react-table@8.21.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@tanstack/table-core': 8.21.3
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+
+  '@tanstack/table-core@8.21.3': {}
+
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.7
@@ -4138,6 +4235,10 @@ snapshots:
   '@types/node@22.19.21':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/node@26.0.1':
+    dependencies:
+      undici-types: 8.3.0
 
   '@types/react-dom@19.2.3(@types/react@19.2.17)':
     dependencies:
@@ -5120,6 +5221,8 @@ snapshots:
       '@types/set-cookie-parser': 2.4.10
       set-cookie-parser: 3.1.0
 
+  hono@4.12.27: {}
+
   iceberg-js@0.8.1: {}
 
   ignore@5.3.2: {}
@@ -6006,6 +6109,8 @@ snapshots:
       which-boxed-primitive: 1.1.1
 
   undici-types@6.21.0: {}
+
+  undici-types@8.3.0: {}
 
   unicorn-magic@0.3.0: {}
 

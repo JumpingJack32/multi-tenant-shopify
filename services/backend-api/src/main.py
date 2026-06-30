@@ -44,10 +44,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+origins = [o.strip() for o in settings.allowed_origins.split(",") if o.strip()]
+has_wildcard = "*" in origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=not has_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Tenant-ID"],
