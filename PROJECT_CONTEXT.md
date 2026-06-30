@@ -20,6 +20,7 @@
 ## TypeScript
 - TS 6.0.3 is installed. The `ignoreDeprecations: "6.0"` option is silently accepted in packages extending `base.json` but causes TS5103 in apps extending `nextjs.json`. Admin tsconfig omits it.
 - Clerk v7 uses `proxy.ts` (not `middleware.ts`) at app source root for middleware — Next.js auto-discovers it as middleware.
+- `@/` import alias works via `nextjs.json` paths (`"@/*": ["./*"]`). Apps override in their own tsconfig with `"@/*": ["./src/*"]`.
 
 ## Asyncpg
 - DSN prefix must be `postgresql://` — NOT `postgresql+asyncpg://`
