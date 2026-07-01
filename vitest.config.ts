@@ -9,7 +9,7 @@ export default defineConfig({
       include: ["packages/*/src/**", "apps/*/src/**"],
       exclude: ["**/*.test.ts", "**/*.test.tsx", "**/node_modules/**"],
       thresholds: {
-        lines: 15,
+        lines: 30,
       },
     },
     projects: [
@@ -42,9 +42,11 @@ export default defineConfig({
         },
       },
       {
+        plugins: [react()],
         test: {
           name: "auth",
           root: "./packages/auth",
+          environment: "jsdom",
           include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
         },
       },
