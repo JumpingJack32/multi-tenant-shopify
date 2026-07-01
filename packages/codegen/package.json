@@ -7,17 +7,15 @@
     "generate": "hey-api openapi-ts",
     "typecheck": "tsc --noEmit"
   },
-  
   "exports": {
     "./schemas": "./src/generated/schemas/index.ts",
     "./clients": "./src/generated/clients/index.ts"
   },
-  
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.68.0",
-    "@hey-api/plugin-zod": "^0.8.0",
+    "@hey-api/openapi-ts": "^0.99.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^26.0.1"
+    "@types/node": "^26.0.1",
+    "zod": "^3.25.76"
   }
 }
