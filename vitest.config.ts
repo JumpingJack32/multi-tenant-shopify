@@ -3,6 +3,15 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary", "html"],
+      include: ["packages/*/src/**", "apps/*/src/**"],
+      exclude: ["**/*.test.ts", "**/*.test.tsx", "**/node_modules/**"],
+      thresholds: {
+        lines: 15,
+      },
+    },
     projects: [
       {
         test: {
