@@ -30,6 +30,8 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/shared-utils": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^22.19.21",
     "@vitejs/plugin-react": "^4.3.0",
     "react-dom": "^19.2.4",
