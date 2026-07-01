@@ -31,11 +31,13 @@
     "@repo/shared-utils": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.19.21",
+    "@vitejs/plugin-react": "^4.3.0",
     "react-dom": "^19.2.4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3"
   },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
