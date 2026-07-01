@@ -1,7 +1,9 @@
 "use client";
 
 import type { Product } from "@repo/tenant-orm/types";
+
 import { Button } from "@/components/ui/button";
+
 import { TablePagination } from "./table-pagination";
 import { TableToolbar } from "./table-toolbar";
 

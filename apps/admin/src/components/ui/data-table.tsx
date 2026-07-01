@@ -1,7 +1,7 @@
 "use client";
-import { useState, useMemo, type ChangeEvent } from "react";
-import type { Product } from "@repo/tenant-orm/types";
 import { cn } from "@repo/shared-utils/cn";
+import type { Product } from "@repo/tenant-orm/types";
+import { useState, useMemo, type ChangeEvent } from "react";
 
 interface DataTableProps {
   data: Product[];

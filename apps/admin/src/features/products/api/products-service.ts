@@ -1,5 +1,6 @@
-import { api } from "@/lib/api/client";
 import type { Product, ProductCreate, ProductUpdate } from "@repo/tenant-orm/types";
+
+import { api } from "@/lib/api/client";
 
 export interface ProductsResponse {
   data: Product[];

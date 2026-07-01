@@ -1,10 +1,11 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import Header from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { TenantProvider } from "@/contexts/tenant-context";
 import { RbacProvider } from "@/contexts/rbac-context";
+import { TenantProvider } from "@/contexts/tenant-context";
 
 const queryClient = new QueryClient();
 

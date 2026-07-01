@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useSignIn, useAuth, useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import {
   Button,
   Input,
 } from "@repo/ui/base-ui";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignInPage() {
   const router = useRouter();

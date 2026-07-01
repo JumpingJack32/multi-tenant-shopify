@@ -1,3 +1,4 @@
+// apps/admin/next.config.ts
 import type { NextConfig } from "next";
 
 

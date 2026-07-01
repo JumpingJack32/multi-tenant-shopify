@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useTenantContext } from "@/contexts/tenant-context";
-import { useRbac } from "@/contexts/rbac-context";
-import { useProducts } from "@/features/products/hooks/use-products";
 import { Card, CardHeader, CardTitle, CardDescription } from "@repo/ui/components/card";
-import { Button } from "@repo/ui/components/button";
+import Link from "next/link";
+
+import { useRbac } from "@/contexts/rbac-context";
+import { useTenantContext } from "@/contexts/tenant-context";
+import { useProducts } from "@/features/products/hooks/use-products";
 
 const quickLinks = [
   {
@@ -35,16 +35,14 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <Card className="rounded-lg border bg-card p-4">
+    <div className="rounded-lg border bg-card p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <Button className="mt-1 text-2xl font-semibold">
-        {loading ? (
-          <span className="inline-block h-7 w-12 animate-pulse rounded bg-muted" />
-        ) : (
-          value
-        )}
-      </Button>
-    </Card>
+      {loading ? (
+        <div className="mt-1 h-7 w-12 animate-pulse rounded bg-muted" />
+      ) : (
+        <p className="mt-1 text-2xl font-semibold">{value}</p>
+      )}
+    </div>
   );
 }
 

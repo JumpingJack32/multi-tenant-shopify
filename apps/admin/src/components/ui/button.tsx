@@ -1,7 +1,7 @@
 "use client";
 
-import { Button as BaseButton } from "@repo/ui/base-ui";
 import { cn } from "@repo/shared-utils/cn";
+import { Button as BaseButton } from "@repo/ui/base-ui";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "destructive" | "outline" | "ghost";

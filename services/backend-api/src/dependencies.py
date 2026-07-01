@@ -46,7 +46,7 @@ async def get_current_tenant_id(
         token = authorization[7:]
         try:
             claims = await verify_clerk_token(token)
-            tenant = claims.get("tenant_id") or claims.get("sub")
+            tenant = claims.get("tenant_id")
             if tenant:
                 try:
                     uuid_tenant = UUID(tenant)

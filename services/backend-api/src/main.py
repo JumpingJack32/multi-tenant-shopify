@@ -65,6 +65,7 @@ async def tenant_isolation_middleware(request: Request, call_next):
     reset_tenant_context()
     return response
 
+from src.routes.public import router as public_router  # noqa: E402
 from src.routes.tenants import router as tenants_router  # noqa: E402
 from src.routes.products import router as products_router  # noqa: E402
 from src.routes.orders import router as orders_router  # noqa: E402
@@ -72,6 +73,7 @@ from src.routes.webhooks import router as webhooks_router  # noqa: E402
 from src.routes.auth import router as auth_router  # noqa: E402
 from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
 
+app.include_router(public_router, prefix="/api/v1/public")
 app.include_router(tenants_router, prefix="/api/v1/tenants")
 app.include_router(products_router, prefix="/api/v1/products")
 app.include_router(orders_router, prefix="/api/v1/orders")

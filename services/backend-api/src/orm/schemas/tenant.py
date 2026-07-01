@@ -15,8 +15,16 @@ class TenantUpdate(BaseModel):
     status: str | None = None
 
 
+class TenantPublicResponse(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    name: str
+    slug: str
+
+
 class TenantResponse(BaseModel):
     id: UUID
+    tenant_id: UUID
     name: str
     slug: str
     status: str

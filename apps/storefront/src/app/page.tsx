@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
-import { resolveTenantFromRequest } from "@/lib/tenant-resolver";
 import { motion } from '@repo/ui/components/motion';
+import { redirect } from "next/navigation";
+
+import { resolveTenantFromRequest } from "@/lib/tenant-resolver";
 
 
 export default function HomePage() {

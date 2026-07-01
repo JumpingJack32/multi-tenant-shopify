@@ -1,6 +1,11 @@
 "use client";
 
+import type { Product } from "@repo/tenant-orm/types";
 import { useState } from "react";
+
+import { ProductDeleteDialog } from "@/components/products/product-delete-dialog";
+import { ProductDrawer } from "@/components/products/product-drawer";
+import { ProductTable } from "@/components/products/product-table";
 import { Button } from "@/components/ui/button";
 import { useRbac } from "@/contexts/rbac-context";
 import {
@@ -9,10 +14,6 @@ import {
   useUpdateProduct,
   useDeleteProduct,
 } from "@/features/products/hooks/use-products";
-import { ProductTable } from "@/components/products/product-table";
-import { ProductDrawer } from "@/components/products/product-drawer";
-import { ProductDeleteDialog } from "@/components/products/product-delete-dialog";
-import type { Product } from "@repo/tenant-orm/types";
 
 export default function ProductsPage() {
   const { can } = useRbac();

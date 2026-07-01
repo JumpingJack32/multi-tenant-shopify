@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, type ReactNode, useMemo } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { createContext, useContext, type ReactNode, useMemo } from "react";
 
 export type Role = "admin" | "member" | "viewer";
 

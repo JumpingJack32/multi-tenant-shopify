@@ -1,4 +1,19 @@
-import { createTenantClient } from "@repo/tenant-orm/client";
+import type { Product } from "@repo/tenant-orm/types";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+async function fetchProducts(tenantSlug: string): Promise<Product[]> {
+  const res = await fetch(
+    `${API_URL}/api/v1/public/products/${tenantSlug}`,
+    { next: { revalidate: 0 } },
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch products: ${res.statusText}`);
+  }
+
+  return res.json() as Promise<Product[]>;
+}
 
 export default async function TenantPage({
   params,
@@ -6,27 +21,26 @@ export default async function TenantPage({
   params: Promise<{ tenant: string }>;
 }) {
   const resolved = await params;
-  const client = createTenantClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  let products: Product[] = [];
+  let error: string | null = null;
 
-  const { data: products } = await client.db
-    .from("products")
-    .select("*")
-    .eq("tenant_id", resolved.tenant)
-    .eq("status", "active");
+  try {
+    products = await fetchProducts(resolved.tenant);
+  } catch (e) {
+    error = e instanceof Error ? e.message : "Failed to load products";
+  }
 
   return (
     <main>
       <h1>Products for {resolved.tenant}</h1>
+      {error && <p className="text-red-500">{error}</p>}
       <div>
-        {products?.map((product) => (
+        {products.map((product) => (
           <div key={product.id}>
             <h2>{product.name}</h2>
-            <p>${(product.price / 100).toFixed(2)}</p>
           </div>
         ))}
+        {!error && products.length === 0 && <p>No products available.</p>}
       </div>
     </main>
   );

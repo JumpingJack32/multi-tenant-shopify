@@ -1,8 +1,10 @@
 "use client";
 
-import { Drawer } from "@/components/ui/drawer";
-import { ProductForm } from "./product-form";
 import type { Product } from "@repo/tenant-orm/types";
+
+import { Drawer } from "@/components/ui/drawer";
+
+import { ProductForm } from "./product-form";
 
 interface ProductDrawerProps {
   open: boolean;

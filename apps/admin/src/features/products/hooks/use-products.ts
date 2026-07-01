@@ -1,11 +1,12 @@
+import type { Product, ProductCreate, ProductUpdate } from "@repo/tenant-orm/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import {
   fetchProducts,
   createProduct,
   updateProduct,
   deleteProduct,
 } from "../api/products-service";
-import type { Product, ProductCreate, ProductUpdate } from "@repo/tenant-orm/types";
 // import { useTenant } from "@/hooks/use-tenant"; // Adjust based on your actual use-tenant hook
 // import { useRbac } from "@/context/rbac-context"; // Adjust based on your rbac-context path
 

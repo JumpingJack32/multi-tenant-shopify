@@ -24,6 +24,7 @@ class Tenant(SQLModel, table=True):
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    tenant_id: UUID = Field(default_factory=uuid4, unique=True, index=True)
     name: str = Field(max_length=255)
     slug: str = Field(max_length=100, unique=True)
     domain: Optional[str] = Field(default=None, max_length=255)

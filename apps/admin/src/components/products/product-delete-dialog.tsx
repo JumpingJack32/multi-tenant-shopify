@@ -1,8 +1,9 @@
 "use client";
 
-import { AlertDialog } from "@repo/ui/base-ui";
-import { Button } from "@/components/ui/button";
 import type { Product } from "@repo/tenant-orm/types";
+import { AlertDialog } from "@repo/ui/base-ui";
+
+import { Button } from "@/components/ui/button";
 
 interface ProductDeleteDialogProps {
   product: Product | null;
