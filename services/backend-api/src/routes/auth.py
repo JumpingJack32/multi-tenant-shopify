@@ -49,8 +49,8 @@ async def register(payload: RegisterRequest, db=Depends(get_db)):
 
     # Check if customer already exists
     stmt = select(Customer).where(Customer.email == payload.email)
-    result = await db.execute(stmt)
-    existing = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    existing = result.one_or_none()
 
     if existing:
         raise HTTPException(
@@ -84,8 +84,8 @@ async def login(payload: LoginRequest, db=Depends(get_db)):
 
     # Find customer by email
     stmt = select(Customer).where(Customer.email == payload.email)
-    result = await db.execute(stmt)
-    customer = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    customer = result.one_or_none()
 
     if not customer or not pwd_context.verify(payload.password, customer.password_hash):
         raise HTTPException(

@@ -63,8 +63,8 @@ async def register(payload: AdminRegisterRequest, db: AsyncSession = Depends(get
     """Register a new tenant admin user."""
     # Find or create tenant
     stmt = select(Tenant).where(Tenant.slug == payload.tenant_slug)
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         tenant = Tenant(
@@ -80,8 +80,8 @@ async def register(payload: AdminRegisterRequest, db: AsyncSession = Depends(get
         TenantUser.email == payload.email,
         TenantUser.tenant_id == tenant.id,
     )
-    result = await db.execute(stmt)
-    existing = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    existing = result.one_or_none()
 
     if existing:
         raise HTTPException(
@@ -116,10 +116,10 @@ async def login(payload: AdminLoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate tenant admin and return JWT tokens."""
     stmt = select(TenantUser).where(
         TenantUser.email == payload.email,
-        TenantUser.is_active.is_(True),
+        TenantUser.is_active == True,  # noqa: E712
     )
-    result = await db.execute(stmt)
-    admin = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    admin = result.one_or_none()
 
     if not admin or not verify_password(payload.password, admin.password_hash):
         raise HTTPException(
@@ -255,8 +255,8 @@ async def me(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get
         )
 
     stmt = select(TenantUser).where(TenantUser.id == UUID(admin_id))
-    result = await db.execute(stmt)
-    admin = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    admin = result.one_or_none()
 
     if not admin:
         raise HTTPException(

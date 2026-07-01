@@ -24,3 +24,7 @@
 
 ## Asyncpg
 - DSN prefix must be `postgresql://` — NOT `postgresql+asyncpg://`
+
+## SQLModel
+- `db.exec()` replaces the deprecated `db.execute()` — use `.one_or_none()` instead of `.scalar_one_or_none()`, and `.all()` instead of `.scalars().all()`
+- `exec()` returns `ScalarResult[T]` directly; `execute()` returned `Result[T]` requiring `.scalars()`

@@ -116,8 +116,8 @@ async def require_admin(
     from src.orm.models.tenant import Tenant
 
     stmt = select(Tenant).where(Tenant.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant or tenant.status != "active":
         raise HTTPException(

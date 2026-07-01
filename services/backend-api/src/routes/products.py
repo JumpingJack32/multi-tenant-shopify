@@ -17,8 +17,8 @@ async def list_products(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Product).where(Product.tenant_id == tenant_id, Product.is_active == True)  # noqa: E712
-    result = await db.execute(stmt)
-    products = result.scalars().all()
+    result = await db.exec(stmt)
+    products = result.all()
     return products
 
 
@@ -42,8 +42,8 @@ async def get_product(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Product).where(Product.id == product_id, Product.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    product = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    product = result.one_or_none()
 
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -58,8 +58,8 @@ async def update_product(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Product).where(Product.id == product_id, Product.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    product = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    product = result.one_or_none()
 
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
@@ -79,8 +79,8 @@ async def delete_product(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Product).where(Product.id == product_id, Product.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    product = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    product = result.one_or_none()
 
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")

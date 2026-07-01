@@ -16,8 +16,8 @@ async def list_tenants(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Tenant)
-    result = await db.execute(stmt)
-    tenants = result.scalars().all()
+    result = await db.exec(stmt)
+    tenants = result.all()
     return tenants
 
 
@@ -39,8 +39,8 @@ async def get_tenant(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Tenant).where(Tenant.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
@@ -54,8 +54,8 @@ async def update_tenant(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Tenant).where(Tenant.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
@@ -74,8 +74,8 @@ async def delete_tenant(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Tenant).where(Tenant.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")

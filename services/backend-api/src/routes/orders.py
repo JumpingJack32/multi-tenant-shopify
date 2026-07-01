@@ -17,8 +17,8 @@ async def list_orders(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Order).where(Order.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    orders = result.scalars().all()
+    result = await db.exec(stmt)
+    orders = result.all()
     return orders
 
 
@@ -57,8 +57,8 @@ async def get_order(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Order).where(Order.id == order_id, Order.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    order = result.one_or_none()
 
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
@@ -73,8 +73,8 @@ async def update_order(
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Order).where(Order.id == order_id, Order.tenant_id == tenant_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    order = result.one_or_none()
 
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")

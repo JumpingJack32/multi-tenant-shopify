@@ -23,8 +23,8 @@ async def resolve_tenant(
 ):
     """Resolve a tenant by slug — used by the storefront to discover tenant info."""
     stmt = select(Tenant).where(Tenant.slug == slug, Tenant.status == "active")
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         raise HTTPException(
@@ -43,8 +43,8 @@ async def public_products(
     """List active products for a tenant — public storefront browsing."""
     # Resolve tenant by slug
     stmt = select(Tenant).where(Tenant.slug == tenant_slug, Tenant.status == "active")
-    result = await db.execute(stmt)
-    tenant = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
 
     if not tenant:
         raise HTTPException(
@@ -60,6 +60,6 @@ async def public_products(
         Product.tenant_id == tenant.tenant_id,
         Product.is_active == True,  # noqa: E712
     )
-    result = await db.execute(stmt)
-    products = result.scalars().all()
+    result = await db.exec(stmt)
+    products = result.all()
     return products

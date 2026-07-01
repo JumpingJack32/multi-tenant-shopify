@@ -33,8 +33,8 @@ async def _process_order_payment_impl(
     from src.orm.models.order import Order
 
     stmt = select(Order).where(Order.id == order_id)
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
+    result = await db.exec(stmt)
+    order = result.one_or_none()
 
     if not order:
         raise ValueError(f"Order {order_id} not found")
