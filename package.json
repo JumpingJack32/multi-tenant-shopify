@@ -16,7 +16,16 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "clean": "turbo run clean && del-cli node_modules/*/**/node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md,css,scss}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md,css,scss}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write"
+    ],
+    "*.{md,css,scss,json}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.99.0",
@@ -26,7 +35,9 @@
     "@vitest/coverage-v8": "^3.2.6",
     "del-cli": "^6.0.0",
     "dotenv-cli": "^11.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.0.0",
+    "lint-staged": "^17.0.8",
     "prettier": "^3.6.0",
     "turbo": "^2.5.0",
     "vitest": "^3.0.0"
