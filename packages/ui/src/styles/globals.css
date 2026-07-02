@@ -1,13 +1,19 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
-/* @import "tw-animate-css";  */
-/* Or if using Tailwind 4 plugin syntax: */
-@plugin "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+
+/* Scan the storefront app files */
+@source "@/apps/admin/app/components/**/*.{ts,tsx}";
+@source "@/apps/storefront/components/**/*.{ts,tsx}";
+
+/* Scan your shared UI components package */
+/* @source "../../../components*.{ts,tsx}";  */
+/* @source "../../../../apps/admin/app*.{ts,tsx}";  */
+/* @source "..*.{ts,tsx}"; */
 
 :root {
   --background: oklch(1 0 0);
@@ -126,7 +132,7 @@
   --font-sans: var(--font-sans); /* <- Noto Sans*/
   --font-heading: var(--font-heading); /* <- Playfair Display */
   --font-text: var(--font-text); /* <- Google Sans Flex */
-  --font-mono: var(--font-mono) /* <- Geist Mono */
+  --font-mono: var(--font-mono) /* <- Geist Mono */;
 }
 
 @layer base {

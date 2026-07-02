@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useProducts } from "../use-products";
+import type { Product } from "@repo/tenant-orm/types";
 import type { ReactNode } from "react";
 
 vi.mock("@/lib/api/client", () => ({
@@ -33,8 +34,21 @@ describe("useProducts", () => {
   });
 
   it("returns products on success", async () => {
-    const mockProducts = [
-      { id: "1", name: "Product A", slug: "product-a", status: "published" },
+    const mockProducts: Product[] = [
+      {
+        id: "1",
+        tenant_id: "tenant-1",
+        name: "Product A",
+        slug: "product-a",
+        description: "A test product",
+        sku: "SKU-001",
+        status: "published",
+        weight: 1.5,
+        weight_unit: "kg",
+        is_active: true,
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-01T00:00:00Z",
+      },
     ];
     const { api } = await import("@/lib/api/client");
     vi.mocked(api.products.list).mockResolvedValue(mockProducts);

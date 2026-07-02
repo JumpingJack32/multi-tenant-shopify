@@ -1,7 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ProductCreateSchema, ProductUpdateSchema } from "@repo/tenant-orm/schemas/tenant";
+import {
+  ProductCreateSchema,
+  ProductUpdateSchema,
+} from "@repo/tenant-orm/schemas";
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
 import { useForm } from "react-hook-form";
@@ -13,7 +16,11 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
-export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProps) {
+export function ProductForm({
+  initialData,
+  onSubmit,
+  onCancel,
+}: ProductFormProps) {
   const schema = initialData ? ProductUpdateSchema : ProductCreateSchema;
 
   const {
@@ -160,7 +167,11 @@ export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProp
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isSubmitting ? "Saving..." : initialData ? "Update Product" : "Create Product"}
+          {isSubmitting
+            ? "Saving..."
+            : initialData
+              ? "Update Product"
+              : "Create Product"}
         </BaseButton>
       </div>
       {/* <div className="flex items-center justify-end gap-3 pt-4">
@@ -171,6 +182,6 @@ export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProp
           {isSubmitting ? "Saving..." : initialData ? "Update Product" : "Create Product"}
         </Button> 
     </div>*/}
-    </form >
+    </form>
   );
 }
