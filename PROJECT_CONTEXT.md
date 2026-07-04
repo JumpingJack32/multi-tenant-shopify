@@ -35,6 +35,15 @@
 - `db.exec()` replaces the deprecated `db.execute()` — use `.one_or_none()` instead of `.scalar_one_or_none()`, and `.all()` instead of `.scalars().all()`
 - `exec()` returns `ScalarResult[T]` directly; `execute()` returned `Result[T]` requiring `.scalars()`
 
+## Media & Cloudinary
+
+- **Storefront** (`apps/storefront`): uses `next-cloudinary` with `<CldImage>` for optimized CDN image delivery. Never uploads directly.
+- **Admin** (`apps/admin`): will use `POST /api/v1/media/upload-signature` (protected by `require_admin` auth) to get signed upload params, then uploads directly to Cloudinary. Never proxies files through the backend.
+- **Backend** (`services/backend-api`): hosts `POST /api/v1/media/upload-signature` (generates signed upload params) and `DELETE /api/v1/media/asset` (signed delete). Never receives or proxies file data.
+- **Upload flow**: Browser → signed params from backend → direct upload to Cloudinary CDN → URL saved to product record. Backend never touches the binary.
+- **Env vars**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (backend, Doppler). `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (storefront, Doppler).
+- **Package**: `next-cloudinary` in storefront, `cloudinary` (PyPI) in backend.
+
 ## GitHub
 
 - Repo: JumpingJack32/multi-tenant-shopify (private)

@@ -41,20 +41,20 @@ This platform uses **shared-schema multi-tenancy** enforced at the database leve
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Monorepo** | Turborepo 2.x, pnpm 11.x |
-| **Frontend (admin)** | Next.js 16, React 19, Shadcn, Base UI, Tailwind CSS 4 |
-| **Frontend (storefront)** | Next.js 16, React 19, Zustand, Tailwind CSS 4 |
-| **Backend API** | FastAPI 0.115+, Python 3.14, uv |
-| **ORM** | SQLModel / SQLAlchemy (Python), Supabase JS Client (TS) |
-| **Database** | PostgreSQL 15+ (Supabase) with RLS |
-| **Auth** | Clerk (@clerk/nextjs, clerk-backend-api) |
-| **Payments** | Stripe (optional) |
-| **Webhooks** | Svix (optional) |
-| **Validation** | Zod, Pydantic |
-| **Secrets** | Doppler |
-| **Migrations** | Alembic (Python) |
+| Layer                     | Technology                                              |
+| ------------------------- | ------------------------------------------------------- |
+| **Monorepo**              | Turborepo 2.x, pnpm 11.x                                |
+| **Frontend (admin)**      | Next.js 16, React 19, Shadcn, Base UI, Tailwind CSS 4   |
+| **Frontend (storefront)** | Next.js 16, React 19, Zustand, Tailwind CSS 4           |
+| **Backend API**           | FastAPI 0.115+, Python 3.14, uv                         |
+| **ORM**                   | SQLModel / SQLAlchemy (Python), Supabase JS Client (TS) |
+| **Database**              | PostgreSQL 15+ (Supabase) with RLS                      |
+| **Auth**                  | Clerk (@clerk/nextjs, clerk-backend-api)                |
+| **Payments**              | Stripe (optional)                                       |
+| **Webhooks**              | Svix (optional)                                         |
+| **Validation**            | Zod, Pydantic                                           |
+| **Secrets**               | Doppler                                                 |
+| **Migrations**            | Alembic (Python)                                        |
 
 ---
 
@@ -153,16 +153,16 @@ This starts:
 
 ## Common Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm turbo run dev` | Start all workspaces in dev mode |
-| `pnpm turbo run build` | Build all workspaces |
-| `pnpm turbo run lint` | Lint all workspaces |
-| `pnpm turbo run typecheck` | Type-check all workspaces |
-| `pnpm turbo run test` | Run all tests |
-| `pnpm turbo run clean` | Clean build artifacts |
-| `cd services/backend-api && uv run pytest` | Run backend tests only |
-| `uv run alembic upgrade head` | Apply pending DB migrations |
+| Command                                    | Description                      |
+| ------------------------------------------ | -------------------------------- |
+| `pnpm turbo run dev`                       | Start all workspaces in dev mode |
+| `pnpm turbo run build`                     | Build all workspaces             |
+| `pnpm turbo run lint`                      | Lint all workspaces              |
+| `pnpm turbo run typecheck`                 | Type-check all workspaces        |
+| `pnpm turbo run test`                      | Run all tests                    |
+| `pnpm turbo run clean`                     | Clean build artifacts            |
+| `cd services/backend-api && uv run pytest` | Run backend tests only           |
+| `uv run alembic upgrade head`              | Apply pending DB migrations      |
 
 ### Backend-specific commands
 
@@ -171,9 +171,9 @@ All Python commands must use `uv`. Commands that need secrets (API keys, DB cred
 ```bash
 cd services/backend-api
 doppler run -- uv run uvicorn src.main:app --reload          # Start backend dev server
-doppler run -- uv run pytest                 # Run tests
-uv run ruff check .                          # Lint (no secrets needed)
-uv run alembic upgrade head                  # Migrations (no secrets needed)
+doppler run -- uv run pytest                                 # Run tests
+uv run ruff check .                                          # Lint (no secrets needed)
+uv run alembic upgrade head                                  # Migrations (no secrets needed)
 ```
 
 ---

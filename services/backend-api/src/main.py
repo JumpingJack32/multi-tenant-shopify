@@ -72,6 +72,7 @@ from src.routes.orders import router as orders_router  # noqa: E402
 from src.routes.webhooks import router as webhooks_router  # noqa: E402
 from src.routes.auth import router as auth_router  # noqa: E402
 from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
+from src.routes.media import router as media_router  # noqa: E402
 
 app.include_router(public_router, prefix="/api/v1/public")
 app.include_router(tenants_router, prefix="/api/v1/tenants")
@@ -80,6 +81,7 @@ app.include_router(orders_router, prefix="/api/v1/orders")
 app.include_router(webhooks_router)
 app.include_router(auth_router)
 app.include_router(admin_auth_router)
+app.include_router(media_router, prefix="/api/v1/media")
 
 
 @app.get("/health")

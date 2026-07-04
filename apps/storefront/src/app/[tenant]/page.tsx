@@ -1,18 +1,26 @@
+import Link from "next/link";
 import type { Product } from "@repo/tenant-orm/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 async function fetchProducts(tenantSlug: string): Promise<Product[]> {
-  const res = await fetch(
-    `${API_URL}/api/v1/public/products/${tenantSlug}`,
-    { next: { revalidate: 0 } },
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products: ${res.statusText}`);
+  try {
+    const res = await fetch(`${API_URL}/api/v1/public/products/${tenantSlug}`, {
+      signal: controller.signal,
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) {
+      return [];
+    }
+
+    return res.json() as Promise<Product[]>;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return res.json() as Promise<Product[]>;
 }
 
 export default async function TenantPage({
@@ -22,26 +30,46 @@ export default async function TenantPage({
 }) {
   const resolved = await params;
   let products: Product[] = [];
-  let error: string | null = null;
 
   try {
     products = await fetchProducts(resolved.tenant);
-  } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to load products";
+  } catch {
+    products = [];
   }
 
   return (
-    <main>
-      <h1>Products for {resolved.tenant}</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      <div>
+    <main className="mx-auto max-w-6xl px-4 py-8">
+      <div className="mb-8">
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          &larr; Back to home
+        </Link>
+      </div>
+      <h1 className="mb-8 text-3xl font-bold tracking-tight capitalize">
+        {resolved.tenant}
+      </h1>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {products.map((product) => (
-          <div key={product.id}>
-            <h2>{product.name}</h2>
+          <div
+            key={product.id}
+            className="rounded-lg border border-border p-4 transition-colors hover:border-primary"
+          >
+            <h2 className="font-semibold">{product.name}</h2>
+            {product.description && (
+              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                {product.description}
+              </p>
+            )}
           </div>
         ))}
-        {!error && products.length === 0 && <p>No products available.</p>}
       </div>
+      {products.length === 0 && (
+        <p className="py-16 text-center text-muted-foreground">
+          No products available yet.
+        </p>
+      )}
     </main>
   );
 }

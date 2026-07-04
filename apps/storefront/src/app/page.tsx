@@ -19,13 +19,13 @@ export default function CatsAndDogsLanding() {
 
           <nav className="hidden gap-6 md:flex">
             <Link
-              href="/shop/cats"
+              href="/cats-and-dogs/shop/cats"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Shop Cats
             </Link>
             <Link
-              href="/shop/dogs"
+              href="/cats-and-dogs/shop/dogs"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Shop Dogs
@@ -66,7 +66,7 @@ export default function CatsAndDogsLanding() {
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <Button
                   nativeButton={false}
-                  render={<Link href="/shop" />}
+                  render={<Link href="/cats-and-dogs" />}
                   className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   Shop Now
@@ -106,7 +106,7 @@ export default function CatsAndDogsLanding() {
                     <Button
                       nativeButton={false}
                       className="inline-flex h-10 w-full items-center justify-center rounded-md bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                      render={<Link href="/shop/cats" />}
+                      render={<Link href="/cats-and-dogs/shop/cats" />}
                     >
                       Explore Cat Supplies
                     </Button>
@@ -130,7 +130,7 @@ export default function CatsAndDogsLanding() {
                     <Button
                       nativeButton={false}
                       className="inline-flex h-10 w-full items-center justify-center rounded-md bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                      render={<Link href="/shop/dogs" />}
+                      render={<Link href="/cats-and-dogs/shop/dogs" />}
                     >
                       Explore Dog Supplies
                     </Button>
