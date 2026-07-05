@@ -11,6 +11,12 @@ export const ProductSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string(),
   is_active: z.boolean(),
+  price: z.number().int().nonnegative().nullable().optional(),
+  specs: z
+    .array(z.object({ label: z.string(), value: z.string() }))
+    .nullable()
+    .optional(),
+  images: z.array(z.string()).nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -24,6 +30,12 @@ export const ProductCreateSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string().default("kg"),
   is_active: z.boolean().default(true),
+  price: z.number().int().nonnegative().nullable().optional(),
+  specs: z
+    .array(z.object({ label: z.string(), value: z.string() }))
+    .nullable()
+    .optional(),
+  images: z.array(z.string()).nullable().optional(),
 });
 
 export const ProductUpdateSchema = z.object({
@@ -35,6 +47,12 @@ export const ProductUpdateSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string().optional(),
   is_active: z.boolean().optional(),
+  price: z.number().int().nonnegative().nullable().optional(),
+  specs: z
+    .array(z.object({ label: z.string(), value: z.string() }))
+    .nullable()
+    .optional(),
+  images: z.array(z.string()).nullable().optional(),
 });
 
 export const OrderSchema = z.object({
@@ -47,7 +65,11 @@ export const OrderSchema = z.object({
   updated_at: z.string(),
 });
 
-export const OrderCreateSchema = OrderSchema.omit({ id: true, created_at: true, updated_at: true });
+export const OrderCreateSchema = OrderSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
 
 export const OrderItemSchema = z.object({
   id: z.string().uuid(),

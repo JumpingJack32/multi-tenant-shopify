@@ -28,7 +28,7 @@ describe("ProductSchema", () => {
         is_active: true,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
-      })
+      }),
     ).toThrow();
   });
 
@@ -44,8 +44,45 @@ describe("ProductSchema", () => {
         is_active: true,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
-      })
+      }),
     ).toThrow();
+  });
+
+  it("accepts price, specs and images", () => {
+    const result = ProductSchema.parse({
+      id: "00000000-0000-0000-0000-000000000001",
+      tenant_id: "00000000-0000-0000-0000-000000000002",
+      name: "Test",
+      slug: "test",
+      status: "published",
+      weight_unit: "kg",
+      is_active: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      price: 3499,
+      specs: [{ label: "MATERIAL", value: "Nylon" }],
+      images: ["https://example.com/img.jpg"],
+    });
+    expect(result.price).toBe(3499);
+    expect(result.specs).toEqual([{ label: "MATERIAL", value: "Nylon" }]);
+    expect(result.images).toEqual(["https://example.com/img.jpg"]);
+  });
+
+  it("accepts null optional fields", () => {
+    const result = ProductSchema.parse({
+      id: "00000000-0000-0000-0000-000000000001",
+      tenant_id: "00000000-0000-0000-0000-000000000002",
+      name: "Test",
+      slug: "test",
+      status: "published",
+      weight_unit: "kg",
+      is_active: true,
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    });
+    expect(result.price).toBeUndefined();
+    expect(result.specs).toBeUndefined();
+    expect(result.images).toBeUndefined();
   });
 });
 
