@@ -18,14 +18,13 @@ describe("Cart", () => {
     useCart.getState().addItem("1", "Test Product", 2999);
     render(<Cart />);
     expect(screen.getByText("Test Product")).toBeDefined();
-    const priceElements = screen.getAllByText(/£29\.99/);
-    expect(priceElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("£29.99").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("calculates item count correctly", () => {
-    useCart.getState().addItem("1", "Product A", 1000, undefined, 2);
-    useCart.getState().addItem("2", "Product B", 2000);
+  it("calculates grand total correctly", () => {
+    useCart.getState().addItem("1", "Product A", 2999, undefined, 2);
+    useCart.getState().addItem("2", "Product B", 4002);
     render(<Cart />);
-    expect(screen.getByText("Cart (3 items)")).toBeDefined();
+    expect(screen.getByText("£100.00")).toBeDefined();
   });
 });
