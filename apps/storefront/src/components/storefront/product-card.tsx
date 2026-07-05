@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "@repo/ui/components/motion";
+import { motion, AnimatePresence } from "@repo/ui/components/motion";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import type { Product } from "@repo/tenant-orm/types";
 
@@ -38,32 +39,28 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-black">
         {primaryImage ? (
-          <>
+          <AnimatePresence mode="wait">
             <motion.div
+              key={isHovered && hasSecondary ? "secondary" : "primary"}
               className="absolute inset-0"
-              animate={{ opacity: !isHovered || !hasSecondary ? 1 : 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <img
-                src={primaryImage}
+              <Image
+                src={
+                  isHovered && hasSecondary && secondaryImage
+                    ? secondaryImage
+                    : primaryImage
+                }
                 alt={product.name}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 50vw, 33vw"
               />
             </motion.div>
-            {hasSecondary && secondaryImage && (
-              <motion.div
-                className="absolute inset-0"
-                animate={{ opacity: isHovered ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <img
-                  src={secondaryImage}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              </motion.div>
-            )}
-          </>
+          </AnimatePresence>
         ) : (
           <div className="flex h-full items-center justify-center p-4 text-center text-muted-foreground">
             {product.name}
