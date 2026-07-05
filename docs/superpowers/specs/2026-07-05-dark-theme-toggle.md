@@ -15,6 +15,7 @@ Add a dark mode toggle using next-themes to both apps (storefront and admin). Th
 - Location: `packages/ui/src/components/ui/theme-toggle.tsx`
 - Exports a single `<ThemeToggle />` component
 - Uses `useTheme()` from next-themes to read current theme and `setTheme()` to toggle `"light"` / `"dark"`
+- Click handler calls `e.stopPropagation()` before `setTheme()` — prevents parent popover/menu components (Base UI, Radix) from snapping shut on toggle
 - Icon: Lucide `Sun` (light mode) / `Moon` (dark mode), stroke 1.5px per design system convention
 - Styled to match the host app context via Tailwind classes (no app-specific theming baked in)
 - Exported from `packages/ui/src/components/ui/index.ts` alongside existing button
@@ -81,15 +82,15 @@ Add a `<ThemeToggle />` inside the user popover as a `Menu.Item`. The popover al
 
 ## Files Changed
 
-| File | Action |
-|------|--------|
-| `packages/ui/src/components/ui/theme-toggle.tsx` | Create |
-| `packages/ui/src/components/ui/index.ts` | Edit — add export |
-| `apps/storefront/src/app/layout.tsx` | Edit — suppressHydrationWarning |
-| `apps/storefront/src/components/providers.tsx` | Edit — add ThemeProvider |
-| `apps/storefront/src/app/[tenant]/layout.tsx` | Edit — add header + ThemeToggle |
-| `apps/admin/src/app/layout.tsx` | Edit — add ThemeProvider + suppressHydrationWarning |
-| `apps/admin/src/components/layout/header.tsx` | Edit — add ThemeToggle in user popover |
+| File                                             | Action                                              |
+|--------------------------------------------------|-----------------------------------------------------|
+| `packages/ui/src/components/ui/theme-toggle.tsx` | Create                                              |
+| `packages/ui/src/components/ui/index.ts`         | Edit — add export                                   |
+| `apps/storefront/src/app/layout.tsx`             | Edit — suppressHydrationWarning                     |
+| `apps/storefront/src/components/providers.tsx`   | Edit — add ThemeProvider                            |
+| `apps/storefront/src/app/[tenant]/layout.tsx`    | Edit — add header + ThemeToggle                     |
+| `apps/admin/src/app/layout.tsx`                  | Edit — add ThemeProvider + suppressHydrationWarning |
+| `apps/admin/src/components/layout/header.tsx`    | Edit — add ThemeToggle in user popover              |
 
 ## Non-Goals
 
