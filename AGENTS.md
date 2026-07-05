@@ -1,18 +1,24 @@
-# Session Context — Saved 2026-07-02
+# Session Context — Saved 2026-07-05
 
 ## Current State
 
-- **104 tests, 28 files, 58.21% lines coverage** — all passing
-- Branch: `round-1-test-expansion` — committed and pushed (97155be)
-- Storefront: landing page (CatsAndDogs/Amoa & Agou), postcss.config.mjs, Tailwind v4 setup, `next-cloudinary` installed
-- Admin: ErrorBanner, OrdersTable, Settings form, product-form import fix
-- Cloudinary: backend `POST /api/v1/media/upload-signature` (protected by `require_admin`), `src/core/cloudinary.py` module, `cloudinary` PyPI dep added
-- PLP/PDP spec written: `docs/superpowers/specs/2026-07-02-storefront-plp-pdp.md` — deferred for implementation
+- **121 tests, 33 files, all passing** — 17 new tests, 5 new files added in this session
+- Branch: `round-1-test-expansion` — latest commit `2c1ed0a` (pushed)
+- **PLP/PDP fully implemented**: ProductCard (ghost card, motion cross-fade), ProductGrid (server component, fetch + render), ProductGallery (client component, 16:9 hero + detail images), ProductInfo + AddToCartButton (sticky PDP sidebar, cart integration)
+- **Routes**: Brand landing (`[tenant]/page.tsx`), full catalog (`[tenant]/shop/all`), category PLP (`[tenant]/shop/[category]`), PDP (`[tenant]/shop/[category]/[slug]`)
+- **Data model**: `price` (cents), `specs`, `images` on Product type + Zod schemas; CartItem extends with `name`, `price`, `image`
+- **Design system**: `DESIGN.md` rewritten to match `globals.css` (OKLCH colors, actual fonts/radii, removed speculative tokens)
+- **Clerk v7 + Next.js 16**: Confirmed `proxy.ts` is correct middleware filename; middleware IS running (confirmed via response headers)
+- **Admin**: ErrorBanner, OrdersTable, Settings form, product-form import fix
+- **Cloudinary**: Backend endpoint + `src/core/cloudinary.py` module installed (not yet wired to UI)
 
 ## Next Steps
 
-1. Add Cloudinary env vars to Doppler: `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-2. Restart dev servers to pick up new env vars
+1. Restart dev servers to verify PLP/PDP routes render with live data
+2. Implement mobile sticky CTA bar on PDP (per spec)
+3. Wire up Cloudinary images in place of Unsplash demo URLs
+4. Add category filtering on backend (currently all PLP routes show all products — by design for now)
+5. Add Cloudinary env vars to Doppler: `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 
 ## Key Decisions
 
@@ -21,6 +27,12 @@
 - Coverage: v8 provider, 30% threshold, exclusions in vitest.config.ts
 - Secrets via Doppler only (never .env directly)
 - Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
+- Price in cents, display as `£{(n / 100).toFixed(2)}`
+- Server components for data fetching; client components for interactivity
+- `@repo/ui/components/motion` re-exports `motion` + `AnimatePresence` from `motion/react`
+- `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts)
+- ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`
+- `proxy.ts` (not `middleware.ts`) is the correct middleware filename for Next.js 16.2.9
 
 ## UI Design
 
