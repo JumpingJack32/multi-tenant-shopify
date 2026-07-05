@@ -62,6 +62,11 @@ export default defineConfig({
       },
       {
         plugins: [react()],
+        resolve: {
+          alias: {
+            "@": new URL("./apps/storefront/src", import.meta.url).pathname,
+          },
+        },
         test: {
           name: "storefront",
           root: "./apps/storefront",
