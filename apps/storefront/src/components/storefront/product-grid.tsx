@@ -43,7 +43,7 @@ export async function ProductGrid({
 
   if (products.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
+      <div className="flex items-center justify-center py-16 bg-black min-h-screen">
         <div className="text-center">
           <p className="text-muted-foreground">No products available yet.</p>
           <Link
