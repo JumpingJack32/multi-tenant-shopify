@@ -1,75 +1,51 @@
 import Link from "next/link";
-import type { Product } from "@repo/tenant-orm/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function fetchProducts(tenantSlug: string): Promise<Product[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/public/products/${tenantSlug}`, {
-      signal: controller.signal,
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    return res.json() as Promise<Product[]>;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-export default async function TenantPage({
+export default async function TenantLandingPage({
   params,
 }: {
   params: Promise<{ tenant: string }>;
 }) {
-  const resolved = await params;
-  let products: Product[] = [];
-
-  try {
-    products = await fetchProducts(resolved.tenant);
-  } catch {
-    products = [];
-  }
+  const { tenant } = await params;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-8">
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          &larr; Back to home
-        </Link>
-      </div>
-      <h1 className="mb-8 text-3xl font-bold tracking-tight capitalize">
-        {resolved.tenant}
-      </h1>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="rounded-lg border border-border p-4 transition-colors hover:border-primary"
-          >
-            <h2 className="font-semibold">{product.name}</h2>
-            {product.description && (
-              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                {product.description}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-      {products.length === 0 && (
-        <p className="py-16 text-center text-muted-foreground">
-          No products available yet.
+    <main className="min-h-screen bg-black text-white">
+      {/* Hero */}
+      <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 text-center">
+        <h1 className="max-w-4xl text-5xl font-light tracking-tight sm:text-7xl md:text-8xl">
+          Amoa & Agou
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-white/60">
+          Premium gear for the modern explorer.
         </p>
-      )}
+        <div className="mt-10 flex gap-4">
+          <Link
+            href={`/${tenant}/shop/all`}
+            className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-black transition-colors hover:bg-white/90"
+          >
+            Shop All
+          </Link>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="mx-auto max-w-6xl px-4 py-24">
+        <div className="grid gap-8 md:grid-cols-2">
+          <Link href={`/${tenant}/shop/rucksacks`} className="group">
+            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+              <span className="text-6xl text-white/20">✦</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium">Rucksacks</h3>
+            <p className="text-sm text-white/40">Built for the journey.</p>
+          </Link>
+          <Link href={`/${tenant}/shop/gadgets`} className="group">
+            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+              <span className="text-6xl text-white/20">✦</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium">Gadgets</h3>
+            <p className="text-sm text-white/40">Tech for the trail.</p>
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

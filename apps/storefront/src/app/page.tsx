@@ -19,13 +19,13 @@ export default function CatsAndDogsLanding() {
 
           <nav className="hidden gap-6 md:flex">
             <Link
-              href="/cats-and-dogs/shop/cats"
+              href="/cats-and-dogs/shop/all"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Shop Cats
             </Link>
             <Link
-              href="/cats-and-dogs/shop/dogs"
+              href="/cats-and-dogs/shop/rucksacks"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               Shop Dogs
@@ -106,7 +106,7 @@ export default function CatsAndDogsLanding() {
                     <Button
                       nativeButton={false}
                       className="inline-flex h-10 w-full items-center justify-center rounded-md bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                      render={<Link href="/cats-and-dogs/shop/cats" />}
+                      render={<Link href="/cats-and-dogs/shop/all" />}
                     >
                       Explore Cat Supplies
                     </Button>
@@ -130,7 +130,7 @@ export default function CatsAndDogsLanding() {
                     <Button
                       nativeButton={false}
                       className="inline-flex h-10 w-full items-center justify-center rounded-md bg-muted px-4 text-sm font-medium text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                      render={<Link href="/cats-and-dogs/shop/dogs" />}
+                      render={<Link href="/cats-and-dogs/shop/rucksacks" />}
                     >
                       Explore Dog Supplies
                     </Button>
