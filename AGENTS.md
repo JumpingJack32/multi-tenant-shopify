@@ -21,3 +21,8 @@
 - Coverage: v8 provider, 30% threshold, exclusions in vitest.config.ts
 - Secrets via Doppler only (never .env directly)
 - Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
+
+## UI Design
+
+- Always follow the UI design system when creating or reviewing components or pages
+- Design system: @DESIGN.md
