@@ -31,6 +31,7 @@ describe("ThemeToggle", () => {
   it("renders moon icon in dark mode", () => {
     mockTheme = "dark";
     render(<ThemeToggle />);
+    expect(screen.getByRole("button")).toBeDefined();
   });
 
   it("calls setTheme with dark when currently light", () => {
