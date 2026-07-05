@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@repo/tenant-orm/types";
 
@@ -12,11 +12,11 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     addItem(product.id, product.name, product.price ?? 0, product.images?.[0]);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
-  }, [product, addItem]);
+  };
 
   return (
     <button

@@ -23,7 +23,7 @@
 ## TypeScript
 
 - TS 6.0.3 is installed. The `ignoreDeprecations: "6.0"` option is silently accepted in packages extending `base.json` but causes TS5103 in apps extending `nextjs.json`. Admin tsconfig omits it.
-- Clerk v7 uses `proxy.ts` (not `middleware.ts`) at app source root for middleware — Next.js auto-discovers it as middleware.
+- **Clerk v7 + Next.js 16 middleware**: Name the file `proxy.ts` (NOT `middleware.ts` — that's the legacy name for Next.js ≤15). Only the filename changes; the `clerkMiddleware()` code and `config.matcher` stay the same. Next.js auto-discovers `proxy.ts` as its proxy/middleware file. Use it at app source root or in `src/`. See https://clerk.com/docs/reference/nextjs/clerk-middleware.
 - `@/` import alias works via `nextjs.json` paths (`"@/*": ["./*"]`). Apps override in their own tsconfig with `"@/*": ["./src/*"]`.
 
 ## Asyncpg

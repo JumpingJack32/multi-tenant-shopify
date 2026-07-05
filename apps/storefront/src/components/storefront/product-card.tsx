@@ -17,9 +17,8 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
   const tenant = params.tenant as string;
   const [isHovered, setIsHovered] = useState(false);
 
-  const hasSecondary = product.images != null && product.images.length > 1;
   const primaryImage = product.images?.[0];
-  const secondaryImage = hasSecondary ? product.images![1] : null;
+  const secondaryImage = product.images?.[1];
 
   const handleClick = () => {
     router.push(`/${tenant}/shop/${categorySlug}/${product.slug}`);
@@ -41,7 +40,9 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
         {primaryImage ? (
           <AnimatePresence mode="wait">
             <motion.div
-              key={isHovered && hasSecondary ? "secondary" : "primary"}
+              key={
+                isHovered && secondaryImage != null ? "secondary" : "primary"
+              }
               className="absolute inset-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -50,7 +51,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
             >
               <Image
                 src={
-                  isHovered && hasSecondary && secondaryImage
+                  isHovered && secondaryImage != null
                     ? secondaryImage
                     : primaryImage
                 }

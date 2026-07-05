@@ -18,9 +18,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
         ★★★★★ (142)
       </div>
 
-      <p className="mt-2 text-3xl font-mono">
-        £{((product.price ?? 0) / 100).toFixed(2)}
-      </p>
+      {product.price != null && (
+        <p className="mt-2 text-3xl font-mono">
+          £{(product.price / 100).toFixed(2)}
+        </p>
+      )}
 
       <hr className="my-6" />
 

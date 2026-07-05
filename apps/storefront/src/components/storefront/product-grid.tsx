@@ -1,28 +1,7 @@
 import Link from "next/link";
 import type { Product } from "@repo/tenant-orm/types";
 import { ProductCard } from "./product-card";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function fetchProducts(tenantSlug: string): Promise<Product[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/public/products/${tenantSlug}`, {
-      signal: controller.signal,
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    return res.json() as Promise<Product[]>;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+import { fetchProducts } from "@/lib/api";
 
 interface ProductGridProps {
   tenantSlug: string;

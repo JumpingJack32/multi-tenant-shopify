@@ -6,6 +6,7 @@ import type { Product } from "@repo/tenant-orm/types";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   useCart.getState().clear();
 });
 
@@ -49,6 +50,5 @@ describe("AddToCartButton", () => {
     render(<AddToCartButton product={baseProduct} />);
     fireEvent.click(screen.getByText("ADD TO CART"));
     expect(screen.getByText("Added!")).toBeDefined();
-    vi.useRealTimers();
   });
 });

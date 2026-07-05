@@ -26,3 +26,8 @@
 
 - Always follow the UI design system when creating or reviewing components or pages
 - Design system: @DESIGN.md
+
+## Context
+
+- Always follow the project context system when creating or reviewing conflicting versions
+- Context system: @PROJECT_CONTEXT.md

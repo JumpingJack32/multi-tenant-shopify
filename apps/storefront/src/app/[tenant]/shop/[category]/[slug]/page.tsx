@@ -3,28 +3,7 @@ import { notFound } from "next/navigation";
 import type { Product } from "@repo/tenant-orm/types";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductInfo } from "@/components/storefront/product-info";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function fetchProducts(tenantSlug: string): Promise<Product[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/public/products/${tenantSlug}`, {
-      signal: controller.signal,
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) {
-      return [];
-    }
-
-    return res.json() as Promise<Product[]>;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+import { fetchProducts } from "@/lib/api";
 
 export default async function ProductPage({
   params,
@@ -53,7 +32,8 @@ export default async function ProductPage({
           href={`/${tenant}/shop/${category}`}
           className="inline-block text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Back to {category}
+          ← Back to{" "}
+          {category.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
         </Link>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto px-4 pb-8">

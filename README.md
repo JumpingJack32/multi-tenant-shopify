@@ -7,24 +7,24 @@ A production-grade multi-tenant SaaS platform modeled after Shopify's e-commerce
 ## Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Turborepo Monorepo                        │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  apps/admin   │  │  storefront  │  │ services/api     │  │
-│  │  (Next.js)    │  │  (Next.js)   │  │  (FastAPI/Python)│  │
-│  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘  │
-│         │                  │                    │           │
-│  ┌──────┴──────────────────┴────────────────────┴─────────┐ │
-│  │                     Packages                             │ │
-│  │  auth │ ui │ tenant-orm │ middleware │ codegen │ db     │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │           PostgreSQL + Row-Level Security                │ │
-│  │  (all tables scoped by tenant_id via mandatory FK)       │ │
-│  └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Turborepo Monorepo                              │
+│                                                                             │
+│   ┌────────────────┐      ┌────────────────┐      ┌────────────────────┐    │
+│   │   apps/admin   │      │ apps/storefront│      │    services/api    │    │
+│   │   (Next.js)    │      │   (Next.js)    │      │  (FastAPI/Python)  │    │
+│   └───────┬────────┘      └───────┬────────┘      └─────────┬──────────┘    │
+│           │                       │                         │               │
+│   ┌───────┴───────────────────────┴─────────────────────────┴───────────┐   │
+│   │                              Packages                               │   │
+│   │      auth  │  ui  │  tenant-orm  │  middleware  │  codegen  │  db   │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                   PostgreSQL + Row-Level Security                   │   │
+│   │         (all tables scoped by tenant_id via mandatory FK)           │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Multi-Tenant Data Isolation
@@ -125,6 +125,8 @@ This starts:
 - **Storefront** → <http://localhost:3001>
 - **Backend API** → <http://localhost:8000>
 - **API docs** → <http://localhost:8000/docs>
+- **API redoc** → <http://localhost:8000/redoc>
+-
 
 ---
 
