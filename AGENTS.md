@@ -2,9 +2,10 @@
 
 ## Current State
 
-- **121 tests, 33 files, all passing** — 17 new tests, 5 new files added in this session
-- Branch: `round-1-test-expansion` — latest commit `2c1ed0a` (pushed)
+- **127 tests, 35 files, all passing** — 23 new tests, 7 new files added in this session
+- Branch: `round-1-test-expansion` — latest commit `6e7cb82`
 - **PLP/PDP fully implemented**: ProductCard (ghost card, motion cross-fade), ProductGrid (server component, fetch + render), ProductGallery (client component, 16:9 hero + detail images), ProductInfo + AddToCartButton (sticky PDP sidebar, cart integration)
+- **Dark mode toggle**: Shared `<ThemeToggle />` in `packages/ui/src/components/ui/`, wired into storefront (tenant header bar) and admin (user popover)
 - **Routes**: Brand landing (`[tenant]/page.tsx`), full catalog (`[tenant]/shop/all`), category PLP (`[tenant]/shop/[category]`), PDP (`[tenant]/shop/[category]/[slug]`)
 - **Data model**: `price` (cents), `specs`, `images` on Product type + Zod schemas; CartItem extends with `name`, `price`, `image`
 - **Design system**: `DESIGN.md` rewritten to match `globals.css` (OKLCH colors, actual fonts/radii, removed speculative tokens)
@@ -33,6 +34,7 @@
 - `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts)
 - ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`
 - `proxy.ts` (not `middleware.ts`) is the correct middleware filename for Next.js 16.2.9
+- `e.stopPropagation()` required in toggle click handler when placed inside Base UI/Radix menu popovers
 
 ## UI Design
 
