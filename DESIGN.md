@@ -7,7 +7,7 @@
 
 ## Design Principles & Brand Tone
 
-High-end editorial luxury fashion minimalism. Cold, spacious, uncompromisingly clean.
+High-end editorial luxury fashion minimalism with sartorialist chic. Cold, spacious, uncompromisingly clean.
 
 - **Whitespace** as a functional design asset
 - **Typography** carries almost all visual identity — serif/sans pairing
@@ -15,6 +15,47 @@ High-end editorial luxury fashion minimalism. Cold, spacious, uncompromisingly c
 - **Avoid:** loud colours, heavy shadows, gradients, rounded startup UI, bright accents
 
 ---
+
+## Shadcn UI Component Standards: Base UI Default
+
+Components follow the shadcn/ui conventions but use `@repo/ui/base-ui` (which re-exports `@base-ui/react`) as the foundational primitive library instead of Radix UI. Block components are sourced in `packages/ui/src/components`.
+
+### 1. Underlying Primitives
+
+- ✅ Always import from `@repo/ui/base-ui` (Dialog, Popover, Tooltip, Menu, Select, Checkbox, Switch, etc.)
+- ❌ Never import from `@radix-ui/react-*` or `@base-ui/react` directly
+
+### 2. Render Pattern (No `asChild`)
+
+Base UI uses the `render` prop pattern instead of Radix's `asChild` prop or `<Slot>` primitive. Always use the `render` prop to pass custom elements or merge behavior onto child components.
+
+```tsx
+// ❌ BANNED — Radix asChild pattern
+<DropdownMenu.Trigger asChild><button>Click</button></DropdownMenu.Trigger>
+
+// ✅ REQUIRED — Base UI render prop
+<DropdownMenu.Trigger render={(props) => <button {...props}>Click</button>} />
+```
+
+### 3. Styling & States
+
+Rely on Base UI's data attributes for state styling (`data-state="open"`, `data-hovered`, `data-disabled`) combined with Tailwind v4. Use clean class compositions with `cn()` where needed.
+
+### 4. Configuration
+
+`packages/ui/components.json` is configured with `"style": "base-sera"` and aligns with the Base UI API specification. Write all registry components to match the Base UI API.
+
+### 5. Presentational Components
+
+Hand-write presentational components (Card, Table) as plain HTML + Tailwind — no headless primitive needed. No shadcn CLI-generated components.
+
+### Reference skill
+
+The `base-ui-react` skill (from the [ClaudeSkillz](https://github.com/jackspace/ClaudeSkillz) collection) provides guidance on Base UI component patterns, the render prop API, the Positioner pattern for floating elements, and known workarounds. Note the skill references `@base-ui-components/react` — substitute `@repo/ui/base-ui` for all imports.
+
+```
+npx skills add https://github.com/jackspace/claudeskillz --skill base-ui-react
+```
 
 ## 1. Colour Palette
 
@@ -67,10 +108,11 @@ bg-background text-foreground border-border bg-muted text-muted-foreground
 ### Tailwind v4 class mapping
 
 ```css
-font-heading    /* Playfair Display — serif headings */
-font-sans       /* Noto Sans — body */
-font-text       /* Plus Jakarta Sans — editorial */
-font-mono       /* Geist Mono — micro labels */
+font-title-heading  /* Instrument Serif — serif titles */
+font-heading        /* Playfair Display — serif headings */
+font-sans           /* Noto Sans — body */
+font-text           /* Plus Jakarta Sans — editorial */
+font-mono           /* Geist Mono — micro labels */
 ```
 
 ### Usage conventions

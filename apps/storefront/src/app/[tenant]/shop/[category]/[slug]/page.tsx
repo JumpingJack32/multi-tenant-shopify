@@ -1,6 +1,7 @@
+import type { Product } from "@repo/tenant-orm/types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Product } from "@repo/tenant-orm/types";
+
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductInfo } from "@/components/storefront/product-info";
 import { fetchProducts } from "@/lib/api";

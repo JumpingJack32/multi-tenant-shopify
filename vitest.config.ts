@@ -17,7 +17,6 @@ export default defineConfig({
         "**/motion.tsx",
         "**/table.tsx",
         "**/base-ui.ts",
-        "**/radix-ui.ts",
         "**/__tests__/**",
         "apps/admin/src/app/**",
         "apps/admin/src/hooks/**",

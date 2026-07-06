@@ -44,7 +44,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6" id="pdp-inline-cta">
         <AddToCartButton product={product} />
       </div>
 
