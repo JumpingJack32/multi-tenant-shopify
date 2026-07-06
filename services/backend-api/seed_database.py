@@ -120,6 +120,23 @@ async def seed_database():
                    ON CONFLICT DO NOTHING""",
                 vid, acme["tenant_id"], pid, f"{sku}-VAR", price,
             )
+            # Insert product_images with Cloudinary public IDs
+            cloudinary_prefix = "demo/products"
+            image_names = ["hero", "detail-1", "detail-2"]
+            for sort_order, suffix in enumerate(image_names):
+                iid = uuid.uuid4()
+                public_id = f"{cloudinary_prefix}/{name.lower().replace(' ', '-')}-{suffix}"
+                await conn.execute(
+                    """INSERT INTO product_images (id, tenant_id, product_id, url, alt_text, sort_order, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                       ON CONFLICT DO NOTHING""",
+                    iid, acme["tenant_id"], pid, public_id, f"{name} - {suffix.replace('-', ' ').title()}", sort_order,
+                )
+            # Set product price from variant price
+            await conn.execute(
+                "UPDATE products SET price = $1 WHERE id = $2 AND price IS NULL",
+                price, pid,
+            )
             products_t1.append((pid, vid))
 
         # Create products for globex-inc
@@ -145,6 +162,23 @@ async def seed_database():
                    ON CONFLICT DO NOTHING""",
                 vid, globex["tenant_id"], pid, f"{sku}-VAR", price,
             )
+            # Insert product_images with Cloudinary public IDs
+            cloudinary_prefix = "demo/products"
+            image_names = ["hero", "detail-1", "detail-2"]
+            for sort_order, suffix in enumerate(image_names):
+                iid = uuid.uuid4()
+                public_id = f"{cloudinary_prefix}/{name.lower().replace(' ', '-')}-{suffix}"
+                await conn.execute(
+                    """INSERT INTO product_images (id, tenant_id, product_id, url, alt_text, sort_order, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                       ON CONFLICT DO NOTHING""",
+                    iid, globex["tenant_id"], pid, public_id, f"{name} - {suffix.replace('-', ' ').title()}", sort_order,
+                )
+            # Set product price from variant price
+            await conn.execute(
+                "UPDATE products SET price = $1 WHERE id = $2 AND price IS NULL",
+                price, pid,
+            )
             products_t2.append((pid, vid))
 
         # Create products for initech
@@ -168,6 +202,23 @@ async def seed_database():
                    VALUES ($1, $2, $3, $4, $5, 'kg', 999, true, '{}'::json, NOW(), NOW())
                    ON CONFLICT DO NOTHING""",
                 vid, initech["tenant_id"], pid, f"{sku}-VAR", price,
+            )
+            # Insert product_images with Cloudinary public IDs
+            cloudinary_prefix = "demo/products"
+            image_names = ["hero", "detail-1", "detail-2"]
+            for sort_order, suffix in enumerate(image_names):
+                iid = uuid.uuid4()
+                public_id = f"{cloudinary_prefix}/{name.lower().replace(' ', '-')}-{suffix}"
+                await conn.execute(
+                    """INSERT INTO product_images (id, tenant_id, product_id, url, alt_text, sort_order, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                       ON CONFLICT DO NOTHING""",
+                    iid, initech["tenant_id"], pid, public_id, f"{name} - {suffix.replace('-', ' ').title()}", sort_order,
+                )
+            # Set product price from variant price
+            await conn.execute(
+                "UPDATE products SET price = $1 WHERE id = $2 AND price IS NULL",
+                price, pid,
             )
             products_t3.append((pid, vid))
 
