@@ -103,6 +103,11 @@ class ProductImageCreate(PydanticBaseModel):
     sort_order: int = 0
 
 
+class ProductImageUpdate(PydanticBaseModel):
+    alt_text: Optional[str] = Field(None, max_length=500)
+    sort_order: Optional[int] = None
+
+
 # ── Customer ─────────────────────────────────────────────────────────────
 
 
