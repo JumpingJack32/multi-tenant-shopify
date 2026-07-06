@@ -27,7 +27,7 @@ const baseProduct: Product = {
   weight: null,
   weight_unit: "g",
   is_active: true,
-  price: 2999,
+  price: 29.99,
   specs: null,
   images: null,
   created_at: "2024-01-01",

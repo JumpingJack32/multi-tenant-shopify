@@ -21,7 +21,7 @@ const baseProduct: Product = {
   weight: null,
   weight_unit: "g",
   is_active: true,
-  price: 4999,
+  price: 49.99,
   specs: null,
   images: ["/image1.jpg"],
   created_at: "2024-01-01",
@@ -41,7 +41,7 @@ describe("AddToCartButton", () => {
     expect(state.items).toHaveLength(1);
     expect(state.items[0].product_id).toBe("prod-1");
     expect(state.items[0].name).toBe("Test Product");
-    expect(state.items[0].price).toBe(4999);
+    expect(state.items[0].price).toBe(49.99);
     expect(state.items[0].image).toBe("/image1.jpg");
   });
 

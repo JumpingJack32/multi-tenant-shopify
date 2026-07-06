@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "@repo/ui/components/motion";
-import Image from "next/image";
+import { StorefrontImage } from "@/components/storefront/storefront-image";
 
 interface ProductGalleryProps {
   images: string[];
@@ -41,14 +41,13 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Image
+            <StorefrontImage
               src={
                 hoveredIndex === 0 && images.length > 1 ? images[1] : heroImage
               }
               alt={name}
-              fill
+              variant="pdpHero"
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </motion.div>
         </AnimatePresence>
@@ -76,16 +75,15 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Image
+                <StorefrontImage
                   src={
                     hoveredIndex === actualIndex && nextIndex < images.length
                       ? images[nextIndex]
                       : img
                   }
                   alt={name}
-                  fill
+                  variant="pdpDetail"
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </motion.div>
             </AnimatePresence>

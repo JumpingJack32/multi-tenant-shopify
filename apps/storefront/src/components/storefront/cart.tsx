@@ -22,10 +22,10 @@ export function Cart() {
           <div>
             <div className="font-medium">{item.name}</div>
             <div className="text-sm opacity-80">
-              £{(item.price / 100).toFixed(2)} x {item.quantity}
+              £{item.price.toFixed(2)} x {item.quantity}
             </div>
             <div className="text-sm">
-              £{((item.price * item.quantity) / 100).toFixed(2)}
+              £{(item.price * item.quantity).toFixed(2)}
             </div>
           </div>
           <button
@@ -40,7 +40,7 @@ export function Cart() {
         <>
           <div className="border-t border-primary-foreground/20 mt-3 pt-2 flex justify-between font-semibold">
             <span>Total</span>
-            <span>£{(total / 100).toFixed(2)}</span>
+            <span>£{total.toFixed(2)}</span>
           </div>
           <button onClick={clear} className="text-sm underline mt-2 block">
             Clear cart

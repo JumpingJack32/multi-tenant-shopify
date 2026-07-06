@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "@repo/ui/components/motion";
-import Image from "next/image";
+import { StorefrontImage } from "@/components/storefront/storefront-image";
 import { useRouter, useParams } from "next/navigation";
 import type { Product } from "@repo/tenant-orm/types";
 
@@ -49,16 +49,15 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Image
+              <StorefrontImage
                 src={
                   isHovered && secondaryImage != null
                     ? secondaryImage
                     : primaryImage
                 }
                 alt={product.name}
-                fill
+                variant="plp"
                 className="object-cover"
-                sizes="(max-width: 768px) 50vw, 33vw"
               />
             </motion.div>
           </AnimatePresence>
@@ -71,7 +70,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
       <div className="mt-2 space-y-1">
         <h3 className="line-clamp-2 font-semibold">{product.name}</h3>
         {product.price != null && (
-          <p className="font-mono">£{(product.price / 100).toFixed(2)}</p>
+          <p className="font-mono">£{product.price.toFixed(2)}</p>
         )}
       </div>
     </div>

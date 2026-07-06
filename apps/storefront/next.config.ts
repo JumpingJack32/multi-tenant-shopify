@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         hostname: "www.unsplash.com",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
     ],
   },
   // Tells Next.js to transpile these local monorepo packages

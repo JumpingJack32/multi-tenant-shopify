@@ -6,8 +6,8 @@ afterEach(() => {
   cleanup();
 });
 
-vi.mock("next/image", () => ({
-  default: ({ fill: _fill, ...rest }: Record<string, unknown>) => (
+vi.mock("next-cloudinary", () => ({
+  CldImage: ({ width: _w, height: _h, ...rest }: Record<string, unknown>) => (
     <img {...rest} />
   ),
 }));

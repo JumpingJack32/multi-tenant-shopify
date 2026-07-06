@@ -5,6 +5,12 @@ import type { Product } from "@repo/tenant-orm/types";
 
 const mockPush = vi.fn();
 
+vi.mock("next-cloudinary", () => ({
+  CldImage: ({ width: _w, height: _h, ...rest }: Record<string, unknown>) => (
+    <img {...rest} />
+  ),
+}));
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ tenant: "test-tenant" }),
   useRouter: () => ({ push: mockPush }),
@@ -26,7 +32,7 @@ const mockProducts: Product[] = [
     weight: null,
     weight_unit: "g",
     is_active: true,
-    price: 1999,
+    price: 19.99,
     specs: null,
     images: null,
     created_at: "2024-01-01",
@@ -43,7 +49,7 @@ const mockProducts: Product[] = [
     weight: null,
     weight_unit: "g",
     is_active: true,
-    price: 2999,
+    price: 29.99,
     specs: null,
     images: ["/img1.jpg"],
     created_at: "2024-01-01",
