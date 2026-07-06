@@ -48,4 +48,11 @@ describe("MobileStickyCta", () => {
     render(<MobileStickyCta product={baseProduct} />);
     expect(screen.getByText("ADD TO CART")).toBeDefined();
   });
+
+  it("renders nothing when product is missing price", () => {
+    const noPrice = { ...baseProduct, price: null };
+    const { container } = render(<MobileStickyCta product={noPrice} />);
+    expect(screen.getByText("ADD TO CART")).toBeDefined();
+    expect(container.querySelector("span")).toBeNull();
+  });
 });

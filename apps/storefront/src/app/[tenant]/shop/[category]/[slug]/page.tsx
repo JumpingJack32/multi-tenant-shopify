@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductInfo } from "@/components/storefront/product-info";
+import { MobileStickyCta } from "@/components/storefront/mobile-sticky-cta";
 import { fetchProducts } from "@/lib/api";
 
 export default async function ProductPage({
@@ -45,6 +46,7 @@ export default async function ProductPage({
           <ProductInfo product={product} />
         </div>
       </div>
+      <MobileStickyCta product={product} />
     </main>
   );
 }
