@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import { act } from "react";
 import { MobileStickyCta } from "../mobile-sticky-cta";
 import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@repo/tenant-orm/types";
@@ -7,6 +8,7 @@ import type { Product } from "@repo/tenant-orm/types";
 afterEach(() => {
   cleanup();
   useCart.getState().clear();
+  vi.unstubAllGlobals();
 });
 
 const baseProduct: Product = {
@@ -41,18 +43,50 @@ beforeEach(() => {
 describe("MobileStickyCta", () => {
   it("renders formatted price", () => {
     render(<MobileStickyCta product={baseProduct} />);
-    expect(screen.getByText("£49.99")).toBeDefined();
+    expect(screen.getByText("£49.99")).toBeInTheDocument();
   });
 
   it("renders AddToCartButton", () => {
     render(<MobileStickyCta product={baseProduct} />);
-    expect(screen.getByText("ADD TO CART")).toBeDefined();
+    expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
   });
 
   it("renders nothing when product is missing price", () => {
     const noPrice = { ...baseProduct, price: null };
     const { container } = render(<MobileStickyCta product={noPrice} />);
-    expect(screen.getByText("ADD TO CART")).toBeDefined();
+    expect(screen.getByText("ADD TO CART")).toBeInTheDocument();
     expect(container.querySelector("span")).toBeNull();
+  });
+
+  it("shows bar when inline CTA scrolls out of view", () => {
+    document.body.innerHTML = '<div id="pdp-inline-cta"></div>';
+    let observerCallback: (entries: IntersectionObserverEntry[]) => void;
+
+    vi.stubGlobal(
+      "IntersectionObserver",
+      vi.fn((cb) => {
+        observerCallback = cb;
+        return { observe: vi.fn(), disconnect: vi.fn(), unobserve: vi.fn() };
+      }),
+    );
+
+    render(<MobileStickyCta product={baseProduct} />);
+
+    const container = screen.getByTestId("sticky-cta-wrapper");
+    expect(container).toHaveAttribute("data-visible", "false");
+
+    act(() => {
+      observerCallback!([
+        { isIntersecting: false } as IntersectionObserverEntry,
+      ]);
+    });
+    expect(container).toHaveAttribute("data-visible", "true");
+
+    act(() => {
+      observerCallback!([
+        { isIntersecting: true } as IntersectionObserverEntry,
+      ]);
+    });
+    expect(container).toHaveAttribute("data-visible", "false");
   });
 });

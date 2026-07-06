@@ -28,7 +28,11 @@ export function MobileStickyCta({ product }: MobileStickyCtaProps) {
   }, []);
 
   return (
-    <div className="lg:hidden">
+    <div
+      className="lg:hidden"
+      data-visible={visible}
+      data-testid="sticky-cta-wrapper"
+    >
       <motion.div
         className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border"
         initial={{ y: 80 }}
