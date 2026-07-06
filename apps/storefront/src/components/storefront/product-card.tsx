@@ -17,8 +17,8 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
   const tenant = params.tenant as string;
   const [isHovered, setIsHovered] = useState(false);
 
-  const primaryImage = product.images?.[0];
-  const secondaryImage = product.images?.[1];
+  const primaryImage = product.images?.[0]?.url;
+  const secondaryImage = product.images?.[1]?.url;
 
   const handleClick = () => {
     router.push(`/${tenant}/shop/${categorySlug}/${product.slug}`);

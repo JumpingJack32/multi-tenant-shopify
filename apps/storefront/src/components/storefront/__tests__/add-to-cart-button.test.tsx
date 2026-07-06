@@ -23,7 +23,7 @@ const baseProduct: Product = {
   is_active: true,
   price: 49.99,
   specs: null,
-  images: ["/image1.jpg"],
+  images: [{ id: "img-1", url: "/image1.jpg", alt_text: null, sort_order: 0 }],
   created_at: "2024-01-01",
   updated_at: "2024-01-01",
 };

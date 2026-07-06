@@ -61,11 +61,18 @@ describe("ProductSchema", () => {
       updated_at: "2024-01-01T00:00:00Z",
       price: 3499,
       specs: [{ label: "MATERIAL", value: "Nylon" }],
-      images: ["https://example.com/img.jpg"],
+      images: [
+        {
+          id: "00000000-0000-0000-0000-000000000003",
+          url: "demo/products/test-hero",
+          alt_text: "Test image",
+          sort_order: 0,
+        },
+      ],
     });
     expect(result.price).toBe(3499);
     expect(result.specs).toEqual([{ label: "MATERIAL", value: "Nylon" }]);
-    expect(result.images).toEqual(["https://example.com/img.jpg"]);
+    expect(result.images![0].url).toBe("demo/products/test-hero");
   });
 
   it("accepts null optional fields", () => {

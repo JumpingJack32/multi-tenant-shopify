@@ -51,7 +51,7 @@ const mockProducts: Product[] = [
     is_active: true,
     price: 29.99,
     specs: null,
-    images: ["/img1.jpg"],
+    images: [{ id: "img-1", url: "/img1.jpg", alt_text: null, sort_order: 0 }],
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
   },
@@ -70,7 +70,7 @@ describe("ProductGrid", () => {
 
     render(await ProductGrid({ tenantSlug: "test-tenant" }));
     expect(screen.getAllByText("Test Product 1").length).toBeGreaterThan(0);
-    expect(screen.getByText("Test Product 2")).toBeDefined();
+    expect(screen.getAllByText("Test Product 2").length).toBeGreaterThan(0);
   });
 
   it("shows empty state when fetch returns empty array", async () => {

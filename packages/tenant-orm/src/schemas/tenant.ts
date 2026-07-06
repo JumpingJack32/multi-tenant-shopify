@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const ProductImageSchema = z.object({
+  id: z.string().uuid(),
+  url: z.string(),
+  alt_text: z.string().nullable(),
+  sort_order: z.number().int().nonnegative(),
+});
+
 export const ProductSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid(),
@@ -11,12 +18,12 @@ export const ProductSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string(),
   is_active: z.boolean(),
-  price: z.number().int().nonnegative().nullable().optional(),
+  price: z.number().nonnegative().nullable().optional(),
   specs: z
     .array(z.object({ label: z.string(), value: z.string() }))
     .nullable()
     .optional(),
-  images: z.array(z.string()).nullable().optional(),
+  images: z.array(ProductImageSchema).nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -30,7 +37,7 @@ export const ProductCreateSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string().default("kg"),
   is_active: z.boolean().default(true),
-  price: z.number().int().nonnegative().nullable().optional(),
+  price: z.number().nonnegative().nullable().optional(),
   specs: z
     .array(z.object({ label: z.string(), value: z.string() }))
     .nullable()
@@ -47,7 +54,7 @@ export const ProductUpdateSchema = z.object({
   weight: z.number().nullable().optional(),
   weight_unit: z.string().optional(),
   is_active: z.boolean().optional(),
-  price: z.number().int().nonnegative().nullable().optional(),
+  price: z.number().nonnegative().nullable().optional(),
   specs: z
     .array(z.object({ label: z.string(), value: z.string() }))
     .nullable()

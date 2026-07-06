@@ -4,8 +4,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "@repo/ui/components/motion";
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 
+interface GalleryImage {
+  url: string;
+}
+
 interface ProductGalleryProps {
-  images: string[];
+  images: GalleryImage[];
   name: string;
 }
 
@@ -20,7 +24,8 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
     );
   }
 
-  const heroImage = images[0];
+  const heroImage = images[0].url;
+  const imageUrls = images.map((img) => img.url);
   const detailImages = images.slice(1);
 
   return (
@@ -43,7 +48,9 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
           >
             <StorefrontImage
               src={
-                hoveredIndex === 0 && images.length > 1 ? images[1] : heroImage
+                hoveredIndex === 0 && images.length > 1
+                  ? imageUrls[1]
+                  : heroImage
               }
               alt={name}
               variant="pdpHero"
@@ -57,7 +64,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
         const nextIndex = actualIndex + 1;
         return (
           <div
-            key={img}
+            key={img.url}
             className="relative aspect-[4/5] overflow-hidden bg-black"
             onMouseEnter={() => setHoveredIndex(actualIndex)}
             onMouseLeave={() => setHoveredIndex(null)}
@@ -78,8 +85,8 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                 <StorefrontImage
                   src={
                     hoveredIndex === actualIndex && nextIndex < images.length
-                      ? images[nextIndex]
-                      : img
+                      ? imageUrls[nextIndex]
+                      : img.url
                   }
                   alt={name}
                   variant="pdpDetail"
