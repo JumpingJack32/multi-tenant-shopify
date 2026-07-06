@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -56,9 +57,13 @@ async def public_products(
     set_tenant_context(tenant.tenant_id)
 
     # Fetch active products scoped to this tenant
-    stmt = select(Product).where(
-        Product.tenant_id == tenant.tenant_id,
-        Product.is_active == True,  # noqa: E712
+    stmt = (
+        select(Product)
+        .options(selectinload(Product.images))
+        .where(
+            Product.tenant_id == tenant.tenant_id,
+            Product.is_active == True,  # noqa: E712
+        )
     )
     result = await db.exec(stmt)
     products = result.all()

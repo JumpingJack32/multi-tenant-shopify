@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 from typing import Optional
 from uuid import UUID
@@ -32,17 +33,26 @@ class ProductUpdate(PydanticBaseModel):
     is_active: Optional[bool] = None
 
 
+class ProductImageResponse(PydanticBaseModel):
+    id: UUID
+    url: str
+    alt_text: Optional[str] = None
+    sort_order: int
+
+
 class ProductResponse(PydanticBaseModel):
     id: UUID
     tenant_id: UUID
     name: str
     slug: str
     description: Optional[str] = None
+    price: Decimal = Decimal("0.00")
     status: str
     sku: Optional[str] = None
     weight: Optional[float] = None
     weight_unit: str
     is_active: bool
+    images: list[ProductImageResponse] = []
     created_at: datetime
     updated_at: datetime
 
