@@ -15,6 +15,13 @@ export interface TenantInfo {
   updated_at: string;
 }
 
+export interface ProductImage {
+  id: string;
+  url: string;
+  alt_text: string | null;
+  sort_order: number;
+}
+
 export interface Product {
   id: string;
   tenant_id: string;
@@ -26,6 +33,9 @@ export interface Product {
   weight: number | null;
   weight_unit: string;
   is_active: boolean;
+  price?: number | null;
+  specs?: { label: string; value: string }[] | null;
+  images?: ProductImage[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,6 +49,9 @@ export interface ProductCreate {
   weight?: number | null;
   weight_unit?: string;
   is_active?: boolean;
+  price?: number | null;
+  specs?: { label: string; value: string }[] | null;
+  images?: string[] | null;
 }
 
 export interface ProductUpdate {
@@ -50,6 +63,9 @@ export interface ProductUpdate {
   weight?: number | null;
   weight_unit?: string;
   is_active?: boolean;
+  price?: number | null;
+  specs?: { label: string; value: string }[] | null;
+  images?: string[] | null;
 }
 
 export interface Order {

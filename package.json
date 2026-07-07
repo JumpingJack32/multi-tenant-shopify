@@ -42,7 +42,6 @@
     "turbo": "^2.5.0",
     "vitest": "^3.0.0"
   },
-  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.0.0"
   }

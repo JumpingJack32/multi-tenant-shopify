@@ -1,47 +1,51 @@
-import type { Product } from "@repo/tenant-orm/types";
+import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function fetchProducts(tenantSlug: string): Promise<Product[]> {
-  const res = await fetch(
-    `${API_URL}/api/v1/public/products/${tenantSlug}`,
-    { next: { revalidate: 0 } },
-  );
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products: ${res.statusText}`);
-  }
-
-  return res.json() as Promise<Product[]>;
-}
-
-export default async function TenantPage({
+export default async function TenantLandingPage({
   params,
 }: {
   params: Promise<{ tenant: string }>;
 }) {
-  const resolved = await params;
-  let products: Product[] = [];
-  let error: string | null = null;
-
-  try {
-    products = await fetchProducts(resolved.tenant);
-  } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to load products";
-  }
+  const { tenant } = await params;
 
   return (
-    <main>
-      <h1>Products for {resolved.tenant}</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      <div>
-        {products.map((product) => (
-          <div key={product.id}>
-            <h2>{product.name}</h2>
-          </div>
-        ))}
-        {!error && products.length === 0 && <p>No products available.</p>}
-      </div>
+    <main className="min-h-screen bg-black text-white">
+      {/* Hero */}
+      <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 text-center">
+        <h1 className="max-w-4xl text-5xl font-light tracking-tight sm:text-7xl md:text-8xl">
+          Amoa & Agou
+        </h1>
+        <p className="mt-6 max-w-xl text-lg text-white/60">
+          Premium gear for the modern explorer.
+        </p>
+        <div className="mt-10 flex gap-4">
+          <Link
+            href={`/${tenant}/shop/all`}
+            className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-black transition-colors hover:bg-white/90"
+          >
+            Shop All
+          </Link>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="mx-auto max-w-6xl px-4 py-24">
+        <div className="grid gap-8 md:grid-cols-2">
+          <Link href={`/${tenant}/shop/rucksacks`} className="group">
+            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+              <span className="text-6xl text-white/20">✦</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium">Rucksacks</h3>
+            <p className="text-sm text-white/40">Built for the journey.</p>
+          </Link>
+          <Link href={`/${tenant}/shop/gadgets`} className="group">
+            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+              <span className="text-6xl text-white/20">✦</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium">Gadgets</h3>
+            <p className="text-sm text-white/40">Tech for the trail.</p>
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

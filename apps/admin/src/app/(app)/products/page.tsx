@@ -7,6 +7,7 @@ import { ProductDeleteDialog } from "@/components/products/product-delete-dialog
 import { ProductDrawer } from "@/components/products/product-drawer";
 import { ProductTable } from "@/components/products/product-table";
 import { Button } from "@/components/ui/button";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { useRbac } from "@/contexts/rbac-context";
 import {
   useProducts,
@@ -25,7 +26,12 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
 
-  const { data: productsData, isLoading } = useProducts({
+  const {
+    data: productsData,
+    isLoading,
+    isError,
+    error,
+  } = useProducts({
     search,
     page: String(page),
     limit: String(pageSize),
@@ -94,10 +100,18 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold">Products</h1>
           <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-        {canUpdate && (
-          <Button onClick={handleCreate}>Add Product</Button>
-        )}
+        {canUpdate && <Button onClick={handleCreate}>Add Product</Button>}
       </div>
+
+      {isError && (
+        <div className="mb-4">
+          <ErrorBanner
+            message={
+              error instanceof Error ? error.message : "Failed to load products"
+            }
+          />
+        </div>
+      )}
 
       <ProductTable
         products={products}

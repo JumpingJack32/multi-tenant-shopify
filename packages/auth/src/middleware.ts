@@ -2,6 +2,14 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { NextMiddleware } from "next/server";
 
 /**
+ * 1. Intersect your existing type with Clerk's configuration options
+ */
+type CreateClerkMiddlewareOptions = Partial<AuthRouteConfig> & {
+  secretKey?: string;
+  publishableKey?: string;
+};
+
+/**
  * Route matcher configuration for Clerk middleware.
  */
 export interface AuthRouteConfig {
@@ -22,11 +30,7 @@ export const defaultAuthRoutes: AuthRouteConfig = {
     "/api/auth(.*)",
     "/(.*)",
   ],
-  protected: [
-    "/dashboard(.*)",
-    "/admin(.*)",
-    "/api/protected(.*)",
-  ],
+  protected: ["/dashboard(.*)", "/admin(.*)", "/api/protected(.*)"],
 };
 
 /**
@@ -39,7 +43,9 @@ export const defaultAuthRoutes: AuthRouteConfig = {
  * export default createClerkMiddleware();
  * ```
  */
-export function createClerkMiddleware(config?: Partial<AuthRouteConfig>): NextMiddleware {
+export function createClerkMiddleware(
+  config?: Partial<AuthRouteConfig>,
+): NextMiddleware {
   const mergedConfig: AuthRouteConfig = {
     public: config?.public ?? defaultAuthRoutes.public,
     protected: config?.protected ?? defaultAuthRoutes.protected,
@@ -65,4 +71,10 @@ export function createClerkMiddleware(config?: Partial<AuthRouteConfig>): NextMi
   });
 }
 
-export { auth, currentUser, clerkMiddleware, createRouteMatcher, getAuth } from "@clerk/nextjs/server";
+export {
+  auth,
+  currentUser,
+  clerkMiddleware,
+  createRouteMatcher,
+  getAuth,
+} from "@clerk/nextjs/server";

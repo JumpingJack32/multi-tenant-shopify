@@ -3,7 +3,7 @@ import { createClerkMiddleware } from "../middleware";
 
 describe("createClerkMiddleware", () => {
   it("returns a middleware function", () => {
-    const middleware = createClerkMiddleware({ secretKey: "test-secret" });
+    const middleware = createClerkMiddleware();
     expect(typeof middleware).toBe("function");
   });
 });

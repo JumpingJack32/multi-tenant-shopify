@@ -23,7 +23,7 @@
 ## TypeScript
 
 - TS 6.0.3 is installed. The `ignoreDeprecations: "6.0"` option is silently accepted in packages extending `base.json` but causes TS5103 in apps extending `nextjs.json`. Admin tsconfig omits it.
-- Clerk v7 uses `proxy.ts` (not `middleware.ts`) at app source root for middleware — Next.js auto-discovers it as middleware.
+- **Clerk v7 + Next.js 16 middleware**: Name the file `proxy.ts` (NOT `middleware.ts` — that's the legacy name for Next.js ≤15). Only the filename changes; the `clerkMiddleware()` code and `config.matcher` stay the same. Next.js auto-discovers `proxy.ts` as its proxy/middleware file. Use it at app source root or in `src/`. See https://clerk.com/docs/reference/nextjs/clerk-middleware.
 - `@/` import alias works via `nextjs.json` paths (`"@/*": ["./*"]`). Apps override in their own tsconfig with `"@/*": ["./src/*"]`.
 
 ## Asyncpg
@@ -34,6 +34,15 @@
 
 - `db.exec()` replaces the deprecated `db.execute()` — use `.one_or_none()` instead of `.scalar_one_or_none()`, and `.all()` instead of `.scalars().all()`
 - `exec()` returns `ScalarResult[T]` directly; `execute()` returned `Result[T]` requiring `.scalars()`
+
+## Media & Cloudinary
+
+- **Storefront** (`apps/storefront`): uses `next-cloudinary` with `<CldImage>` for optimized CDN image delivery. Never uploads directly.
+- **Admin** (`apps/admin`): will use `POST /api/v1/media/upload-signature` (protected by `require_admin` auth) to get signed upload params, then uploads directly to Cloudinary. Never proxies files through the backend.
+- **Backend** (`services/backend-api`): hosts `POST /api/v1/media/upload-signature` (generates signed upload params) and `DELETE /api/v1/media/asset` (signed delete). Never receives or proxies file data.
+- **Upload flow**: Browser → signed params from backend → direct upload to Cloudinary CDN → URL saved to product record. Backend never touches the binary.
+- **Env vars**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (backend, Doppler). `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` (storefront, Doppler).
+- **Package**: `next-cloudinary` in storefront, `cloudinary` (PyPI) in backend.
 
 ## GitHub
 

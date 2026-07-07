@@ -1,4 +1,5 @@
 # from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 from typing import Any, Optional
 from uuid import UUID
@@ -28,6 +29,7 @@ class Product(BaseModel, table=True):
     sku: Optional[str] = Field(default=None, max_length=100, unique=True)
     weight: Optional[float] = Field(default=None)
     weight_unit: str = Field(default="kg", max_length=10)
+    price: Decimal = Field(max_digits=10, decimal_places=2, default=0.00)
     is_active: bool = Field(default=True)
 
     # Relationships

@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "declaration": true,
@@ -18,9 +18,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "*": [ "../*" ],
+      "*": ["../*"],
       "@repo/*": ["../../*"]
-    },
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

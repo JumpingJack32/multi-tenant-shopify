@@ -1,11 +1,19 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardDescription } from "@repo/ui/components/card";
+import { AlertDialog as AlertDialogPrimitive } from "@repo/ui/base-ui";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@repo/ui/components/ui/card";
 import Link from "next/link";
 
 import { useRbac } from "@/contexts/rbac-context";
 import { useTenantContext } from "@/contexts/tenant-context";
 import { useProducts } from "@/features/products/hooks/use-products";
+
+// import { MessageScroller} from "@repo/ui/shadcn-react"
 
 const quickLinks = [
   {
@@ -71,9 +79,16 @@ export default function DashboardPage() {
 
       {/* Metrics Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Total Products" value={productCount} loading={productsLoading} />
+        <StatCard
+          label="Total Products"
+          value={productCount}
+          loading={productsLoading}
+        />
         <StatCard label="Orders" value="—" />
-        <StatCard label="Role" value={role.charAt(0).toUpperCase() + role.slice(1)} />
+        <StatCard
+          label="Role"
+          value={role.charAt(0).toUpperCase() + role.slice(1)}
+        />
       </div>
 
       {/* Quick Links Section */}

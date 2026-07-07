@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -16,7 +17,11 @@ async def list_products(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Product).where(Product.tenant_id == tenant_id, Product.is_active == True)  # noqa: E712
+    stmt = (
+        select(Product)
+        .options(selectinload(Product.images))
+        .where(Product.tenant_id == tenant_id, Product.is_active == True)  # noqa: E712
+    )
     result = await db.exec(stmt)
     products = result.all()
     return products
@@ -41,7 +46,11 @@ async def get_product(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Product).where(Product.id == product_id, Product.tenant_id == tenant_id)
+    stmt = (
+        select(Product)
+        .options(selectinload(Product.images))
+        .where(Product.id == product_id, Product.tenant_id == tenant_id)
+    )
     result = await db.exec(stmt)
     product = result.one_or_none()
 
@@ -57,7 +66,11 @@ async def update_product(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Product).where(Product.id == product_id, Product.tenant_id == tenant_id)
+    stmt = (
+        select(Product)
+        .options(selectinload(Product.images))
+        .where(Product.id == product_id, Product.tenant_id == tenant_id)
+    )
     result = await db.exec(stmt)
     product = result.one_or_none()
 

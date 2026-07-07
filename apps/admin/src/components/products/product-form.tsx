@@ -1,10 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ProductCreateSchema, ProductUpdateSchema } from "@repo/tenant-orm/schemas/tenant";
+import {
+  ProductCreateSchema,
+  ProductUpdateSchema,
+} from "@repo/tenant-orm/schemas";
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
 import { useForm } from "react-hook-form";
+import type { z } from "zod";
 // import { Button } from "@/components/ui/button";
 
 interface ProductFormProps {
@@ -13,23 +17,35 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
-export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProps) {
+export function ProductForm({
+  initialData,
+  onSubmit,
+  onCancel,
+}: ProductFormProps) {
   const schema = initialData ? ProductUpdateSchema : ProductCreateSchema;
+  type FormValues = z.infer<typeof schema>;
+
+  const defaultFormValues: FormValues = initialData
+    ? {
+        ...initialData,
+        images: undefined,
+      }
+    : {
+        name: "",
+        slug: "",
+        status: "draft",
+        is_active: true,
+        weight: 0,
+        weight_unit: "kg",
+      };
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initialData ?? {
-      name: "",
-      slug: "",
-      status: "draft",
-      is_active: true,
-      weight: 0,
-      weight_unit: "kg",
-    },
+    defaultValues: defaultFormValues,
   });
 
   const onFormSubmit = handleSubmit(async (data) => {
@@ -160,7 +176,11 @@ export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProp
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isSubmitting ? "Saving..." : initialData ? "Update Product" : "Create Product"}
+          {isSubmitting
+            ? "Saving..."
+            : initialData
+              ? "Update Product"
+              : "Create Product"}
         </BaseButton>
       </div>
       {/* <div className="flex items-center justify-end gap-3 pt-4">
@@ -171,6 +191,6 @@ export function ProductForm({ initialData, onSubmit, onCancel }: ProductFormProp
           {isSubmitting ? "Saving..." : initialData ? "Update Product" : "Create Product"}
         </Button> 
     </div>*/}
-    </form >
+    </form>
   );
 }
