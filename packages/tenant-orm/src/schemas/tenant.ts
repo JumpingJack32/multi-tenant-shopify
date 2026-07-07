@@ -24,9 +24,35 @@ export const ProductSchema = z.object({
     .nullable()
     .optional(),
   images: z.array(ProductImageSchema).nullable().optional(),
+  category_id: z.string().uuid().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });
+
+export const CategorySchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  description: z.string().nullable().optional(),
+  image_url: z.string().nullable().optional(),
+  sort_order: z.number().int().default(0),
+  is_active: z.boolean().default(true),
+  product_count: z.number().int().default(0),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const CategoryCreateSchema = CategorySchema.omit({
+  id: true,
+  tenant_id: true,
+  is_active: true,
+  product_count: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const CategoryUpdateSchema = CategoryCreateSchema.partial();
 
 export const ProductCreateSchema = z.object({
   name: z.string().min(1).max(255),

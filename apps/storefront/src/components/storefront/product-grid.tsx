@@ -12,12 +12,12 @@ interface ProductGridProps {
 
 export async function ProductGrid({
   tenantSlug,
-  categorySlug = "",
+  categorySlug,
 }: ProductGridProps) {
   let products: Product[] = [];
 
   try {
-    products = await fetchProducts(tenantSlug);
+    products = await fetchProducts(tenantSlug, categorySlug);
   } catch {
     products = [];
   }

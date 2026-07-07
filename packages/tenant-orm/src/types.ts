@@ -36,6 +36,21 @@ export interface Product {
   price?: number | null;
   specs?: { label: string; value: string }[] | null;
   images?: ProductImage[] | null;
+  category_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Category {
+  id: string;
+  tenant_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  sort_order: number;
+  is_active: boolean;
+  product_count: number;
   created_at: string;
   updated_at: string;
 }
