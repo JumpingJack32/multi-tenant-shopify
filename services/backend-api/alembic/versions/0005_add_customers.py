@@ -7,7 +7,6 @@ Create Date: 2026-07-07 00:00:00.000000
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 
 revision: str = "0005"
 down_revision: Union[str, None] = "0004"
@@ -48,8 +47,8 @@ def upgrade() -> None:
     """)
 
     # Add customer_id and payment_status to orders (columns used by trigger/FK)
-    op.execute("ALTER TABLE orders ADD COLUMN customer_id UUID")
-    op.execute("ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) NOT NULL DEFAULT 'pending'")
+    op.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id UUID")
+    op.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) NOT NULL DEFAULT 'pending'")
     op.execute("""
         ALTER TABLE orders
         ADD CONSTRAINT fk_orders_customer
@@ -95,8 +94,8 @@ def upgrade() -> None:
           IF TG_OP = 'INSERT' AND NEW.payment_status IN ('PAID', 'REFUNDED') THEN
             SELECT
               COUNT(*) FILTER (WHERE payment_status = 'PAID') AS cnt,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
             INTO agg
             FROM orders
             WHERE customer_id = NEW.customer_id AND tenant_id = NEW.tenant_id;
@@ -110,8 +109,8 @@ def upgrade() -> None:
           ELSIF TG_OP = 'UPDATE' THEN
             SELECT
               COUNT(*) FILTER (WHERE payment_status = 'PAID') AS cnt,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
             INTO agg
             FROM orders
             WHERE customer_id = NEW.customer_id AND tenant_id = NEW.tenant_id;
@@ -125,8 +124,8 @@ def upgrade() -> None:
           ELSIF TG_OP = 'DELETE' THEN
             SELECT
               COUNT(*) FILTER (WHERE payment_status = 'PAID') AS cnt,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
-              COALESCE(SUM(total * 100) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'PAID'), 0)::BIGINT AS paid,
+              COALESCE(SUM(total) FILTER (WHERE payment_status = 'REFUNDED'), 0)::BIGINT AS refunded
             INTO agg
             FROM orders
             WHERE customer_id = OLD.customer_id AND tenant_id = OLD.tenant_id;
