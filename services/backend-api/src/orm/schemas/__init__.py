@@ -1,3 +1,4 @@
+from src.orm.schemas.category import CategoryCreate, CategoryUpdate, CategoryResponse  # noqa: F401
 from src.orm.schemas.product import (  # noqa: F401
     ProductCreate,
     ProductUpdate,

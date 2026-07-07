@@ -1,13 +1,16 @@
 # from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
 from sqlalchemy import JSON, Index, Text
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
+
+if TYPE_CHECKING:
+    from src.orm.models.category import Category
 
 
 class ProductStatus(str, Enum):
@@ -35,6 +38,8 @@ class Product(BaseModel, table=True):
     # Relationships
     variants: list["Variant"] = Relationship(back_populates="product", cascade_delete=True)
     images: list["ProductImage"] = Relationship(back_populates="product", cascade_delete=True)
+    category_id: Optional[UUID] = Field(default=None, foreign_key="categories.id")
+    category: Optional["Category"] = Relationship(back_populates="products")
 
 
 class ProductImage(BaseModel, table=True):
