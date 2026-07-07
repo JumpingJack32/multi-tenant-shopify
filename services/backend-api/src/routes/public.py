@@ -12,6 +12,8 @@ from src.dependencies import get_db
 from src.orm.models.category import Category
 from src.orm.models.product import Product
 from src.orm.models.tenant import Tenant
+from src.orm.models.collection import Collection
+from src.orm.schemas.collection import CollectionResponse
 from src.orm.schemas.category import CategoryResponse
 from src.orm.schemas.product import ProductResponse
 from src.orm.schemas.tenant import TenantPublicResponse
@@ -116,5 +118,40 @@ async def public_categories(
         result.append(CategoryResponse(
             **cat.model_dump(),
             product_count=count,
+        ))
+    return result
+
+
+@router.get("/collections/{tenant_slug}", response_model=list[CollectionResponse])
+async def public_collections(
+    tenant_slug: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """List active collections for a tenant — public storefront browsing."""
+    stmt = select(Tenant).where(Tenant.slug == tenant_slug, Tenant.status == "ACTIVE")
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
+
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    stmt = (
+        select(Collection)
+        .options(selectinload(Collection.products))
+        .where(
+            Collection.tenant_id == tenant.tenant_id,
+            Collection.is_active == True,  # noqa: E712
+        )
+        .order_by(Collection.sort_order, Collection.name)
+    )
+    collections = (await db.exec(stmt)).all()
+    result = []
+    for col in collections:
+        result.append(CollectionResponse(
+            **col.model_dump(),
+            product_count=len(col.products),
         ))
     return result
