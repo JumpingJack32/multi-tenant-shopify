@@ -5,7 +5,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@repo/ui/components/card";
+} from "@repo/ui/components/ui/card";
+
+import { AlertDialog as AlertDialogPrimitive } from "@repo/ui/base-ui";
 import Link from "next/link";
 
 import { useRbac } from "@/contexts/rbac-context";

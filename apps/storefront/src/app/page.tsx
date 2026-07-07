@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@repo/ui/base-ui";
-import { Card, CardContent } from "@repo/ui/components/card";
+import { Card, CardContent } from "@repo/ui/components/ui/card";
 import Link from "next/link";
 import * as React from "react";
 
