@@ -1,13 +1,12 @@
 "use client";
 
+import { AlertDialog as AlertDialogPrimitive } from "@repo/ui/base-ui";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@repo/ui/components/ui/card";
-
-import { AlertDialog as AlertDialogPrimitive } from "@repo/ui/base-ui";
 import Link from "next/link";
 
 import { useRbac } from "@/contexts/rbac-context";

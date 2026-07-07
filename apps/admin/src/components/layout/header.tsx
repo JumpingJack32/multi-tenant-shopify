@@ -2,10 +2,10 @@
 
 import { useUser, useAuth } from "@clerk/nextjs";
 import { Menu, Popover, Separator } from "@repo/ui/base-ui";
+import { ThemeToggle } from "@repo/ui/components/theme-toggle";
 
 import { useRbac } from "@/contexts/rbac-context";
 import { useTenantContext } from "@/contexts/tenant-context";
-import { ThemeToggle } from "@repo/ui/components/theme-toggle";
 
 export default function Header() {
   const { isSignedIn } = useAuth();

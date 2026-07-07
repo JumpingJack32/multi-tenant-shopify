@@ -3,28 +3,19 @@
 ## Current State
 
 - **131 tests, 36 files, all passing** — verified 2026-07-07
-- Branch: `round-1-test-expansion` — latest commit `e7dd8de`
+- Branch: `round-1-test-expansion` — latest commit `d60eee7`
+- **Branch complete** — pushed to origin, PR ready at `main...round-1-test-expansion`
 - **Dev servers running**: storefront on :3000, admin on :3001 — no compilation errors
-- **DESIGN.md cleaned up**: removed duplicate paragraph, fixed `components.json` example, removed "No shadcn CLI-generated components" ban (already contradicted by `@shadcn/react` dependency), removed redundant corrective note
-- **Atomic UI components added**: 50+ shadcn-style components in `packages/ui/src/components/ui/` (button, card, dialog, sidebar, etc.) with `use-mobile.ts` hook in `packages/ui/src/hooks/`
-- **Component reorg**: button/card moved from `packages/ui/src/components/` → `packages/ui/src/components/ui/`, new `packages/ui/src/components/index.ts` barrel, old `components/ui/index.ts` removed
-- **Test imports fixed**: `button.test.tsx` and `card.test.tsx` updated to point to new `../components/ui/` paths
-- **Mobile sticky CTA bar**: implemented, tested, committed
-- **PLP/PDP routes**: verified (307 → Clerk sign-in as expected for auth-protected; brand landing returns 200)
-- **PLP/PDP fully implemented**: ProductCard, ProductGrid, ProductGallery, ProductInfo + AddToCartButton
-- **Dark mode toggle**: Shared `<ThemeToggle />` wired into storefront + admin
-- **Routes**: Brand landing, full catalog, category PLP, PDP
-- **Clerk v7 + Next.js 16**: `proxy.ts` middleware confirmed running
-- **Cloudinary**: Backend endpoint + `src/core/cloudinary.py` installed; storefront wired (committed); admin ImageManager with upload widget (committed); product image CRUD endpoints (committed); DB migration for product_images (committed); seed data with Cloudinary public IDs (committed)
-- **Admin**: ErrorBanner, OrdersTable, Settings form, product-form
+- **PLP/PDP fully implemented**: ProductCard, ProductGrid, ProductGallery, ProductInfo, AddToCartButton, MobileStickyCta
+- **Cloudinary**: Full pipeline — backend signed upload API, StorefrontImage, admin ImageManager, product image CRUD, DB migration 0003, seed data
+- **Dark mode**: Shared ThemeToggle wired into storefront + admin
+- **Atomic UI library**: 50+ shadcn-style components in packages/ui
+- **Admin**: ImageManager, ErrorBanner, OrdersTable, Settings form, product-form drawer
+- **Design tokens**: OKLCH palette, Plus Jakarta Sans, globals.css cleanup
 
-## Next Steps
+## Next Steps (for next branch)
 
-1. ~~Restart dev servers to verify PLP/PDP routes render with live data~~ ✅
-2. ~~Implement mobile sticky CTA bar on PDP (per spec)~~ ✅
-3. ~~Wire up Cloudinary images in place of Unsplash demo URLs~~ ✅
-4. Add category filtering on backend (currently all PLP routes show all products — by design for now)
-5. ~~Add Cloudinary env vars to Doppler~~ ✅ (verified present)
+1. Add category filtering on backend (currently all PLP routes show all products — by design for now)
 
 ## Key Decisions
 

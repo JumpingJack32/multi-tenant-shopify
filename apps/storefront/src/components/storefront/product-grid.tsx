@@ -1,7 +1,9 @@
-import Link from "next/link";
 import type { Product } from "@repo/tenant-orm/types";
-import { ProductCard } from "./product-card";
+import Link from "next/link";
+
 import { fetchProducts } from "@/lib/api";
+
+import { ProductCard } from "./product-card";
 
 interface ProductGridProps {
   tenantSlug: string;

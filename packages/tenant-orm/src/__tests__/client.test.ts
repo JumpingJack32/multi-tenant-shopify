@@ -34,7 +34,7 @@ describe("createTenantClient", () => {
 
   it("withTenantScope includes X-Tenant-ID header", async () => {
     const { createClient } = await import("@supabase/supabase-js");
-    createClient.mockClear();
+    vi.mocked(createClient).mockClear();
 
     const client = createTenantClient("https://supabase.test", "test-key");
     client.tenantId = "tenant-456";
@@ -56,7 +56,7 @@ describe("createTenantClient", () => {
 
   it("reflects updated tenantId in subsequent withTenantScope calls", async () => {
     const { createClient } = await import("@supabase/supabase-js");
-    createClient.mockClear();
+    vi.mocked(createClient).mockClear();
 
     const client = createTenantClient("https://supabase.test", "test-key");
 

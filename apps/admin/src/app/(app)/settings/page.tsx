@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { ErrorBanner } from "@/components/ui/error-banner";
 import { Button } from "@/components/ui/button";
+import { ErrorBanner } from "@/components/ui/error-banner";
 
 export default function SettingsPage() {
   const [name, setName] = useState("");

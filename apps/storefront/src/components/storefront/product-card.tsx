@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "@repo/ui/components/motion";
-import { StorefrontImage } from "@/components/storefront/storefront-image";
-import { useRouter, useParams } from "next/navigation";
 import type { Product } from "@repo/tenant-orm/types";
+import { motion, AnimatePresence } from "@repo/ui/components/motion";
+import { useRouter, useParams } from "next/navigation";
+import { useState } from "react";
+
+import { StorefrontImage } from "@/components/storefront/storefront-image";
 
 interface ProductCardProps {
   product: Product;

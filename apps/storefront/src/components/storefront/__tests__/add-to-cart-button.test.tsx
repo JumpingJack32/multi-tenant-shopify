@@ -1,8 +1,10 @@
-import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
-import { AddToCartButton } from "../add-to-cart-button";
-import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@repo/tenant-orm/types";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
+
+import { useCart } from "@/hooks/use-cart";
+
+import { AddToCartButton } from "../add-to-cart-button";
 
 afterEach(() => {
   cleanup();
@@ -39,10 +41,10 @@ describe("AddToCartButton", () => {
     fireEvent.click(screen.getByText("ADD TO CART"));
     const state = useCart.getState();
     expect(state.items).toHaveLength(1);
-    expect(state.items[0].product_id).toBe("prod-1");
-    expect(state.items[0].name).toBe("Test Product");
-    expect(state.items[0].price).toBe(49.99);
-    expect(state.items[0].image).toBe("/image1.jpg");
+    expect(state.items[0]!.product_id).toBe("prod-1");
+    expect(state.items[0]!.name).toBe("Test Product");
+    expect(state.items[0]!.price).toBe(49.99);
+    expect(state.items[0]!.image).toBe("/image1.jpg");
   });
 
   it("shows Added! after click", () => {

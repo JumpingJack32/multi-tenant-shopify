@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "@repo/ui/components/motion";
-import { AddToCartButton } from "./add-to-cart-button";
 import type { Product } from "@repo/tenant-orm/types";
+import { motion } from "@repo/ui/components/motion";
+import { useEffect, useState } from "react";
+
+import { AddToCartButton } from "./add-to-cart-button";
 
 interface MobileStickyCtaProps {
   product: Product;
@@ -18,7 +19,7 @@ export function MobileStickyCta({ product }: MobileStickyCtaProps) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(!entry.isIntersecting);
+        setVisible(entry != null && !entry.isIntersecting);
       },
       { threshold: 0 },
     );

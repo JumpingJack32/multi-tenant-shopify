@@ -1,7 +1,8 @@
-import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
-import { ProductGrid } from "../product-grid";
 import type { Product } from "@repo/tenant-orm/types";
+import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
+
+import { ProductGrid } from "../product-grid";
 
 const mockPush = vi.fn();
 

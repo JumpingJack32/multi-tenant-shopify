@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@repo/tenant-orm/types";
+import { useState } from "react";
+
+import { useCart } from "@/hooks/use-cart";
 
 interface AddToCartButtonProps {
   product: Product;

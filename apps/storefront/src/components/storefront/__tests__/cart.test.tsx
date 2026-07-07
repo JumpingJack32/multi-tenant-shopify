@@ -1,7 +1,9 @@
-import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import { Cart } from "../cart";
+import { describe, it, expect, afterEach } from "vitest";
+
 import { useCart } from "@/hooks/use-cart";
+
+import { Cart } from "../cart";
 
 afterEach(() => {
   cleanup();

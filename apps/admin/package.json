@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "pnpm -w vitest run --project admin",
     "clean": "rm -rf .next"
   },
   "dependencies": {

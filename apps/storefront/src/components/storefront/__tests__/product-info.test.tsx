@@ -1,8 +1,10 @@
-import { describe, it, expect, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
-import { ProductInfo } from "../product-info";
-import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@repo/tenant-orm/types";
+import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+
+import { useCart } from "@/hooks/use-cart";
+
+import { ProductInfo } from "../product-info";
 
 afterEach(() => {
   cleanup();
@@ -22,7 +24,7 @@ const baseProduct: Product = {
   is_active: true,
   price: 49.99,
   specs: null,
-  images: ["/image1.jpg"],
+  images: [{ id: "img-1", url: "/image1.jpg", alt_text: null, sort_order: 0 }],
   created_at: "2024-01-01",
   updated_at: "2024-01-01",
 };

@@ -19,7 +19,7 @@
     "@types/node": "^22.19.21"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "pnpm -w vitest run --project tenant-orm",
     "typecheck": "tsc --noEmit"
   }
 }

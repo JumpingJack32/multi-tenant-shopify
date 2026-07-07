@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { resolveTenantFromRequest } from "../tenant-resolver";
 
 function makeRequest(url: string, host?: string): Request {

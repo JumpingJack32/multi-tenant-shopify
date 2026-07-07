@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { ProductTable } from "../product-table";
 import type { Product } from "@repo/tenant-orm/types";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+
+import { ProductTable } from "../product-table";
 
 const mockProducts: Product[] = [
   {

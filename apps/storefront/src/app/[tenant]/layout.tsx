@@ -1,4 +1,5 @@
-import { ThemeToggle } from "@repo/ui/components/ui";
+import { ThemeToggle } from "@repo/ui";
+
 import { resolveTenantFromRequest } from "@/lib/tenant-resolver";
 
 export default function TenantLayout({

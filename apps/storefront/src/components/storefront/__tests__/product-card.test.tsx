@@ -1,8 +1,9 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
+import type { Product } from "@repo/tenant-orm/types";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, afterEach, vi } from "vitest";
+
 import { ProductCard } from "../product-card";
-import type { Product } from "@repo/tenant-orm/types";
 
 const mockPush = vi.fn();
 

@@ -72,7 +72,7 @@ describe("ProductSchema", () => {
     });
     expect(result.price).toBe(3499);
     expect(result.specs).toEqual([{ label: "MATERIAL", value: "Nylon" }]);
-    expect(result.images![0].url).toBe("demo/products/test-hero");
+    expect(result.images![0]!.url).toBe("demo/products/test-hero");
   });
 
   it("accepts null optional fields", () => {

@@ -1,10 +1,10 @@
 {
   "extends": [
     "@repo/typescript-config/base.json",
-    "@repo/typescript-config/nextjs.json",
+    "@repo/typescript-config/nextjs.json"
   ],
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "outDir": "dist",
     "rootDir": "src"
   },

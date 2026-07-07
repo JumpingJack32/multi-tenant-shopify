@@ -1,7 +1,8 @@
 "use client";
 
-import { AddToCartButton } from "./add-to-cart-button";
 import type { Product } from "@repo/tenant-orm/types";
+
+import { AddToCartButton } from "./add-to-cart-button";
 
 interface ProductInfoProps {
   product: Product;

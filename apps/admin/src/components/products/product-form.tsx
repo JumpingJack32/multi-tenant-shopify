@@ -8,6 +8,7 @@ import {
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
 import { useForm } from "react-hook-form";
+import type { z } from "zod";
 // import { Button } from "@/components/ui/button";
 
 interface ProductFormProps {
@@ -22,21 +23,29 @@ export function ProductForm({
   onCancel,
 }: ProductFormProps) {
   const schema = initialData ? ProductUpdateSchema : ProductCreateSchema;
+  type FormValues = z.infer<typeof schema>;
+
+  const defaultFormValues: FormValues = initialData
+    ? {
+        ...initialData,
+        images: undefined,
+      }
+    : {
+        name: "",
+        slug: "",
+        status: "draft",
+        is_active: true,
+        weight: 0,
+        weight_unit: "kg",
+      };
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initialData ?? {
-      name: "",
-      slug: "",
-      status: "draft",
-      is_active: true,
-      weight: 0,
-      weight_unit: "kg",
-    },
+    defaultValues: defaultFormValues,
   });
 
   const onFormSubmit = handleSubmit(async (data) => {

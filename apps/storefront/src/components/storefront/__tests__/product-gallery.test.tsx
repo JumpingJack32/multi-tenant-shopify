@@ -1,5 +1,6 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi } from "vitest";
+
 import { ProductGallery } from "../product-gallery";
 
 afterEach(() => {
@@ -22,7 +23,7 @@ describe("ProductGallery", () => {
 
     const imgs = screen.getAllByAltText("Test Product");
     expect(imgs.length).toBe(2);
-    expect(imgs[0].getAttribute("src")).toBe(images[0].url);
+    expect(imgs[0]!.getAttribute("src")).toBe(images[0]!.url);
   });
 
   it("shows placeholder when no images", () => {
@@ -43,7 +44,7 @@ describe("ProductGallery", () => {
 
     const imgs = screen.getAllByRole("img");
     expect(imgs.length).toBe(5);
-    expect(imgs[1].getAttribute("src")).toBe(images[1].url);
-    expect(imgs[2].getAttribute("src")).toBe(images[2].url);
+    expect(imgs[1]!.getAttribute("src")).toBe(images[1]!.url);
+    expect(imgs[2]!.getAttribute("src")).toBe(images[2]!.url);
   });
 });

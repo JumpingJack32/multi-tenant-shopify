@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useProducts } from "../use-products";
 import type { Product } from "@repo/tenant-orm/types";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+import { useProducts } from "../use-products";
 
 vi.mock("@/lib/api/client", () => ({
   api: {
