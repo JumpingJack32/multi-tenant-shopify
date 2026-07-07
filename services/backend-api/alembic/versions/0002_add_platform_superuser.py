@@ -18,20 +18,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Add is_platform_superuser column to tenant_users if it doesn't exist
-    conn = op.get_bind()
-    result = conn.execute(
-        sa.text(
-            "SELECT column_name FROM information_schema.columns "
-            "WHERE table_name = 'tenant_users' AND column_name = 'is_platform_superuser'"
-        )
-    )
-    if not result.fetchone():
-        op.execute("""
-            ALTER TABLE tenant_users 
-            ADD COLUMN is_platform_superuser BOOLEAN NOT NULL DEFAULT false
-        """)
-
     # Create clerk_webhook_events table if it doesn't exist
     op.execute("""
         CREATE TABLE IF NOT EXISTS clerk_webhook_events (
