@@ -99,19 +99,21 @@ class Customer(BaseModel, table=True):
     phone: Optional[str] = Field(default=None, max_length=50)
     is_verified: bool = Field(default=False)
     total_orders: int = Field(default=0)
-    total_spent: float = Field(default=0, ge=0)
+    total_spent: int = Field(default=0, ge=0)
     # last_order_at: Optional[datetime] = mapped_column(DateTime(timezone=True), default=None)
     last_order_at: Optional[datetime] = Field(
         default=None, 
         sa_column=Column(DateTime(timezone=True))
     )
     orders: list[Order] = Relationship(back_populates="customer")
+    addresses: list["CustomerAddress"] = Relationship(back_populates="customer")
 
 
 class CustomerAddress(BaseModel, table=True):
     __tablename__ = "customer_addresses" # type: ignore
 
     customer_id: UUID = Field(foreign_key="customers.id", ondelete="CASCADE")
+    customer: "Customer" = Relationship(back_populates="addresses")
     address_type: str = Field(max_length=20)
     line1: str = Field(max_length=255)
     line2: Optional[str] = Field(default=None, max_length=255)
