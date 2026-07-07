@@ -1,9 +1,17 @@
-import type { Product, ProductCreate, ProductUpdate } from "@repo/tenant-orm/types";
+import type {
+  Product,
+  ProductCreate,
+  ProductUpdate,
+} from "@repo/tenant-orm/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -70,42 +78,130 @@ export async function request<T>(
   return response.json() as T;
 }
 
+function buildQuery(params?: Record<string, string>): string {
+  if (!params) return "";
+  const q = new URLSearchParams(params).toString();
+  return q ? `?${q}` : "";
+}
+
 export const api = {
   products: {
-    list(params?: Record<string, string>, options?: { tenantId?: string | null }) {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
       const query = new URLSearchParams(params).toString();
       return request<Product[]>(
-        `/products/${query ? `?${query}` : ""}`,
+        `/products${query ? `?${query}` : ""}`,
         options ?? {},
       );
     },
 
     get(id: string, options?: { tenantId?: string | null }) {
-      return request<Product>(
-        `/products/${id}`,
-        options ?? {},
-      );
+      return request<Product>(`/products/${id}`, options ?? {});
     },
 
     create(data: ProductCreate, options?: { tenantId?: string | null }) {
-      return request<Product>(
-        "/products",
-        { method: "POST", body: JSON.stringify(data), ...options },
-      );
+      return request<Product>("/products", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
     },
 
-    update(id: string, data: ProductUpdate, options?: { tenantId?: string | null }) {
-      return request<Product>(
-        `/products/${id}`,
-        { method: "PUT", body: JSON.stringify(data), ...options },
-      );
+    update(
+      id: string,
+      data: ProductUpdate,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Product>(`/products/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
     },
 
     delete(id: string, options?: { tenantId?: string | null }) {
-      return request<void>(
-        `/products/${id}`,
+      return request<void>(`/products/${id}`, { method: "DELETE", ...options });
+    },
+  },
+
+  customers: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<{
+        data: unknown[];
+        total: number;
+        page: number;
+        per_page: number;
+      }>(`/customers${buildQuery(params)}`, options ?? {});
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<unknown>(`/customers/${id}`, options ?? {});
+    },
+  },
+
+  collections: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<unknown[]>(
+        `/collections${buildQuery(params)}`,
+        options ?? {},
+      );
+    },
+    create(data: unknown, options?: { tenantId?: string | null }) {
+      return request<unknown>("/collections/", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(id: string, data: unknown, options?: { tenantId?: string | null }) {
+      return request<unknown>(`/collections/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<{ status: string }>(`/collections/${id}`, {
+        method: "DELETE",
+        ...options,
+      });
+    },
+    products(id: string, options?: { tenantId?: string | null }) {
+      return request<unknown[]>(`/collections/${id}/products`, options ?? {});
+    },
+    addProducts(
+      id: string,
+      productIds: string[],
+      options?: { tenantId?: string | null },
+    ) {
+      return request<unknown>(`/collections/${id}/products`, {
+        method: "POST",
+        body: JSON.stringify({ product_ids: productIds }),
+        ...options,
+      });
+    },
+    removeProduct(
+      collectionId: string,
+      productId: string,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<unknown>(
+        `/collections/${collectionId}/products/${productId}`,
         { method: "DELETE", ...options },
       );
+    },
+  },
+
+  dashboard: {
+    summary(options?: { tenantId?: string | null }) {
+      return request<unknown>("/admin/dashboard/summary", options ?? {});
     },
   },
 };
