@@ -95,6 +95,48 @@ async def seed_database():
             )
             customers_t3.append(cid)
 
+        # Create categories for each tenant
+        category_names = ["Outerwear", "Footwear", "Accessories", "Bottoms", "Tops"]
+        categories_by_slug = {}
+        # Create categories for acme
+        for name in category_names:
+            cat_id = uuid.uuid4()
+            cat_slug = name.lower().replace(" ", "-")
+            await conn.execute(
+                """INSERT INTO categories (id, tenant_id, name, slug, is_active, sort_order, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, true, $5, NOW(), NOW())
+                   ON CONFLICT (tenant_id, slug) DO NOTHING""",
+                cat_id, acme["tenant_id"], name, cat_slug, category_names.index(name),
+            )
+            categories_by_slug[cat_slug] = cat_id
+        # Same categories for other tenants
+        for name in category_names:
+            cat_slug = name.lower().replace(" ", "-")
+            for tenant in [globex, initech]:
+                cat_id = uuid.uuid4()
+                await conn.execute(
+                    """INSERT INTO categories (id, tenant_id, name, slug, is_active, sort_order, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, true, $5, NOW(), NOW())
+                       ON CONFLICT (tenant_id, slug) DO NOTHING""",
+                    cat_id, tenant["tenant_id"], name, cat_slug, category_names.index(name),
+                )
+
+        # Category assignment: (product_name, category_slug)
+        category_map = {
+            "Rocket Skates": "footwear",
+            "Laser Watch": "accessories",
+            "Tornado Machine": "outerwear",
+            "Shrink Ray": "accessories",
+            "Teleporter": "accessories",
+            "DeLorean Time Machine": "outerwear",
+            "Plutonium Core": "accessories",
+            "Flux Capacitor": "accessories",
+            "Hoverboard": "footwear",
+            "TPS Report Generator": "accessories",
+            "Staple Remover Pro": "accessories",
+            "Meeting Scheduler": "accessories",
+        }
+
         # Create products for acme-corp
         products_t1 = []
         product_data_t1 = [
@@ -106,11 +148,13 @@ async def seed_database():
         ]
         for name, desc, sku, price in product_data_t1:
             pid = uuid.uuid4()
+            cat_slug = category_map.get(name)
+            cat_id = categories_by_slug.get(cat_slug) if cat_slug else None
             await conn.execute(
-                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, created_at, updated_at)
-                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, NOW(), NOW())
+                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, $7, NOW(), NOW())
                    ON CONFLICT DO NOTHING""",
-                pid, acme["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku,
+                pid, acme["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku, cat_id,
             )
             # Create variant with price
             vid = uuid.uuid4()
@@ -149,11 +193,13 @@ async def seed_database():
         ]
         for name, desc, sku, price in product_data_t2:
             pid = uuid.uuid4()
+            cat_slug = category_map.get(name)
+            cat_id = categories_by_slug.get(cat_slug) if cat_slug else None
             await conn.execute(
-                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, created_at, updated_at)
-                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, NOW(), NOW())
+                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, $7, NOW(), NOW())
                    ON CONFLICT DO NOTHING""",
-                pid, globex["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku,
+                pid, globex["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku, cat_id,
             )
             vid = uuid.uuid4()
             await conn.execute(
@@ -190,11 +236,13 @@ async def seed_database():
         ]
         for name, desc, sku, price in product_data_t3:
             pid = uuid.uuid4()
+            cat_slug = category_map.get(name)
+            cat_id = categories_by_slug.get(cat_slug) if cat_slug else None
             await conn.execute(
-                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, created_at, updated_at)
-                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, NOW(), NOW())
+                """INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, created_at, updated_at)
+                   VALUES ($1, $2, $3, $4, $5, 'PUBLISHED', $6, 'kg', true, $7, NOW(), NOW())
                    ON CONFLICT DO NOTHING""",
-                pid, initech["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku,
+                pid, initech["tenant_id"], name, f"{name.lower().replace(' ', '-')}", desc, sku, cat_id,
             )
             vid = uuid.uuid4()
             await conn.execute(
@@ -323,7 +371,7 @@ async def seed_database():
 
         await conn.commit()
         print("\nDatabase seeded successfully!")
-        print(f"Total: 3 tenants, 12 products, 12 variants, 6 customers, 5 orders")
+        print(f"Total: 3 tenants, 15 categories, 12 products, 12 variants, 6 customers, 5 orders")
         print("Note: Existing data was preserved. Only missing records were added.")
 
     except Exception as e:
