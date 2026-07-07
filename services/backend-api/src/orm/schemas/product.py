@@ -7,6 +7,8 @@ from uuid import UUID
 from pydantic import BaseModel as PydanticBaseModel, Field, validator
 from sqlmodel import Field as SQLModelField
 
+from src.orm.schemas.customer import CustomerResponse
+
 
 # ── Product ──────────────────────────────────────────────────────────────
 
@@ -106,36 +108,6 @@ class ProductImageCreate(PydanticBaseModel):
 class ProductImageUpdate(PydanticBaseModel):
     alt_text: Optional[str] = Field(None, max_length=500)
     sort_order: Optional[int] = None
-
-
-# ── Customer ─────────────────────────────────────────────────────────────
-
-
-class CustomerCreate(PydanticBaseModel):
-    email: str = Field(..., max_length=255)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    phone: Optional[str] = Field(None, max_length=50)
-
-
-class CustomerUpdate(PydanticBaseModel):
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    phone: Optional[str] = Field(None, max_length=50)
-    is_verified: Optional[bool] = None
-
-
-class CustomerResponse(PydanticBaseModel):
-    id: UUID
-    tenant_id: UUID
-    email: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
-    is_verified: bool
-    total_orders: int
-    total_spent: float
-    last_order_at: Optional[datetime] = None
 
 
 # ── Order ────────────────────────────────────────────────────────────────

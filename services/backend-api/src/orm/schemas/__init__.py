@@ -7,9 +7,17 @@ from src.orm.schemas.product import (  # noqa: F401
     VariantUpdate,
     VariantResponse,
     ProductImageCreate,
+)
+from src.orm.schemas.collection import (  # noqa: F401
+    CollectionCreate,
+    CollectionUpdate,
+    CollectionResponse,
+)
+from src.orm.schemas.customer import (  # noqa: F401
     CustomerCreate,
     CustomerUpdate,
     CustomerResponse,
+    CustomerDetailResponse,
 )
 from src.orm.schemas.order import (  # noqa: F401
     OrderCreate,

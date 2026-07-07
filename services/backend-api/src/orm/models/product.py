@@ -8,9 +8,11 @@ from sqlalchemy import JSON, Index, Text
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
+from src.orm.models.collection import ProductCollection
 
 if TYPE_CHECKING:
     from src.orm.models.category import Category
+    from src.orm.models.collection import Collection
 
 
 class ProductStatus(str, Enum):
@@ -40,6 +42,7 @@ class Product(BaseModel, table=True):
     images: list["ProductImage"] = Relationship(back_populates="product", cascade_delete=True)
     category_id: Optional[UUID] = Field(default=None, foreign_key="categories.id")
     category: Optional["Category"] = Relationship(back_populates="products")
+    collections: list["Collection"] = Relationship(back_populates="products", link_model=ProductCollection)
 
 
 class ProductImage(BaseModel, table=True):
