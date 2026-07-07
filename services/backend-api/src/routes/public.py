@@ -4,13 +4,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.tenant_isolation import set_tenant_context
 from src.dependencies import get_db
+from src.orm.models.category import Category
 from src.orm.models.product import Product
 from src.orm.models.tenant import Tenant
+from src.orm.schemas.category import CategoryResponse
 from src.orm.schemas.product import ProductResponse
 from src.orm.schemas.tenant import TenantPublicResponse
 
@@ -23,7 +25,7 @@ async def resolve_tenant(
     db: AsyncSession = Depends(get_db),
 ):
     """Resolve a tenant by slug — used by the storefront to discover tenant info."""
-    stmt = select(Tenant).where(Tenant.slug == slug, Tenant.status == "active")
+    stmt = select(Tenant).where(Tenant.slug == slug, Tenant.status == "ACTIVE")
     result = await db.exec(stmt)
     tenant = result.one_or_none()
 
@@ -39,11 +41,12 @@ async def resolve_tenant(
 @router.get("/products/{tenant_slug}", response_model=list[ProductResponse])
 async def public_products(
     tenant_slug: str,
+    category: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """List active products for a tenant — public storefront browsing."""
     # Resolve tenant by slug
-    stmt = select(Tenant).where(Tenant.slug == tenant_slug, Tenant.status == "active")
+    stmt = select(Tenant).where(Tenant.slug == tenant_slug, Tenant.status == "ACTIVE")
     result = await db.exec(stmt)
     tenant = result.one_or_none()
 
@@ -65,6 +68,53 @@ async def public_products(
             Product.is_active == True,  # noqa: E712
         )
     )
+
+    if category:
+        stmt = stmt.join(Category, Product.category_id == Category.id).where(
+            Category.slug == category,
+            Category.is_active == True,  # noqa: E712
+        )
+
+    stmt = stmt.order_by(Product.created_at.desc())
     result = await db.exec(stmt)
     products = result.all()
     return products
+
+
+@router.get("/categories/{tenant_slug}", response_model=list[CategoryResponse])
+async def public_categories(
+    tenant_slug: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """List active categories for a tenant — public storefront browsing."""
+    stmt = select(Tenant).where(Tenant.slug == tenant_slug, Tenant.status == "ACTIVE")
+    result = await db.exec(stmt)
+    tenant = result.one_or_none()
+
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Tenant not found",
+        )
+
+    stmt = (
+        select(Category)
+        .where(
+            Category.tenant_id == tenant.tenant_id,
+            Category.is_active == True,  # noqa: E712
+        )
+        .order_by(Category.sort_order, Category.name)
+    )
+    categories = (await db.exec(stmt)).all()
+    result = []
+    for cat in categories:
+        count_stmt = select(func.count()).select_from(Product).where(
+            Product.category_id == cat.id,
+            Product.tenant_id == tenant.tenant_id,
+        )
+        count = (await db.exec(count_stmt)).one()
+        result.append(CategoryResponse(
+            **cat.model_dump(),
+            product_count=count,
+        ))
+    return result

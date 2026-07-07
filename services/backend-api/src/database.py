@@ -1,17 +1,26 @@
 import importlib
+import os
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine as sa_create_async_engine
+from sqlalchemy.pool import NullPool
 
 from src.config import settings
 
-async_engine: AsyncEngine = sa_create_async_engine(
-    settings.database_url,
-    echo=settings.debug,
-    pool_size=20,
-    max_overflow=10,
-    pool_pre_ping=True,
-    pool_recycle=1800,
-)
+if os.environ.get("APP_ENV") == "test":
+    async_engine: AsyncEngine = sa_create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+        poolclass=NullPool,
+    )
+else:
+    async_engine: AsyncEngine = sa_create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+        pool_size=20,
+        max_overflow=10,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+    )
 
 
 async def init_db() -> None:
