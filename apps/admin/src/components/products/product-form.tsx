@@ -7,9 +7,16 @@ import {
 } from "@repo/tenant-orm/schemas";
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 // import { Button } from "@/components/ui/button";
+
+interface CategoryOption {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
 
 interface ProductFormProps {
   initialData?: Product;
@@ -22,6 +29,15 @@ export function ProductForm({
   onSubmit,
   onCancel,
 }: ProductFormProps) {
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/v1/categories/")
+      .then((res) => res.ok && res.json())
+      .then((data) => setCategories(data ?? []))
+      .catch(() => {});
+  }, []);
+
   const schema = initialData ? ProductUpdateSchema : ProductCreateSchema;
   type FormValues = z.infer<typeof schema>;
 
@@ -29,6 +45,7 @@ export function ProductForm({
     ? {
         ...initialData,
         images: undefined,
+        category_id: initialData.category_id ?? null,
       }
     : {
         name: "",
@@ -37,6 +54,7 @@ export function ProductForm({
         is_active: true,
         weight: 0,
         weight_unit: "kg",
+        category_id: null,
       };
 
   const {
@@ -85,6 +103,28 @@ export function ProductForm({
         />
         {errors.slug && (
           <p className="text-xs text-red-500">{errors.slug.message}</p>
+        )}
+      </div>
+
+      {/* Category */}
+      <div className="space-y-2">
+        <label htmlFor="category_id" className="text-sm font-medium">
+          Category
+        </label>
+        <select
+          id="category_id"
+          {...register("category_id")}
+          className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">No category</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+        {errors.category_id && (
+          <p className="text-xs text-red-500">{errors.category_id.message}</p>
         )}
       </div>
 

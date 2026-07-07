@@ -69,6 +69,7 @@ export const ProductCreateSchema = z.object({
     .nullable()
     .optional(),
   images: z.array(z.string()).nullable().optional(),
+  category_id: z.string().uuid().nullable().optional(),
 });
 
 export const ProductUpdateSchema = z.object({
@@ -86,6 +87,7 @@ export const ProductUpdateSchema = z.object({
     .nullable()
     .optional(),
   images: z.array(z.string()).nullable().optional(),
+  category_id: z.string().uuid().nullable().optional(),
 });
 
 export const OrderSchema = z.object({
