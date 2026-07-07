@@ -101,3 +101,98 @@ export interface OrderItem {
   quantity: number;
   unit_price: number;
 }
+
+export interface Collection {
+  id: string;
+  tenant_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  hero_image_url: string | null;
+  hero_image_alt: string | null;
+  sort_order: number;
+  is_active: boolean;
+  product_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CollectionCreate {
+  name: string;
+  slug: string;
+  description?: string | null;
+  hero_image_url?: string | null;
+  hero_image_alt?: string | null;
+  sort_order?: number;
+}
+
+export interface CollectionUpdate extends Partial<CollectionCreate> {
+  is_active?: boolean;
+}
+
+export interface Customer {
+  id: string;
+  tenant_id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  is_verified: boolean;
+  total_orders: number;
+  total_spent: number;
+  last_order_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerAddress {
+  id: string;
+  address_type: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  province: string | null;
+  postal_code: string;
+  country: string;
+  is_default: boolean;
+}
+
+export interface CustomerOrder {
+  id: string;
+  order_number: string;
+  total: number;
+  status: string;
+  created_at: string;
+}
+
+export interface CustomerDetail extends Customer {
+  average_order_value: number;
+  addresses: CustomerAddress[];
+  orders: CustomerOrder[];
+}
+
+export interface DashboardSummary {
+  revenue_mtd: number;
+  revenue_total: number;
+  revenue_prev_mtd: number;
+  orders_mtd: number;
+  orders_total: number;
+  orders_prev_mtd: number;
+  aov: number;
+  active_customers: number;
+  active_customers_prev: number;
+  fulfillment: {
+    unfulfilled: number;
+    processing: number;
+    shipped: number;
+    delivered: number;
+  };
+  low_stock: Array<{ id: string; name: string; stock: number }>;
+  recent_orders: Array<{
+    id: string;
+    order_number: string;
+    total: number;
+    status: string;
+    created_at: string;
+  }>;
+}

@@ -90,6 +90,83 @@ export const ProductUpdateSchema = z.object({
   category_id: z.string().uuid().nullable().optional(),
 });
 
+export const CollectionSchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255),
+  description: z.string().nullable().optional(),
+  hero_image_url: z.string().nullable().optional(),
+  hero_image_alt: z.string().nullable().optional(),
+  sort_order: z.number().int().default(0),
+  is_active: z.boolean().default(true),
+  product_count: z.number().int().default(0),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const CollectionCreateSchema = CollectionSchema.omit({
+  id: true,
+  tenant_id: true,
+  is_active: true,
+  product_count: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const CollectionUpdateSchema = CollectionCreateSchema.partial().extend({
+  is_active: z.boolean().optional(),
+});
+
+export const CustomerSchema = z.object({
+  id: z.string().uuid(),
+  tenant_id: z.string().uuid(),
+  email: z.string().email(),
+  first_name: z.string().nullable().optional(),
+  last_name: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  is_verified: z.boolean(),
+  total_orders: z.number().int(),
+  total_spent: z.number().int(),
+  last_order_at: z.string().nullable().optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export const DashboardSummarySchema = z.object({
+  revenue_mtd: z.number().int(),
+  revenue_total: z.number().int(),
+  revenue_prev_mtd: z.number().int(),
+  orders_mtd: z.number().int(),
+  orders_total: z.number().int(),
+  orders_prev_mtd: z.number().int(),
+  aov: z.number().int(),
+  active_customers: z.number().int(),
+  active_customers_prev: z.number().int(),
+  fulfillment: z.object({
+    unfulfilled: z.number().int(),
+    processing: z.number().int(),
+    shipped: z.number().int(),
+    delivered: z.number().int(),
+  }),
+  low_stock: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      stock: z.number().int(),
+    }),
+  ),
+  recent_orders: z.array(
+    z.object({
+      id: z.string(),
+      order_number: z.string(),
+      total: z.number().int(),
+      status: z.string(),
+      created_at: z.string(),
+    }),
+  ),
+});
+
 export const OrderSchema = z.object({
   id: z.string().uuid(),
   tenant_id: z.string().uuid(),
