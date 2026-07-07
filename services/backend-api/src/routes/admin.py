@@ -53,10 +53,10 @@ async def _kpi_query(db: AsyncSession, tenant_id: UUID) -> dict:
 async def _fulfillment_query(db: AsyncSession, tenant_id: UUID) -> FulfillmentCounts:
     query = text("""
         SELECT
-            COALESCE(SUM(CASE WHEN status IN ('PENDING', 'CONFIRMED', 'PAID') THEN 1 ELSE 0 END), 0)::BIGINT AS unfulfilled,
-            COALESCE(SUM(CASE WHEN status = 'PROCESSING' THEN 1 ELSE 0 END), 0)::BIGINT AS processing,
-            COALESCE(SUM(CASE WHEN status = 'SHIPPED' THEN 1 ELSE 0 END), 0)::BIGINT AS shipped,
-            COALESCE(SUM(CASE WHEN status = 'DELIVERED' THEN 1 ELSE 0 END), 0)::BIGINT AS delivered
+            COALESCE(SUM(CASE WHEN LOWER(status::text) IN ('pending', 'confirmed', 'paid') THEN 1 ELSE 0 END), 0)::BIGINT AS unfulfilled,
+            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'processing' THEN 1 ELSE 0 END), 0)::BIGINT AS processing,
+            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'shipped' THEN 1 ELSE 0 END), 0)::BIGINT AS shipped,
+            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'delivered' THEN 1 ELSE 0 END), 0)::BIGINT AS delivered
         FROM orders
         WHERE tenant_id = :tenant_id
     """)
@@ -92,7 +92,7 @@ async def _recent_orders_query(db: AsyncSession, tenant_id: UUID) -> list[Recent
                 ELSE NULL
             END AS customer_name,
             o.total::BIGINT AS total,
-            o.status::text AS status,
+            LOWER(o.status::text) AS status,
             o.created_at::text AS created_at
         FROM orders o
         LEFT JOIN customers c ON o.customer_id = c.id

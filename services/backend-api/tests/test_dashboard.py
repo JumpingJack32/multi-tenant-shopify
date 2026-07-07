@@ -106,4 +106,4 @@ async def test_dashboard_summary_returns_expected_keys(client: AsyncClient):
 
     assert len(data["recent_orders"]) == 4
     assert data["recent_orders"][0]["customer_name"] == "John Doe"
-    assert data["recent_orders"][0]["status"] == "DELIVERED"
+    assert data["recent_orders"][0]["status"] == "delivered"
