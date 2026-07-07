@@ -71,7 +71,7 @@ async def get_customer(
         CustomerOrderResponse(
             id=o.id,
             order_number=o.order_number,
-            total=int(o.total * 100),
+            total=int(o.total),
             status=o.status.value if hasattr(o.status, "value") else o.status,
             created_at=o.created_at,
         )
