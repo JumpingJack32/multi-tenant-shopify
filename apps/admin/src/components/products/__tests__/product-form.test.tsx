@@ -1,8 +1,19 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Product } from "@repo/tenant-orm/types";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
 import { ProductForm } from "../product-form";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 const mockProduct: Product = {
   id: "1",
@@ -25,7 +36,9 @@ afterEach(() => {
 
 describe("ProductForm", () => {
   it("renders create form with correct button text", () => {
-    render(<ProductForm onSubmit={vi.fn()} onCancel={vi.fn()} />);
+    render(<ProductForm onSubmit={vi.fn()} onCancel={vi.fn()} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.getByText("Create Product")).toBeDefined();
     expect(screen.getByText("Cancel")).toBeDefined();
   });
@@ -37,20 +50,25 @@ describe("ProductForm", () => {
         onSubmit={vi.fn()}
         onCancel={vi.fn()}
       />,
+      { wrapper: Wrapper },
     );
     expect(screen.getByText("Update Product")).toBeDefined();
   });
 
   it("calls onCancel when cancel button clicked", () => {
     const onCancel = vi.fn();
-    render(<ProductForm onSubmit={vi.fn()} onCancel={onCancel} />);
+    render(<ProductForm onSubmit={vi.fn()} onCancel={onCancel} />, {
+      wrapper: Wrapper,
+    });
     fireEvent.click(screen.getByText("Cancel"));
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it("calls onSubmit with form data", async () => {
     const onSubmit = vi.fn();
-    render(<ProductForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+    render(<ProductForm onSubmit={onSubmit} onCancel={vi.fn()} />, {
+      wrapper: Wrapper,
+    });
 
     fireEvent.change(screen.getByPlaceholderText("Enter product name"), {
       target: { value: "New Product" },
@@ -67,7 +85,9 @@ describe("ProductForm", () => {
   });
 
   it("renders all form fields", () => {
-    render(<ProductForm onSubmit={vi.fn()} onCancel={vi.fn()} />);
+    render(<ProductForm onSubmit={vi.fn()} onCancel={vi.fn()} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.getByLabelText("Product Name")).toBeDefined();
     expect(screen.getByLabelText("Slug")).toBeDefined();
     expect(screen.getByLabelText("Status")).toBeDefined();
@@ -78,7 +98,9 @@ describe("ProductForm", () => {
 
   it("shows saving state when submitting", async () => {
     const onSubmit = vi.fn(() => new Promise<void>((r) => setTimeout(r, 1000)));
-    render(<ProductForm onSubmit={onSubmit} onCancel={vi.fn()} />);
+    render(<ProductForm onSubmit={onSubmit} onCancel={vi.fn()} />, {
+      wrapper: Wrapper,
+    });
 
     fireEvent.change(screen.getByPlaceholderText("Enter product name"), {
       target: { value: "New Product" },

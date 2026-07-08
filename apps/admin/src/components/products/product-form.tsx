@@ -7,6 +7,7 @@ import {
 } from "@repo/tenant-orm/schemas";
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
+import { useCollections } from "@/features/collections/hooks/use-collections";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -30,6 +31,10 @@ export function ProductForm({
   onCancel,
 }: ProductFormProps) {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const { data: collections } = useCollections(false);
+  const [selectedCollections, setSelectedCollections] = useState<string[]>(
+    initialData?.collection_ids ?? [],
+  );
 
   useEffect(() => {
     fetch("/api/v1/categories/")
@@ -67,7 +72,7 @@ export function ProductForm({
   });
 
   const onFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data);
+    await onSubmit({ ...data, collection_ids: selectedCollections });
   });
 
   return (
@@ -126,6 +131,33 @@ export function ProductForm({
         {errors.category_id && (
           <p className="text-xs text-red-500">{errors.category_id.message}</p>
         )}
+      </div>
+
+      {/* Collections Multi-Select */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Collections</label>
+        <div className="max-h-40 overflow-y-auto rounded-lg border p-2 space-y-1">
+          {collections?.map((col: any) => (
+            <label key={col.id} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                value={col.id}
+                checked={selectedCollections.includes(col.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedCollections([...selectedCollections, col.id]);
+                  } else {
+                    setSelectedCollections(
+                      selectedCollections.filter((id: string) => id !== col.id),
+                    );
+                  }
+                }}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              {col.name}
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Status */}
