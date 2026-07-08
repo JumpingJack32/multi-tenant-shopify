@@ -1,15 +1,16 @@
 "use client";
 
-import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
+import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@repo/ui/components/ui/card";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
-import { Badge } from "@repo/ui/components/ui/badge";
+
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 
 function formatPence(n: number): string {
   return `\u00A3${(n / 100).toFixed(2)}`;

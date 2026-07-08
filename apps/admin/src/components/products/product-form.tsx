@@ -7,10 +7,10 @@ import {
 } from "@repo/tenant-orm/schemas";
 import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
-import { useCollections } from "@/features/collections/hooks/use-collections";
 import { useEffect, useState } from "react";
 import { useForm, type FieldValues } from "react-hook-form";
-// import { Button } from "@/components/ui/button";
+
+import { useCollections } from "@/features/collections/hooks/use-collections";
 
 interface CategoryOption {
   id: string;
