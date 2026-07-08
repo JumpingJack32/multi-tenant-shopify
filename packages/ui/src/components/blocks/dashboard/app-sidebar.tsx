@@ -17,13 +17,16 @@ import {
 import {
   LayoutDashboardIcon,
   PackageIcon,
-  FolderIcon,
   UsersIcon,
-  ShoppingCartIcon,
+  FileTextIcon,
+  BanknoteIcon,
+  BarChart3Icon,
+  MegaphoneIcon,
+  PercentIcon,
+  StoreIcon,
   Settings2Icon,
   CircleHelpIcon,
   CommandIcon,
-  TagIcon,
 } from "@repo/ui/icons";
 
 export interface SubNavItem {
@@ -53,15 +56,91 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 const navMain: SidebarNavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: <LayoutDashboardIcon /> },
-  { title: "Products", url: "/products", icon: <PackageIcon /> },
-  { title: "Collections", url: "/collections", icon: <FolderIcon /> },
-  { title: "Categories", url: "/categories", icon: <TagIcon /> },
+  {
+    title: "Products",
+    icon: <PackageIcon />,
+    items: [
+      { title: "Collections", url: "/collections" },
+      { title: "Inventory", url: "/products/inventory" },
+      { title: "Purchase Orders", url: "/products/purchase-orders" },
+      { title: "Transfers", url: "/products/transfers" },
+      { title: "Gift Cards", url: "/products/gift-cards" },
+    ],
+  },
   { title: "Customers", url: "/customers", icon: <UsersIcon /> },
-  { title: "Orders", url: "/orders", icon: <ShoppingCartIcon /> },
+  {
+    title: "Content",
+    icon: <FileTextIcon />,
+    items: [
+      { title: "Pages", url: "/content/pages" },
+      { title: "Blog Posts", url: "/content/blog" },
+      { title: "Files & Media Library", url: "/content/files" },
+      { title: "Metafields", url: "/content/metafields" },
+    ],
+  },
+  {
+    title: "Finances",
+    icon: <BanknoteIcon />,
+    items: [
+      { title: "Financial Overview", url: "/finances/overview" },
+      { title: "Payouts & Settlements", url: "/finances/payouts" },
+      { title: "Capital / Financing", url: "/finances/capital" },
+      { title: "Tax Liabilities", url: "/finances/taxes" },
+    ],
+  },
+  {
+    title: "Analytics",
+    icon: <BarChart3Icon />,
+    items: [
+      { title: "Dashboards", url: "/analytics/dashboards" },
+      { title: "Reports", url: "/analytics/reports" },
+      { title: "Live View", url: "/analytics/live-view" },
+      { title: "Custom Reports", url: "/analytics/custom-reports" },
+    ],
+  },
+  {
+    title: "Marketing",
+    icon: <MegaphoneIcon />,
+    items: [
+      { title: "Campaigns", url: "/marketing/campaigns" },
+      { title: "Automation", url: "/marketing/automation" },
+    ],
+  },
+  {
+    title: "Discounts",
+    icon: <PercentIcon />,
+    items: [
+      { title: "Discount Codes", url: "/discounts/codes" },
+      { title: "Automatic Discounts", url: "/discounts/automatic" },
+      { title: "Gift Cards / Store Credit", url: "/discounts/gift-cards" },
+      { title: "Campaign Scheduler", url: "/discounts/scheduler" },
+    ],
+  },
+  {
+    title: "Sales Channel",
+    icon: <StoreIcon />,
+    items: [
+      { title: "Online Store", url: "/sales-channel/online-store" },
+      { title: "Point of Sale", url: "/sales-channel/pos" },
+      { title: "Shop", url: "/sales-channel/shop" },
+    ],
+  },
 ];
 
 const navSecondary: SidebarNavItem[] = [
-  { title: "Settings", url: "/settings", icon: <Settings2Icon /> },
+  {
+    title: "Settings",
+    icon: <Settings2Icon />,
+    items: [
+      { title: "Users & Permissions", url: "/settings/users" },
+      { title: "Store Details", url: "/settings/store-details" },
+      { title: "Payments", url: "/settings/payments" },
+      { title: "Checkout", url: "/settings/checkout" },
+      { title: "Shipping & Delivery", url: "/settings/shipping" },
+      { title: "Taxes & Duties", url: "/settings/taxes" },
+      { title: "Notifications", url: "/settings/notifications" },
+    ],
+  },
   { title: "Help", url: "/help", icon: <CircleHelpIcon /> },
 ];
 
