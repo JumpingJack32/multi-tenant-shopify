@@ -26,10 +26,16 @@ import {
   TagIcon,
 } from "@repo/ui/icons";
 
-export interface SidebarNavItem {
+export interface SubNavItem {
   title: string;
   url: string;
+}
+
+export interface SidebarNavItem {
+  title: string;
+  url?: string;
   icon: React.ReactNode;
+  items?: SubNavItem[];
 }
 
 export interface AppSidebarUser {

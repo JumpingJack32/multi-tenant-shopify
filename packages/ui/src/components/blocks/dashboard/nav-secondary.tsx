@@ -12,7 +12,7 @@ import {
 
 export interface NavSecondaryItem {
   title: string;
-  url: string;
+  url?: string;
   icon: ReactNode;
 }
 
