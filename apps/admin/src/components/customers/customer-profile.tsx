@@ -101,8 +101,8 @@ export function CustomerProfile({ customerId }: { customerId: string }) {
               <div>
                 <span className="text-muted-foreground">Shipping address</span>
                 <p className="font-medium">
-                  {data.addresses.find((a: any) => a.is_default)?.line1 ??
-                    data.addresses[0].line1}
+                  {data.addresses?.find((a: any) => a.is_default)?.line1 ??
+                    data.addresses?.[0]?.line1}
                 </p>
               </div>
             )}

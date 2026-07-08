@@ -9,8 +9,7 @@ import type { Product } from "@repo/tenant-orm/types";
 import { Button as BaseButton } from "@repo/ui/base-ui";
 import { useCollections } from "@/features/collections/hooks/use-collections";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import type { z } from "zod";
+import { useForm, type FieldValues } from "react-hook-form";
 // import { Button } from "@/components/ui/button";
 
 interface CategoryOption {
@@ -43,8 +42,10 @@ export function ProductForm({
       .catch(() => {});
   }, []);
 
-  const schema = initialData ? ProductUpdateSchema : ProductCreateSchema;
-  type FormValues = z.infer<typeof schema>;
+  const schema = (
+    initialData ? ProductUpdateSchema : ProductCreateSchema
+  ) as any;
+  type FormValues = any;
 
   const defaultFormValues: FormValues = initialData
     ? {
@@ -90,7 +91,7 @@ export function ProductForm({
           placeholder="Enter product name"
         />
         {errors.name && (
-          <p className="text-xs text-red-500">{errors.name.message}</p>
+          <p className="text-xs text-red-500">{String(errors.name.message)}</p>
         )}
       </div>
 
@@ -107,7 +108,7 @@ export function ProductForm({
           placeholder="product-slug"
         />
         {errors.slug && (
-          <p className="text-xs text-red-500">{errors.slug.message}</p>
+          <p className="text-xs text-red-500">{String(errors.slug.message)}</p>
         )}
       </div>
 
@@ -129,7 +130,9 @@ export function ProductForm({
           ))}
         </select>
         {errors.category_id && (
-          <p className="text-xs text-red-500">{errors.category_id.message}</p>
+          <p className="text-xs text-red-500">
+            {String(errors.category_id.message)}
+          </p>
         )}
       </div>
 
@@ -175,7 +178,9 @@ export function ProductForm({
           <option value="archived">Archived</option>
         </select>
         {errors.status && (
-          <p className="text-xs text-red-500">{errors.status.message}</p>
+          <p className="text-xs text-red-500">
+            {String(errors.status.message)}
+          </p>
         )}
       </div>
 
@@ -207,7 +212,9 @@ export function ProductForm({
             placeholder="0.00"
           />
           {errors.weight && (
-            <p className="text-xs text-red-500">{errors.weight.message}</p>
+            <p className="text-xs text-red-500">
+              {String(errors.weight.message)}
+            </p>
           )}
         </div>
 
@@ -226,7 +233,9 @@ export function ProductForm({
             <option value="oz">Ounces (oz)</option>
           </select>
           {errors.weight_unit && (
-            <p className="text-xs text-red-500">{errors.weight_unit.message}</p>
+            <p className="text-xs text-red-500">
+              {String(errors.weight_unit.message)}
+            </p>
           )}
         </div>
       </div>

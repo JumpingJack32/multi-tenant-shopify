@@ -1,4 +1,7 @@
 import type {
+  Collection,
+  CustomerDetail,
+  DashboardSummary,
   Product,
   ProductCreate,
   ProductUpdate,
@@ -139,7 +142,7 @@ export const api = {
       }>(`/customers${buildQuery(params)}`, options ?? {});
     },
     get(id: string, options?: { tenantId?: string | null }) {
-      return request<unknown>(`/customers/${id}`, options ?? {});
+      return request<CustomerDetail>(`/customers/${id}`, options ?? {});
     },
   },
 
@@ -148,7 +151,7 @@ export const api = {
       params?: Record<string, string>,
       options?: { tenantId?: string | null },
     ) {
-      return request<unknown[]>(
+      return request<Collection[]>(
         `/collections${buildQuery(params)}`,
         options ?? {},
       );
@@ -201,7 +204,10 @@ export const api = {
 
   dashboard: {
     summary(options?: { tenantId?: string | null }) {
-      return request<unknown>("/admin/dashboard/summary", options ?? {});
+      return request<DashboardSummary>(
+        "/admin/dashboard/summary",
+        options ?? {},
+      );
     },
   },
 };

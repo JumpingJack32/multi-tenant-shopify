@@ -1,7 +1,4 @@
 "use client";
-
-import { useState } from "react";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
+import { Plus, Edit2, Trash2 } from "@repo/ui/icons";
+import { useState } from "react";
+
 import {
   useCollections,
   useDeleteCollection,
 } from "@/features/collections/hooks/use-collections";
-import { Plus, Edit2, Trash2 } from "@repo/ui/icons";
 
 import { CollectionModal } from "./collection-modal";
 

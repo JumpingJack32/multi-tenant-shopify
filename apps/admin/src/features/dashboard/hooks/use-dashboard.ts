@@ -1,3 +1,4 @@
+import type { DashboardSummary } from "@repo/tenant-orm/types";
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/api/client";
@@ -19,7 +20,7 @@ async function fetchDashboardSummary() {
 }
 
 export function useDashboard() {
-  return useQuery({
+  return useQuery<DashboardSummary>({
     queryKey: ["dashboard", "summary"],
     queryFn: fetchDashboardSummary,
   });

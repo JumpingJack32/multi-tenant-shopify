@@ -123,7 +123,7 @@ export default function DashboardPage() {
         <div className="px-6 pb-4 flex gap-3">
           {Object.entries(data.fulfillment).map(([key, count]) => (
             <Badge key={key} className={statusColors[key] ?? ""}>
-              {key}: {count}
+              {key}: {count as number}
             </Badge>
           ))}
         </div>
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.low_stock.map((item) => (
+                {data.low_stock.map((item: any) => (
                   <tr key={item.variant_id} className="border-t">
                     <td className="py-1.5">{item.product_name}</td>
                     <td className="py-1.5 font-mono text-muted-foreground">
@@ -180,7 +180,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {data.recent_orders.map((order) => (
+              {data.recent_orders.map((order: any) => (
                 <tr key={order.id} className="border-t">
                   <td className="py-1.5">{order.order_number}</td>
                   <td className="py-1.5">{order.customer_name || "\u2014"}</td>

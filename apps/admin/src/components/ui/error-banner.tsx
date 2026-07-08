@@ -1,9 +1,10 @@
 interface ErrorBannerProps {
   message?: string;
   onDismiss?: () => void;
+  onRetry?: () => void;
 }
 
-export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
+export function ErrorBanner({ message, onDismiss, onRetry }: ErrorBannerProps) {
   if (!message) return null;
 
   return (
@@ -22,26 +23,36 @@ export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
         />
       </svg>
       <span className="flex-1">{message}</span>
-      {onDismiss && (
-        <button
-          onClick={onDismiss}
-          className="shrink-0 rounded-md p-1 hover:bg-red-100"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+      <div className="flex items-center gap-2">
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="shrink-0 rounded-md p-1 hover:bg-red-100 font-medium underline"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-      )}
+            Retry
+          </button>
+        )}
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="shrink-0 rounded-md p-1 hover:bg-red-100"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

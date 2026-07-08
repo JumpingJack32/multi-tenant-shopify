@@ -37,6 +37,7 @@ export interface Product {
   specs?: { label: string; value: string }[] | null;
   images?: ProductImage[] | null;
   category_id?: string | null;
+  collection_ids?: string[];
   created_at: string;
   updated_at: string;
 }
