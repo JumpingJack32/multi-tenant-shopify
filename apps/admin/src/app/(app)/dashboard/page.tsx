@@ -1,117 +1,213 @@
 "use client";
 
-import { AlertDialog as AlertDialogPrimitive } from "@repo/ui/base-ui";
+import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@repo/ui/components/ui/card";
-import Link from "next/link";
+import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import { Badge } from "@repo/ui/components/ui/badge";
+import { ErrorBanner } from "@/components/ui/error-banner";
 
-import { useRbac } from "@/contexts/rbac-context";
-import { useTenantContext } from "@/contexts/tenant-context";
-import { useProducts } from "@/features/products/hooks/use-products";
-
-// import { MessageScroller} from "@repo/ui/shadcn-react"
-
-const quickLinks = [
-  {
-    label: "Products",
-    href: "/products",
-    description: "Manage your product catalog",
-  },
-  {
-    label: "Orders",
-    href: "/orders",
-    description: "View and manage orders",
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    description: "Configure your store",
-  },
-];
+function formatPence(n: number): string {
+  return `\u00A3${(n / 100).toFixed(2)}`;
+}
 
 function StatCard({
   label,
   value,
-  loading,
+  prev,
+  format,
 }: {
   label: string;
-  value: string | number;
-  loading?: boolean;
+  value: number;
+  prev: number;
+  format: (n: number) => string;
 }) {
+  const delta = prev > 0 ? ((value - prev) / prev) * 100 : 0;
+  const arrow = delta >= 0 ? "\u2191" : "\u2193";
+  const color = delta >= 0 ? "text-green-600" : "text-red-600";
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      {loading ? (
-        <div className="mt-1 h-7 w-12 animate-pulse rounded bg-muted" />
-      ) : (
-        <p className="mt-1 text-2xl font-semibold">{value}</p>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardDescription>{label}</CardDescription>
+        <CardTitle className="font-mono text-2xl">{format(value)}</CardTitle>
+        <p className={`text-xs font-mono ${color}`}>
+          {arrow} {Math.abs(delta).toFixed(1)}% vs previous period
+        </p>
+      </CardHeader>
+    </Card>
   );
 }
 
+const statusColors: Record<string, string> = {
+  unfulfilled: "bg-amber-100 text-amber-800",
+  processing: "bg-blue-100 text-blue-800",
+  shipped: "bg-purple-100 text-purple-800",
+  delivered: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800",
+};
+
 export default function DashboardPage() {
-  const { currentTenant } = useTenantContext();
-  const { role } = useRbac();
-  const { data: productsData, isLoading: productsLoading } = useProducts({});
+  const { data, isLoading, error, refetch } = useDashboard();
 
-  const productCount = productsData?.total ?? productsData?.data?.length ?? 0;
+  if (error) {
+    return (
+      <ErrorBanner
+        message="Failed to load dashboard"
+        onRetry={() => refetch()}
+      />
+    );
+  }
 
-  return (
-    <div className="space-y-8 p-6">
-      {/* Header Section */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {currentTenant ? currentTenant.name : "Dashboard"}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          {role === "admin"
-            ? "Full access — you can manage all resources."
-            : role === "member"
-              ? "You can create and edit resources."
-              : "View-only access."}
-        </p>
-      </div>
-
-      {/* Metrics Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          label="Total Products"
-          value={productCount}
-          loading={productsLoading}
-        />
-        <StatCard label="Orders" value="—" />
-        <StatCard
-          label="Role"
-          value={role.charAt(0).toUpperCase() + role.slice(1)}
-        />
-      </div>
-
-      {/* Quick Links Section */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight">Quick Links</h2>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="block group">
-              <Card className="h-full transition-colors group-hover:bg-accent/50 group-hover:text-accent-foreground">
-                <CardHeader className="p-4">
-                  <CardTitle className="text-base font-medium group-hover:text-primary">
-                    {link.label}
-                  </CardTitle>
-                  <CardDescription className="text-sm mt-1">
-                    {link.description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
+  if (isLoading || !data) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-28 mt-2" />
+              </CardHeader>
+            </Card>
           ))}
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header + Refresh */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <button
+          onClick={() => refetch()}
+          className="text-sm text-primary hover:underline"
+        >
+          Refresh
+        </button>
+      </div>
+
+      {/* Big Four KPIs */}
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard
+          label="Revenue (MTD)"
+          value={data.revenue_mtd}
+          prev={data.revenue_prev_mtd}
+          format={formatPence}
+        />
+        <StatCard
+          label="Orders (MTD)"
+          value={data.orders_mtd}
+          prev={data.orders_prev_mtd}
+          format={(n) => n.toString()}
+        />
+        <StatCard label="AOV" value={data.aov} prev={0} format={formatPence} />
+        <StatCard
+          label="Active Customers"
+          value={data.active_customers}
+          prev={data.active_customers_prev}
+          format={(n) => n.toString()}
+        />
+      </div>
+
+      {/* Fulfillment Pipeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Fulfillment Pipeline</CardTitle>
+        </CardHeader>
+        <div className="px-6 pb-4 flex gap-3">
+          {Object.entries(data.fulfillment).map(([key, count]) => (
+            <Badge key={key} className={statusColors[key] ?? ""}>
+              {key}: {count}
+            </Badge>
+          ))}
+        </div>
+      </Card>
+
+      {/* Low Stock Alerts */}
+      {data.low_stock.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Low Stock Alerts</CardTitle>
+          </CardHeader>
+          <div className="px-6 pb-4">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="pb-2">Product</th>
+                  <th className="pb-2">SKU</th>
+                  <th className="pb-2 text-right">Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.low_stock.map((item) => (
+                  <tr key={item.variant_id} className="border-t">
+                    <td className="py-1.5">{item.product_name}</td>
+                    <td className="py-1.5 font-mono text-muted-foreground">
+                      {item.sku}
+                    </td>
+                    <td
+                      className={`py-1.5 text-right font-mono ${item.quantity <= 0 ? "text-red-600 font-bold" : ""}`}
+                    >
+                      {item.quantity}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Recent Orders */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Recent Orders</CardTitle>
+        </CardHeader>
+        <div className="px-6 pb-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="pb-2">Order</th>
+                <th className="pb-2">Customer</th>
+                <th className="pb-2 text-right">Total</th>
+                <th className="pb-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.recent_orders.map((order) => (
+                <tr key={order.id} className="border-t">
+                  <td className="py-1.5">{order.order_number}</td>
+                  <td className="py-1.5">{order.customer_name || "\u2014"}</td>
+                  <td className="py-1.5 text-right font-mono">
+                    {formatPence(order.total)}
+                  </td>
+                  <td className="py-1.5">
+                    <Badge className={statusColors[order.status] ?? ""}>
+                      {order.status}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+              {data.recent_orders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="py-4 text-center text-muted-foreground"
+                  >
+                    No orders yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }
