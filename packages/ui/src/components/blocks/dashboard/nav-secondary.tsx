@@ -42,9 +42,9 @@ export function NavSecondary({
                   <SidebarMenuButton>
                     {item.icon}
                     <span>{item.title}</span>
-                    <ChevronDownIcon className="ml-auto transition-transform duration-200 group-hover/menu-item:rotate-180" />
+                    <ChevronDownIcon className="ml-auto transition-transform duration-200 group-hover/menu-item:rotate-180 group-focus-within/menu-item:rotate-180" />
                   </SidebarMenuButton>
-                  <SidebarMenuSub className="grid grid-rows-[0fr] overflow-hidden invisible opacity-0 transition-all duration-200 group-hover/menu-item:grid-rows-[1fr] group-hover/menu-item:visible group-hover/menu-item:opacity-100">
+                  <SidebarMenuSub className="grid grid-rows-[0fr] overflow-hidden invisible opacity-0 transition-all duration-200 group-hover/menu-item:grid-rows-[1fr] group-focus-within/menu-item:grid-rows-[1fr] group-hover/menu-item:visible group-focus-within/menu-item:visible group-hover/menu-item:opacity-100 group-focus-within/menu-item:opacity-100">
                     {item.items.map((sub) => (
                       <SidebarMenuSubItem key={sub.title}>
                         <SidebarMenuSubButton render={<Link href={sub.url} />}>
