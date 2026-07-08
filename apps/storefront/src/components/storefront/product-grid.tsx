@@ -8,16 +8,20 @@ import { ProductCard } from "./product-card";
 interface ProductGridProps {
   tenantSlug: string;
   categorySlug?: string;
+  collectionSlug?: string;
 }
 
 export async function ProductGrid({
   tenantSlug,
   categorySlug,
+  collectionSlug,
 }: ProductGridProps) {
   let products: Product[] = [];
 
   try {
-    products = await fetchProducts(tenantSlug, categorySlug);
+    products = await fetchProducts(tenantSlug, categorySlug, undefined, {
+      collection: collectionSlug,
+    });
   } catch {
     products = [];
   }
@@ -44,7 +48,7 @@ export async function ProductGrid({
         <ProductCard
           key={product.id}
           product={product}
-          categorySlug={categorySlug}
+          categorySlug={categorySlug ?? ""}
         />
       ))}
     </div>
