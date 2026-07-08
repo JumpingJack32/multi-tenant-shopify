@@ -1,23 +1,67 @@
-# Session Context — Saved 2026-07-07
+# Session Context — Saved 2026-07-08
 
 ## Current State
 
-- **131 tests, 36 files, all passing** — verified 2026-07-07
-- Branch: `round-1-test-expansion` — latest commit `d60eee7`
-- **Branch complete** — pushed to origin, PR ready at `main...round-1-test-expansion`
-- **Dev servers running**: storefront on :3000, admin on :3001 — no compilation errors
-- **PLP/PDP fully implemented**: ProductCard, ProductGrid, ProductGallery, ProductInfo, AddToCartButton, MobileStickyCta
-- **Cloudinary**: Full pipeline — backend signed upload API, StorefrontImage, admin ImageManager, product image CRUD, DB migration 0003, seed data
-- **Dark mode**: Shared ThemeToggle wired into storefront + admin
-- **Atomic UI library**: 50+ shadcn-style components in packages/ui
-- **Admin**: ImageManager, ErrorBanner, OrdersTable, Settings form, product-form drawer
-- **Design tokens**: OKLCH palette, Plus Jakarta Sans, globals.css cleanup
+- **Branch:** `round-2-dashboard-customers-collections` on `main` — 16 commits ahead
+- **All 16 tasks complete.** 131 tests pass (36 files).
+- **All backend work done** (migrations, ORM, routes, dashboard endpoint, public endpoint)
+- **All frontend work done** (dashboard page, customer pages, collections CRUD, storefront collection routes)
+- **Dev servers**: storefront on :3000, admin on :3001
 
-## Next Steps (for next branch)
+## Next Action — Ready for Review
 
-1. Add category filtering on backend (currently all PLP routes show all products — by design for now)
+All tasks from the plan are implemented. Ready for code review and merge.
 
-## Key Decisions
+## Completed Commits (today)
+
+```
+8854385 feat(admin): add Customers link to sidebar navigation
+cdcd8f4 feat(admin): add customer detail page with profile card and order ledger
+e05a0cd feat(admin): add collections management page with CRUD table and modal
+d9dd605 feat(admin): add collection multi-select to product form
+5f8df81 feat(storefront): add collection browsing routes and hero cards
+```
+
+(Plus Tasks 10-11 from previous session)
+
+## Completed Work (Today)
+
+### DB Migrations
+
+- **0005** — `customers` + `customer_addresses` tables, RLS, sync trigger on `orders`
+- **0006** — `collections` + `product_collections` tables, RLS, indexes
+
+### Backend API
+
+- **Customer routes**: `GET /customers/` (paginated, search), `GET /customers/{id}` (detail with addresses/orders, AOV)
+- **Collection routes**: CRUD + soft delete + product assignment (7 endpoints, 13 tests)
+- **Dashboard endpoint**: `GET /admin/dashboard/summary` (KPI, fulfillment, low stock, recent orders)
+- **Public collections**: `GET /collections/{tenant_slug}` (storefront-facing)
+- **Public products/categories endpoints** (pre-existing, not modified)
+
+### Shared (tenant-orm)
+
+- **Types**: `Collection`, `Customer`, `CustomerDetail`, `DashboardSummary` + nested types
+- **Zod schemas**: `CollectionSchema`, `CustomerSchema`, `DashboardSummarySchema` + create/update variants
+
+### Admin App (frontend infra)
+
+- **API client**: `api.customers`, `api.collections`, `api.dashboard` added to existing client
+- **Services**: `customers-service.ts`, `collections-service.ts`
+- **Hooks**: `useCustomers`, `useCustomer`, `useDashboard`, `useCollections`, `useCreateCollection`, `useUpdateCollection`, `useDeleteCollection`
+
+### Key Decisions Made Today
+
+- `orders.total` is `INTEGER` cents (per migration 0001). All `* 100` multiplications in queries are bugs — use raw `total`.
+- `orders.status` column can be TEXT (migrations) or SAEnum-based PG enum (test `create_all`). Use `LOWER(status::text)` for case-insensitive comparisons in raw SQL queries.
+- AOV guard always: `revenue // orders if orders > 0 else 0` (not orders // revenue).
+- Dashboard queries run **sequentially** on a single `AsyncSession` (can't parallelize on same connection).
+- Test cleanup for async tests uses `delete` on specific tables (not `drop_all` — avoids destroying tables other tests depend on).
+- Address defaults `average_order_value: int = 0` in Pydantic schema for zero-division guard.
+- Customer schema refactored: `CustomerCreate/Update/Response` moved from `product.py` to `customer.py`; `total_spent` changed to `int`.
+- `status` import from `fastapi` already available in `public.py`.
+
+## Key Decisions (All)
 
 - Tests use `jsdom` + `react()` plugin in vitest config; `cleanup()` in `afterEach` required for React tests
 - `@repo/tenant-orm/schemas` (not `./schemas/tenant`) is the correct import for tenant schemas
@@ -31,12 +75,10 @@
 - ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`
 - `proxy.ts` (not `middleware.ts`) is the correct middleware filename for Next.js 16.2.9
 - `e.stopPropagation()` required in toggle click handler when placed inside Base UI/Radix menu popovers
-- `MobileStickyCta` uses `document.getElementById` (not ref forwarding) — pragmatic simplification avoiding prop-drilling through server component boundary
-- Safe area padding: `pb-[env(safe-area-inset-bottom)]` via Tailwind v4 arbitrary value, not inline style
-- `components/motion.tsx` is the canonical motion re-export; the `"./motion"` package.json export and `index.ts` both point to `components/motion` (not `styles/motion`)
-- Atomic UI components live in `packages/ui/src/components/ui/` — styled wrappers around `@repo/ui/base-ui` (which re-exports `@base-ui/react`)
-- `packages/ui/package.json` exports: `./hooks/*` maps to `./src/hooks/*.ts` (`.ts` only); `./base-ui` maps to `./src/styles/base-ui.ts`
-- Hook files use `.ts` extension (not `.tsx`) unless they contain JSX — `use-mobile.ts` is correct
+- `MobileStickyCta` uses `document.getElementById` (not ref forwarding)
+- Safe area padding: `pb-[env(safe-area-inset-bottom)]` via Tailwind v4 arbitrary value
+- Atomic UI components live in `packages/ui/src/components/ui/`
+- Hook files use `.ts` extension (not `.tsx`) unless they contain JSX
 
 ## UI Design
 

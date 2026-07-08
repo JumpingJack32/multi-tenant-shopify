@@ -121,12 +121,11 @@ doppler run -- pnpm turbo run dev
 
 This starts:
 
-- **Admin app** → <http://localhost:3000>
-- **Storefront** → <http://localhost:3001>
+- **Admin app** → <http://localhost:3001>
+- **Storefront** → <http://localhost:3000>
 - **Backend API** → <http://localhost:8000>
 - **API docs** → <http://localhost:8000/docs>
 - **API redoc** → <http://localhost:8000/redoc>
--
 
 ---
 

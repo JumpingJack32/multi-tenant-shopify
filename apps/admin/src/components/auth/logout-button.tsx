@@ -1,7 +1,7 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
-import { Button } from "@repo/ui/base-ui";
+import { Button } from "@repo/ui/components/ui/button";
 
 export function LogoutButton() {
   const { signOut } = useClerk();

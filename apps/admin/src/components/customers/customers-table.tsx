@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useCustomers } from "@/features/customers/hooks/use-customers";
-import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
-import { ErrorBanner } from "@/components/ui/error-banner";
+import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/ui/components/ui/table";
+import { ChevronLeftIcon, ChevronRightIcon } from "@repo/ui/icons";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { useCustomers } from "@/features/customers/hooks/use-customers";
 
 function formatPence(n: number): string {
   return `£${(n / 100).toFixed(2)}`;
@@ -46,42 +57,42 @@ export function CustomersTable() {
         />
       </div>
 
-      <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b text-left text-sm font-medium text-muted-foreground">
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Joined</th>
-              <th className="px-4 py-3">Orders</th>
-              <th className="px-4 py-3 text-right">LTV</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Customer</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead>Orders</TableHead>
+              <TableHead className="text-right">LTV</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {isLoading &&
               Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="px-4 py-3">
+                <TableRow key={i}>
+                  <TableCell>
                     <Skeleton className="h-4 w-40" />
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-4 w-24" />
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-4 w-12" />
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="text-right">
                     <Skeleton className="h-4 w-20 ml-auto" />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
             {data?.data.map((customer: any) => (
-              <tr
+              <TableRow
                 key={customer.id}
-                className="border-b last:border-0 cursor-pointer hover:bg-muted/50"
+                className="cursor-pointer"
                 onClick={() => router.push(`/customers/${customer.id}`)}
               >
-                <td className="px-4 py-2.5">
-                  <div className="text-sm font-medium">
+                <TableCell>
+                  <div className="font-medium">
                     {[customer.first_name, customer.last_name]
                       .filter(Boolean)
                       .join(" ") || "—"}
@@ -89,20 +100,20 @@ export function CustomersTable() {
                   <div className="text-xs text-muted-foreground">
                     {customer.email}
                   </div>
-                </td>
-                <td className="px-4 py-2.5 text-sm text-muted-foreground">
+                </TableCell>
+                <TableCell className="text-muted-foreground">
                   {customer.created_at
                     ? new Date(customer.created_at).toLocaleDateString()
                     : "—"}
-                </td>
-                <td className="px-4 py-2.5 text-sm">{customer.total_orders}</td>
-                <td className="px-4 py-2.5 text-sm text-right font-mono font-medium">
+                </TableCell>
+                <TableCell>{customer.total_orders}</TableCell>
+                <TableCell className="text-right font-mono font-medium">
                   {formatPence(customer.total_spent)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {!isLoading && (!data || data.data.length === 0) && (
           <div className="py-8 text-center text-sm text-muted-foreground">
@@ -111,7 +122,6 @@ export function CustomersTable() {
         )}
       </div>
 
-      {/* Pagination */}
       {data && data.total > data.per_page && (
         <div className="mt-4 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
@@ -119,20 +129,24 @@ export function CustomersTable() {
             {Math.min(data.page * data.per_page, data.total)} of {data.total}
           </span>
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               disabled={data.page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
             >
+              <ChevronLeftIcon />
               Previous
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               disabled={data.page * data.per_page >= data.total}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
             >
               Next
-            </button>
+              <ChevronRightIcon />
+            </Button>
           </div>
         </div>
       )}

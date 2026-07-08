@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Button } from "@repo/ui/components/ui/button";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -12,7 +13,7 @@ export function ThemeToggle() {
   };
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleClick}
       className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -25,6 +26,6 @@ export function ThemeToggle() {
       ) : (
         <Moon className="h-4 w-4" strokeWidth={1.5} />
       )}
-    </button>
+    </Button>
   );
 }

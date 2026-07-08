@@ -1,5 +1,27 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@repo/ui/components/ui/alert-dialog";
+import { Badge } from "@repo/ui/components/ui/badge";
+import { Button } from "@repo/ui/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/ui/components/ui/table";
+import { Plus, Edit2, Trash2 } from "@repo/ui/icons";
 import { useState, useEffect } from "react";
 
 import { CategoryModal } from "./category-modal";
@@ -33,13 +55,7 @@ export function CategoriesTable() {
     loadCategories();
   }, []);
 
-  async function handleDelete(id: string, productCount: number) {
-    if (productCount > 0) {
-      const ok = window.confirm(
-        `This category has ${productCount} product(s). Deleting will unassign them. Continue?`,
-      );
-      if (!ok) return;
-    }
+  async function handleDelete(id: string) {
     try {
       await fetch(`/api/v1/categories/${id}`, { method: "DELETE" });
       setCategories((prev) => prev.filter((c) => c.id !== id));
@@ -49,62 +65,98 @@ export function CategoriesTable() {
   }
 
   return (
-    <>
-      <button
-        onClick={() => {
-          setEditing(null);
-          setShowModal(true);
-        }}
-        className="mb-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-      >
-        Add Category
-      </button>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setShowModal(true);
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add Category
+        </Button>
+      </div>
 
-      <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b text-left text-sm font-medium text-muted-foreground">
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Slug</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Products</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Products</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {categories.map((cat) => (
-              <tr key={cat.id} className="border-b last:border-0">
-                <td className="px-4 py-2 text-sm font-medium">{cat.name}</td>
-                <td className="px-4 py-2 text-sm text-muted-foreground font-mono">
+              <TableRow key={cat.id}>
+                <TableCell className="font-medium">{cat.name}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
                   {cat.slug}
-                </td>
-                <td className="px-4 py-2 text-sm">
-                  {cat.is_active ? "ACTIVE" : "INACTIVE"}
-                </td>
-                <td className="px-4 py-2 text-sm text-right">
+                </TableCell>
+                <TableCell>
+                  <Badge variant={cat.is_active ? "default" : "secondary"}>
+                    {cat.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
                   {cat.product_count} items
-                </td>
-                <td className="px-4 py-2 text-sm text-right space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditing(cat);
-                      setShowModal(true);
-                    }}
-                    className="text-primary hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(cat.id, cat.product_count)}
-                    className="text-destructive hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditing(cat);
+                        setShowModal(true);
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4 mr-1" /> Edit
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        render={(props) => (
+                          <Button
+                            {...props}
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                          </Button>
+                        )}
+                      />
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Are you absolutely sure?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {cat.product_count > 0
+                              ? `This category contains ${cat.product_count} product(s). Deleting it will unassign them all. This action cannot be undone.`
+                              : "This action will permanently remove this category. This action cannot be undone."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(cat.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {categories.length === 0 && (
           <div className="py-8 text-center text-sm text-muted-foreground">
@@ -123,6 +175,6 @@ export function CategoriesTable() {
           }}
         />
       )}
-    </>
+    </div>
   );
 }

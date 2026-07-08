@@ -1,5 +1,17 @@
 "use client";
 
+import { Alert, AlertDescription } from "@repo/ui/components/ui/alert";
+import { Button } from "@repo/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@repo/ui/components/ui/dialog";
+import { Input } from "@repo/ui/components/ui/input";
+import { Label } from "@repo/ui/components/ui/label";
+import { AlertCircle } from "@repo/ui/icons";
 import { useState } from "react";
 
 interface CategoryModalProps {
@@ -18,7 +30,7 @@ export function CategoryModal({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -50,61 +62,60 @@ export function CategoryModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-lg">
-        <h2 className="text-lg font-bold mb-4">
-          {category?.id ? "Edit Category" : "Add Category"}
-        </h2>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        !open && onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-106.25">
+        <DialogHeader>
+          <DialogTitle>
+            {category?.id ? "Edit Category" : "Add Category"}
+          </DialogTitle>
+        </DialogHeader>
 
         {error && (
-          <div className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="text-sm font-medium">
-              Name
-            </label>
-            <input
+          <div className="grid gap-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              placeholder="e.g., Electronics"
             />
           </div>
-          <div>
-            <label htmlFor="slug" className="text-sm font-medium">
-              Slug
-            </label>
-            <input
+
+          <div className="grid gap-2">
+            <Label htmlFor="slug">Slug</Label>
+            <Input
               id="slug"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono"
+              className="font-mono"
+              placeholder="e.g., electronics"
             />
           </div>
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm hover:bg-muted"
-            >
+
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
+            </Button>
+            <Button type="submit" disabled={loading}>
               {loading ? "Saving..." : "Save"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

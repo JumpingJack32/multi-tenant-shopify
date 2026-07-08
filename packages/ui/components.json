@@ -11,8 +11,8 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@repo/ui/components",
-    "utils": "@repo/ui/lib/utils",
+    "components": "@repo/ui/src/components",
+    "utils": "@repo/shared-utils/src",
     "hooks": "@repo/ui/hooks",
     "lib": "@repo/ui/lib",
     "ui": "@repo/ui/components/ui",

@@ -1,5 +1,17 @@
 "use client";
 
+import { Alert, AlertDescription } from "@repo/ui/components/ui/alert";
+import { Button } from "@repo/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@repo/ui/components/ui/dialog";
+import { Input } from "@repo/ui/components/ui/input";
+import { Label } from "@repo/ui/components/ui/label";
+import { AlertCircle } from "@repo/ui/icons";
 import { useState } from "react";
 
 interface CollectionModalProps {
@@ -36,7 +48,7 @@ export function CollectionModal({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -77,43 +89,55 @@ export function CollectionModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg">
-        <h2 className="text-lg font-bold mb-4">
-          {collection?.id ? "Edit Collection" : "Add Collection"}
-        </h2>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        !open && onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            {collection?.id ? "Edit Collection" : "Add Collection"}
+          </DialogTitle>
+        </DialogHeader>
 
         {error && (
-          <div className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {error}
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Name</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="Collection name"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Slug</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 required
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono"
+                className="font-mono"
+                placeholder="collection-slug"
               />
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium">Description</label>
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
             <textarea
+              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -122,32 +146,35 @@ export function CollectionModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Hero Image URL</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="hero_image_url">Hero Image URL</Label>
+              <Input
+                id="hero_image_url"
                 value={heroImageUrl}
                 onChange={(e) => setHeroImageUrl(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono"
+                className="font-mono"
+                placeholder="https://..."
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Image Alt Text</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="hero_image_alt">Image Alt Text</Label>
+              <Input
+                id="hero_image_alt"
                 value={heroImageAlt}
                 onChange={(e) => setHeroImageAlt(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                placeholder="Alt text"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Sort Order</label>
-              <input
+            <div className="grid gap-2">
+              <Label htmlFor="sort_order">Sort Order</Label>
+              <Input
+                id="sort_order"
                 type="number"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(Number(e.target.value))}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
               />
             </div>
             <div className="flex items-center gap-2 pt-6">
@@ -155,30 +182,24 @@ export function CollectionModal({
                 type="checkbox"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="h-4 w-4"
+                className="h-4 w-4 rounded border-gray-300"
               />
-              <label className="text-sm font-medium">Active</label>
+              <Label htmlFor="is_active" className="!mt-0">
+                Active
+              </Label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm hover:bg-muted"
-            >
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={loading}>
               {loading ? "Saving..." : "Save"}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

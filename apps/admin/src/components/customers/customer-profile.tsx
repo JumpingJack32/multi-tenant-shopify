@@ -1,11 +1,20 @@
 "use client";
 
-import { useCustomer } from "@/features/customers/hooks/use-customers";
-import { Skeleton } from "@repo/ui/components/ui/skeleton";
-import { Card, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
 import { Badge } from "@repo/ui/components/ui/badge";
-import { ErrorBanner } from "@/components/ui/error-banner";
+import { Card, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
+import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/ui/components/ui/table";
 import { useRouter } from "next/navigation";
+
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { useCustomer } from "@/features/customers/hooks/use-customers";
 
 function formatPence(n: number): string {
   return `£${(n / 100).toFixed(2)}`;
@@ -123,48 +132,50 @@ export function CustomerProfile({ customerId }: { customerId: string }) {
           <CardTitle className="text-lg">Order History</CardTitle>
         </CardHeader>
         <div className="px-6 pb-4">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="pb-2">Order</th>
-                <th className="pb-2">Date</th>
-                <th className="pb-2">Status</th>
-                <th className="pb-2 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.orders.map((order: any) => (
-                <tr
+                <TableRow
                   key={order.id}
-                  className="border-t cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer"
                   onClick={() => router.push(`/orders/${order.id}`)}
                 >
-                  <td className="py-1.5 font-medium">{order.order_number}</td>
-                  <td className="py-1.5 text-muted-foreground">
+                  <TableCell className="font-medium">
+                    {order.order_number}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="py-1.5">
+                  </TableCell>
+                  <TableCell>
                     <Badge className={statusColors[order.status] ?? ""}>
                       {order.status}
                     </Badge>
-                  </td>
-                  <td className="py-1.5 text-right font-mono">
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
                     {formatPence(order.total)}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {data.orders.length === 0 && (
-                <tr>
-                  <td
+                <TableRow>
+                  <TableCell
                     colSpan={4}
                     className="py-8 text-center text-muted-foreground"
                   >
                     No orders yet
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </Card>
     </div>
