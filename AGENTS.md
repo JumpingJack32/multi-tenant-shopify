@@ -2,18 +2,24 @@
 
 ## Current State
 
-- **Branch:** `round-2-dashboard-customers-collections` on `main` — 16 commits ahead
-- **All 16 tasks complete.** 131 tests pass (36 files).
-- **All backend work done** (migrations, ORM, routes, dashboard endpoint, public endpoint)
-- **All frontend work done** (dashboard page, customer pages, collections CRUD, storefront collection routes)
+- **Branch:** `round-2-dashboard-customers-collections` on `main` — 20 commits ahead
+- **All sidebar work complete.** 139 tests pass (38 files).
 - **Dev servers**: storefront on :3000, admin on :3001
 
-## Completed — Sidebar nav link fix
+## Completed — Sidebar restructure
 
-- **"Admin" brand icon** in `AppSidebar` header changed from `<a>` to `<Link>` via the same `LinkComponent ?? "a"` pattern used by `NavMain`/`NavSecondary`.
-- **`LogoutButton`** dead component removed (`apps/admin/src/components/auth/logout-button.tsx`).
-- **Typecheck**: clean for both `@repo/ui` and `admin`.
-- **Tests**: 131/131 pass (36 files).
+- **Rebuilt sidebar** from 9 flat links to 11-item Shopify-style hierarchy with 8 hover-dropdown sub-menus
+- **Products** dropdown: Collections, Inventory, Purchase Orders, Transfers, Gift Cards
+- **Content** dropdown: Pages, Blog Posts, Files & Media Library, Metafields
+- **Finances** dropdown: Financial Overview, Payouts, Capital, Tax Liabilities
+- **Analytics** dropdown: Dashboards, Reports, Live View, Custom Reports
+- **Marketing** dropdown: Campaigns, Automation
+- **Discounts** dropdown: Discount Codes, Automatic Discounts, Gift Cards / Store Credit, Campaign Scheduler
+- **Sales Channel** dropdown: Online Store, Point of Sale, Shop
+- **Settings** dropdown: Users & Permissions, Store Details, Payments, Checkout, Shipping & Delivery, Taxes & Duties, Notifications
+- **Pure CSS hover** using `grid-rows-[0fr]→[1fr]` + `opacity` + `visibility` — no JS state, no React context
+- **Typecheck**: clean for both `@repo/ui` and `admin`
+- **Tests**: 139/139 pass (38 files)
 
 ## Completed Commits (previous sessions)
 
@@ -23,6 +29,9 @@ cdcd8f4 feat(admin): add customer detail page with profile card and order ledger
 e05a0cd feat(admin): add collections management page with CRUD table and modal
 d9dd605 feat(admin): add collection multi-select to product form
 5f8df81 feat(storefront): add collection browsing routes and hero cards
+c23547c feat(ui): add hover-dropdown sub-menus to NavMain
+d423664 feat(ui): add hover-dropdown sub-menus to NavSecondary
+9643b9e feat(admin): populate sidebar with Shopify-style navigation hierarchy
 ```
 
 ## Completed Work (Previous Sessions)
