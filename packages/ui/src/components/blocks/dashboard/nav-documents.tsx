@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui/src/components/ui/dropdown-menu";
+} from "@repo/ui/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -15,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@repo/ui/src/components/ui/sidebar";
+} from "@repo/ui/components/ui/sidebar";
 import {
   MoreHorizontalIcon,
   FolderIcon,

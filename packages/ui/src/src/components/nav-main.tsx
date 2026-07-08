@@ -1,3 +1,4 @@
+//packages/ui/src/src/components/nav-main.tsx
 "use client";
 
 import { Button } from "@repo/ui/src/components/ui/button";
@@ -8,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@repo/ui/src/components/ui/sidebar";
-import { CirclePlusIcon, MailIcon } from "lucide-react";
+import { CirclePlusIcon, MailIcon } from "@repo/ui/icons";
 
 export function NavMain({
   items,

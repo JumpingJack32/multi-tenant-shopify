@@ -39,16 +39,16 @@ import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { useIsMobile } from "@repo/ui/src/hooks/use-mobile";
-import { Badge } from "@repo/ui/src/components/ui/badge";
-import { Button } from "@repo/ui/src/components/ui/button";
+import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { Badge } from "@repo/ui/components/ui/badge";
+import { Button } from "@repo/ui/components/ui/button";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@repo/ui/src/components/ui/chart";
-import { Checkbox } from "@repo/ui/src/components/ui/checkbox";
+} from "@repo/ui/components/ui/chart";
+import { Checkbox } from "@repo/ui/components/ui/checkbox";
 import {
   Drawer,
   DrawerClose,
@@ -76,8 +76,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/ui/src/components/ui/select";
-import { Separator } from "@repo/ui/src/components/ui/separator";
+} from "@repo/ui/components/ui/select";
+import { Separator } from "@repo/ui/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -85,13 +85,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@repo/ui/src/components/ui/table";
+} from "@repo/ui/components/ui/table";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@repo/ui/src/components/ui/tabs";
+} from "@repo/ui/components/ui/tabs";
 import {
   GripVerticalIcon,
   CircleCheckIcon,

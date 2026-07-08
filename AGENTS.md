@@ -8,11 +8,14 @@
 - **All frontend work done** (dashboard page, customer pages, collections CRUD, storefront collection routes)
 - **Dev servers**: storefront on :3000, admin on :3001
 
-## Next Action — Ready for Review
+## Completed — Sidebar nav link fix
 
-All tasks from the plan are implemented. Ready for code review and merge.
+- **"Admin" brand icon** in `AppSidebar` header changed from `<a>` to `<Link>` via the same `LinkComponent ?? "a"` pattern used by `NavMain`/`NavSecondary`.
+- **`LogoutButton`** dead component removed (`apps/admin/src/components/auth/logout-button.tsx`).
+- **Typecheck**: clean for both `@repo/ui` and `admin`.
+- **Tests**: 131/131 pass (36 files).
 
-## Completed Commits (today)
+## Completed Commits (previous sessions)
 
 ```
 8854385 feat(admin): add Customers link to sidebar navigation
@@ -22,9 +25,7 @@ d9dd605 feat(admin): add collection multi-select to product form
 5f8df81 feat(storefront): add collection browsing routes and hero cards
 ```
 
-(Plus Tasks 10-11 from previous session)
-
-## Completed Work (Today)
+## Completed Work (Previous Sessions)
 
 ### DB Migrations
 

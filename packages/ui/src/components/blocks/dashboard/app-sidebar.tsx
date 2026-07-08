@@ -1,13 +1,7 @@
 "use client";
 
-import * as React from "react";
+import type { ElementType } from "react";
 
-// import { NavDocuments } from '@repo/ui/components/blocks/nav-documents';
-// import { NavMain } from "@repo/ui/components/blocks/nav-main";
-// import { NavSecondary } from "@repo/ui/components/blocks/nav-secondary";
-// import { NavUser } from "@repo/ui/components/blocks/nav-user";
-
-import { NavDocuments } from "./nav-documents";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
@@ -19,142 +13,67 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@repo/ui/src/components/ui/sidebar";
+} from "@repo/ui/components/ui/sidebar";
 import {
   LayoutDashboardIcon,
-  ListIcon,
-  ChartBarIcon,
+  PackageIcon,
   FolderIcon,
   UsersIcon,
-  CameraIcon,
-  FileTextIcon,
+  ShoppingCartIcon,
   Settings2Icon,
   CircleHelpIcon,
-  SearchIcon,
-  DatabaseIcon,
-  FileChartColumnIcon,
-  FileIcon,
   CommandIcon,
+  TagIcon,
 } from "@repo/ui/icons";
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: <ListIcon />,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: <ChartBarIcon />,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: <FolderIcon />,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: <UsersIcon />,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: <CameraIcon />,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: <Settings2Icon />,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: <CircleHelpIcon />,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: <SearchIcon />,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: <DatabaseIcon />,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: <FileChartColumnIcon />,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: <FileIcon />,
-    },
-  ],
-};
+export interface SidebarNavItem {
+  title: string;
+  url: string;
+  icon: React.ReactNode;
+}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export interface AppSidebarUser {
+  name: string;
+  email: string;
+  avatar: string;
+}
+
+export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  tenantSwitcher?: React.ReactNode;
+  user?: AppSidebarUser;
+  onLogout?: () => void;
+  LinkComponent?: ElementType;
+}
+
+const navMain: SidebarNavItem[] = [
+  { title: "Dashboard", url: "/dashboard", icon: <LayoutDashboardIcon /> },
+  { title: "Products", url: "/products", icon: <PackageIcon /> },
+  { title: "Collections", url: "/collections", icon: <FolderIcon /> },
+  { title: "Categories", url: "/categories", icon: <TagIcon /> },
+  { title: "Customers", url: "/customers", icon: <UsersIcon /> },
+  { title: "Orders", url: "/orders", icon: <ShoppingCartIcon /> },
+];
+
+const navSecondary: SidebarNavItem[] = [
+  { title: "Settings", url: "/settings", icon: <Settings2Icon /> },
+  { title: "Help", url: "/help", icon: <CircleHelpIcon /> },
+];
+
+export function AppSidebar({
+  tenantSwitcher,
+  user: propUser,
+  onLogout,
+  LinkComponent,
+  ...props
+}: AppSidebarProps) {
+  const Link = LinkComponent ?? "a";
+
+  const fallbackUser: AppSidebarUser = {
+    name: "Admin User",
+    email: "admin@example.com",
+    avatar: "",
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -162,21 +81,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="#" />}
+              render={<Link href="/dashboard" />}
             >
               <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold">Acme Inc.</span>
+              <span className="text-base font-semibold">Admin</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        {tenantSwitcher && <div className="px-2 pb-2">{tenantSwitcher}</div>}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} LinkComponent={LinkComponent} />
+        <NavSecondary
+          items={navSecondary}
+          LinkComponent={LinkComponent}
+          className="mt-auto"
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={propUser ?? fallbackUser} onLogout={onLogout} />
       </SidebarFooter>
     </Sidebar>
   );

@@ -4,7 +4,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@repo/ui/src/components/ui/avatar";
+} from "@repo/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +13,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui/src/components/ui/dropdown-menu";
+} from "@repo/ui/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@repo/ui/src/components/ui/sidebar";
+} from "@repo/ui/components/ui/sidebar";
 import {
   EllipsisVerticalIcon,
   CircleUserRoundIcon,
@@ -30,12 +30,14 @@ import {
 
 export function NavUser({
   user,
+  onLogout,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  onLogout?: () => void;
 }) {
   const { isMobile } = useSidebar();
   return (
@@ -97,7 +99,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={onLogout}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

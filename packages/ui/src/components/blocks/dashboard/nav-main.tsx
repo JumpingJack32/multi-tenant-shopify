@@ -1,24 +1,30 @@
 "use client";
 
-import { Button } from "@repo/ui/src/components/ui/button";
+import type { ElementType } from "react";
+
+import { Button } from "@repo/ui/components/ui/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@repo/ui/src/components/ui/sidebar";
+} from "@repo/ui/components/ui/sidebar";
 import { CirclePlusIcon, MailIcon } from "@repo/ui/icons";
 
 export function NavMain({
   items,
+  LinkComponent,
 }: {
   items: {
     title: string;
     url: string;
     icon?: React.ReactNode;
   }[];
+  LinkComponent?: ElementType;
 }) {
+  const Link = LinkComponent ?? "a";
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -44,7 +50,10 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
+              <SidebarMenuButton
+                tooltip={item.title}
+                render={<Link href={item.url} />}
+              >
                 {item.icon}
                 <span>{item.title}</span>
               </SidebarMenuButton>

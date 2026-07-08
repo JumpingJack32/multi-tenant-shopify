@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@repo/ui/src/components/ui/badge";
+import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@repo/ui/src/components/ui/card";
+} from "@repo/ui/components/ui/card";
 import { TrendingUpIcon, TrendingDownIcon } from "@repo/ui/icons";
 
 export function SectionCards() {
