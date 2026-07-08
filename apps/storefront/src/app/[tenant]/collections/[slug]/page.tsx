@@ -1,5 +1,5 @@
-import { fetchCollections, fetchProducts } from "@/lib/api";
 import { ProductGrid } from "@/components/storefront/product-grid";
+import { fetchCollections, fetchProducts } from "@/lib/api";
 
 export default async function CollectionDetailPage({
   params,

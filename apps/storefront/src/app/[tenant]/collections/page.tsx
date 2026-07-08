@@ -1,5 +1,6 @@
-import { fetchCollections } from "@/lib/api";
 import Link from "next/link";
+
+import { fetchCollections } from "@/lib/api";
 
 export default async function CollectionsPage({
   params,

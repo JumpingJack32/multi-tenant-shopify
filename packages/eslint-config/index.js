@@ -5,7 +5,13 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/.next/**", "**/generated/**"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.next/**",
+      "**/generated/**",
+      "**/next-env.d.ts",
+    ],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -29,7 +35,14 @@ export default [
       "import/order": [
         "error",
         {
-          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+          ],
           "newlines-between": "always",
           alphabetize: { order: "asc" },
         },
