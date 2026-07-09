@@ -47,12 +47,7 @@ export default [
           alphabetize: { order: "asc" },
         },
       ],
-      "import/no-unresolved": [
-        "error",
-        {
-          ignore: ["^\\./\\.next/"],
-        },
-      ],
+      "import/no-unresolved": "error",
       "@next/next/no-html-link-for-pages": "error",
     },
     settings: {
