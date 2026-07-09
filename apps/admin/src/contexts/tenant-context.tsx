@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
 
 export interface TenantInfo {
   id: string;
@@ -83,7 +90,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         const { getToken } = await import("@clerk/nextjs");
         const token = await getToken();
 
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API_BASE =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
         const response = await fetch(`${API_BASE}/tenants`, {
           // 2. Use `undefined` instead of an empty object `{}` when no token exists
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -99,7 +107,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         // 4. Simplified active tenant logic (no more non-null assertions `!`)
         if (tenants.length > 0) {
           const savedId = sessionStorage.getItem(STORAGE_KEY);
-          const activeTenant = (savedId && tenants.find((t) => t.id === savedId)) || tenants[0];
+          const activeTenant =
+            (savedId && tenants.find((t) => t.id === savedId)) || tenants[0];
 
           if (activeTenant) {
             setCurrentTenant(activeTenant);
@@ -110,7 +119,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         // 5. Actually log the error instead of swallowing it silently
         console.error("Failed to fetch tenants:", error);
-        setTenantList([]);
+        if (isMounted) setTenantList([]);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -123,14 +132,17 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const setTenant = useCallback((tenantId: string) => {
-    const tenant = tenantList.find((t) => t.id === tenantId);
-    if (tenant) {
-      setCurrentTenant(tenant);
-      setCurrentTenantId(tenantId);
-      sessionStorage.setItem(STORAGE_KEY, tenantId);
-    }
-  }, [tenantList]);
+  const setTenant = useCallback(
+    (tenantId: string) => {
+      const tenant = tenantList.find((t) => t.id === tenantId);
+      if (tenant) {
+        setCurrentTenant(tenant);
+        setCurrentTenantId(tenantId);
+        sessionStorage.setItem(STORAGE_KEY, tenantId);
+      }
+    },
+    [tenantList],
+  );
 
   return (
     <TenantContext.Provider

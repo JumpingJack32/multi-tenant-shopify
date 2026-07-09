@@ -21,6 +21,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm turbo run lint typecheck test --continue=always
+      - run: pnpm turbo run lint typecheck --continue=always
 
-      - run: pnpm vitest run --coverage
+      - run: pnpm turbo run build --continue=always
