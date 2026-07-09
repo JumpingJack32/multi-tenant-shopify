@@ -27,12 +27,14 @@ interface CollectionModalProps {
   } | null;
   onClose: () => void;
   onSaved: () => void;
+  tenantId?: string | null;
 }
 
 export function CollectionModal({
   collection,
   onClose,
   onSaved,
+  tenantId,
 }: CollectionModalProps) {
   const [name, setName] = useState(collection?.name ?? "");
   const [slug, setSlug] = useState(collection?.slug ?? "");
@@ -59,9 +61,16 @@ export function CollectionModal({
       : "/api/v1/collections/";
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (tenantId) {
+        headers["X-Tenant-ID"] = tenantId;
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           name,
           slug,

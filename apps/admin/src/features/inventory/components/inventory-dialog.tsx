@@ -1,7 +1,4 @@
 import type { InventoryItem } from "@repo/tenant-orm/types";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-
 import { Button } from "@repo/ui/components/ui/button";
 import {
   Dialog,
@@ -12,6 +9,9 @@ import {
 } from "@repo/ui/components/ui/dialog";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+
 import {
   useCreateInventoryItem,
   useUpdateInventoryItem,

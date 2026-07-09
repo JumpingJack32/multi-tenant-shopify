@@ -13,15 +13,11 @@ function getTenantId(): string | null {
   }
 }
 
-async function fetchDashboardSummary() {
-  const tenantId = getTenantId();
-  if (!tenantId) throw new Error("No tenant selected");
-  return api.dashboard.summary({ tenantId });
-}
-
-export function useDashboard() {
+export function useDashboard(tenantId?: string | null) {
+  const tid = tenantId ?? getTenantId();
   return useQuery<DashboardSummary>({
-    queryKey: ["dashboard", "summary"],
-    queryFn: fetchDashboardSummary,
+    queryKey: ["dashboard", "summary", tid],
+    queryFn: () => api.dashboard.summary({ tenantId: tid }),
+    enabled: !!tid,
   });
 }

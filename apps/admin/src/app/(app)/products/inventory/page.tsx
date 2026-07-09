@@ -1,22 +1,22 @@
 "use client";
 
 import type { InventoryItem } from "@repo/tenant-orm/types";
+import { Button } from "@repo/ui/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Button } from "@repo/ui/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useRbac } from "@/contexts/rbac-context";
 import { useTenantContext } from "@/contexts/tenant-context";
+import { InventoryDialog } from "@/features/inventory/components/inventory-dialog";
+import { InventoryFilters } from "@/features/inventory/components/inventory-filters";
+import { InventoryStatsCards } from "@/features/inventory/components/inventory-stats";
+import { InventoryTable } from "@/features/inventory/components/inventory-table";
 import {
   useInventoryItems,
   useInventoryStats,
   useDeleteInventoryItem,
 } from "@/features/inventory/hooks/use-inventory";
-import { InventoryStatsCards } from "@/features/inventory/components/inventory-stats";
-import { InventoryFilters } from "@/features/inventory/components/inventory-filters";
-import { InventoryTable } from "@/features/inventory/components/inventory-table";
-import { InventoryDialog } from "@/features/inventory/components/inventory-dialog";
 
 export default function InventoryPage() {
   const { can } = useRbac();

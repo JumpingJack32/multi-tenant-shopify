@@ -9,6 +9,7 @@ import { ProductTable } from "@/components/products/product-table";
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useRbac } from "@/contexts/rbac-context";
+import { useTenantContext } from "@/contexts/tenant-context";
 import {
   useProducts,
   useCreateProduct,
@@ -18,6 +19,7 @@ import {
 
 export default function ProductsPage() {
   const { can } = useRbac();
+  const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -31,18 +33,21 @@ export default function ProductsPage() {
     isLoading,
     isError,
     error,
-  } = useProducts({
-    search,
-    page: String(page),
-    limit: String(pageSize),
-  });
+  } = useProducts(
+    {
+      search,
+      page: String(page),
+      limit: String(pageSize),
+    },
+    currentTenantId,
+  );
 
   const products = productsData?.data ?? [];
   const total = productsData?.total ?? 0;
 
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-  const deleteMutation = useDeleteProduct();
+  const createMutation = useCreateProduct(currentTenantId);
+  const updateMutation = useUpdateProduct(currentTenantId);
+  const deleteMutation = useDeleteProduct(currentTenantId);
 
   const handleCreate = () => {
     setEditingProduct(null);
@@ -115,7 +120,7 @@ export default function ProductsPage() {
 
       <ProductTable
         products={products}
-        loading={isLoading}
+        loading={isLoading || tenantLoading}
         total={total}
         page={page}
         pageSize={pageSize}
