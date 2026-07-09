@@ -1,58 +1,61 @@
 {
-    "$schema": "https://v2-9-18.turborepo.dev/schema.json",
-    "globalEnv": [
-      "NEXT_PUBLIC_*",
-      "CLERK_SECRET_KEY",
-      "DATABASE_*",
-      "OPENAPI_INPUT",
-      "CLERK_ISSUER",
-      "NEXT_PUBLIC_API_URL",
-      "CLERK_WEBHOOK_SECRET",
-      "API_BASE_URL",
-      "CLERK_JWKS_URL",
-      "APP_ENV",
-      "JWT_SECRET",
-      "SUPABASE_JWT_SECRET"
-    ],
+  "$schema": "https://v2-9-18.turborepo.dev/schema.json",
+  "globalEnv": [
+    "NEXT_PUBLIC_*",
+    "CLERK_SECRET_KEY",
+    "DATABASE_*",
+    "OPENAPI_INPUT",
+    "CLERK_ISSUER",
+    "NEXT_PUBLIC_API_URL",
+    "CLERK_WEBHOOK_SECRET",
+    "API_BASE_URL",
+    "CLERK_JWKS_URL",
+    "APP_ENV",
+    "JWT_SECRET",
+    "SUPABASE_JWT_SECRET"
+  ],
 
   "ui": "tui",
-  
-    "tasks": {
-      "build": {
-        "dependsOn": [ "^build" ],
-        "inputs": [ "$TURBO_DEFAULT$", ".env*" ],
-        "outputs": [ ".next/**", "!.next/cache/**" ]
-      },
-      "lint": {
-        "dependsOn": [ "^lint" ]
-      },
-      "format": {
-        "dependsOn": [ "^format" ]
-      },
-      "typecheck": {
-        "dependsOn": [ "^typecheck" ]
-      },
-      "test": {
-        "dependsOn": [ "^test" ],
-        "outputs": []
-      },
-      "dev": {
-        "cache": false,
-        "persistent": true,
-        "inputs": [ "$TURBO_DEFAULT$", ".env*" ]
-      },
-      "@repo/backend-api#build": {
-        "dependsOn": [ ],
-        "inputs": [ "src/**/*.py", "pyproject.toml" ],
-        "outputs": [ ]
-      },
-      "@repo/backend-api#lint": {
-        "dependsOn": [ ],
-        "outputs": [ "**/.ruff_cache/**" ]
-      },
-      "@repo/backend-api#typecheck": {
-        "dependsOn": [ "@repo/backend-api#lint" ],
-        "outputs": [ ]
-      }
+
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "codegen": {
+      "outputs": ["src/generated/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^codegen", "^typecheck"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "format": {
+      "dependsOn": ["^format"]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "@repo/backend-api#build": {
+      "dependsOn": [],
+      "inputs": ["src/**/*.py", "pyproject.toml"],
+      "outputs": []
+    },
+    "@repo/backend-api#lint": {
+      "dependsOn": [],
+      "outputs": ["**/.ruff_cache/**"]
+    },
+    "@repo/backend-api#typecheck": {
+      "dependsOn": ["@repo/backend-api#lint"],
+      "outputs": []
     }
+  }
 }

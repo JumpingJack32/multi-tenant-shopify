@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "hey-api openapi-ts",
+    "codegen": "openapi-ts",
+    "generate": "openapi-ts",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
