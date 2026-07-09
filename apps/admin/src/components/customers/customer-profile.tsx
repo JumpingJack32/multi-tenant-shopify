@@ -29,8 +29,14 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800",
 };
 
-export function CustomerProfile({ customerId }: { customerId: string }) {
-  const { data, isLoading, error, refetch } = useCustomer(customerId);
+export function CustomerProfile({
+  customerId,
+  tenantId,
+}: {
+  customerId: string;
+  tenantId?: string | null;
+}) {
+  const { data, isLoading, error, refetch } = useCustomer(customerId, tenantId);
   const router = useRouter();
 
   if (error) {

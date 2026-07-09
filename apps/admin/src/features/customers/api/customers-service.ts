@@ -1,6 +1,6 @@
 import { api } from "@/lib/api/client";
 
-function getTenantId(): string | null {
+function getStorageTenantId(): string | null {
   if (typeof globalThis === "undefined") return null;
   try {
     const store = globalThis as { sessionStorage?: Storage };
@@ -10,14 +10,17 @@ function getTenantId(): string | null {
   }
 }
 
-export async function fetchCustomers(params?: Record<string, string>) {
-  const tenantId = getTenantId();
-  if (!tenantId) throw new Error("No tenant selected");
-  return api.customers.list(params, { tenantId });
+export async function fetchCustomers(
+  params?: Record<string, string>,
+  tenantId?: string | null,
+) {
+  const tid = tenantId ?? getStorageTenantId();
+  if (!tid) throw new Error("No tenant selected");
+  return api.customers.list(params, { tenantId: tid });
 }
 
-export async function fetchCustomer(id: string) {
-  const tenantId = getTenantId();
-  if (!tenantId) throw new Error("No tenant selected");
-  return api.customers.get(id, { tenantId });
+export async function fetchCustomer(id: string, tenantId?: string | null) {
+  const tid = tenantId ?? getStorageTenantId();
+  if (!tid) throw new Error("No tenant selected");
+  return api.customers.get(id, { tenantId: tid });
 }

@@ -22,7 +22,15 @@ function formatPence(n: number): string {
   return `£${(n / 100).toFixed(2)}`;
 }
 
-export function CustomersTable() {
+interface CustomersTableProps {
+  tenantId?: string | null;
+  tenantLoading?: boolean;
+}
+
+export function CustomersTable({
+  tenantId,
+  tenantLoading,
+}: CustomersTableProps) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const router = useRouter();
@@ -32,9 +40,11 @@ export function CustomersTable() {
   params.page = String(page);
   params.per_page = "20";
 
-  const { data, isLoading, error, refetch } = useCustomers(params);
+  const { data, isLoading, error, refetch } = useCustomers(params, tenantId);
 
-  if (error) {
+  const loading = isLoading || tenantLoading;
+
+  if (error && !loading) {
     return (
       <ErrorBanner
         message="Failed to load customers"
@@ -68,7 +78,7 @@ export function CustomersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading &&
+            {loading &&
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell>
@@ -115,7 +125,7 @@ export function CustomersTable() {
           </TableBody>
         </Table>
 
-        {!isLoading && (!data || data.data.length === 0) && (
+        {!loading && (!data || data.data.length === 0) && (
           <div className="py-8 text-center text-sm text-muted-foreground">
             No customers yet
           </div>

@@ -2,6 +2,9 @@ import type {
   Collection,
   CustomerDetail,
   DashboardSummary,
+  InventoryItem,
+  InventoryListResponse,
+  InventoryStats,
   Product,
   ProductCreate,
   ProductUpdate,
@@ -208,6 +211,51 @@ export const api = {
         "/admin/dashboard/summary",
         options ?? {},
       );
+    },
+  },
+
+  inventory: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<InventoryListResponse>(
+        `/inventory${buildQuery(params)}`,
+        options ?? {},
+      );
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<InventoryItem>(`/inventory/${id}`, options ?? {});
+    },
+    stats(options?: { tenantId?: string | null }) {
+      return request<InventoryStats>("/inventory/stats", options ?? {});
+    },
+    create(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<InventoryItem>("/inventory", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<InventoryItem>(`/inventory/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<void>(`/inventory/${id}`, {
+        method: "DELETE",
+        ...options,
+      });
     },
   },
 };

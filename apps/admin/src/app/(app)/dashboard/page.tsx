@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { useTenantContext } from "@/contexts/tenant-context";
 import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 
 function formatPence(n: number): string {
@@ -52,18 +53,10 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const { data, isLoading, error, refetch } = useDashboard();
+  const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
+  const dashboardQuery = useDashboard(currentTenantId);
 
-  if (error) {
-    return (
-      <ErrorBanner
-        message="Failed to load dashboard"
-        onRetry={() => refetch()}
-      />
-    );
-  }
-
-  if (isLoading || !data) {
+  if (tenantLoading || dashboardQuery.isPending) {
     return (
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-4 gap-4">
@@ -80,13 +73,24 @@ export default function DashboardPage() {
     );
   }
 
+  if (dashboardQuery.isError) {
+    return (
+      <ErrorBanner
+        message="Failed to load dashboard"
+        onRetry={() => dashboardQuery.refetch()}
+      />
+    );
+  }
+
+  const { data } = dashboardQuery;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header + Refresh */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <button
-          onClick={() => refetch()}
+          onClick={() => dashboardQuery.refetch()}
           className="text-sm text-primary hover:underline"
         >
           Refresh

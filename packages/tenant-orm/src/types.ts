@@ -197,3 +197,59 @@ export interface DashboardSummary {
     created_at: string;
   }>;
 }
+
+export type StockStatus =
+  | "in_stock"
+  | "low_stock"
+  | "out_of_stock"
+  | "discontinued";
+
+export interface InventoryVariant {
+  id: string;
+  item_id: string;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  price: number;
+  cost: number;
+  stock: number;
+  reorder_point: number;
+  warehouse: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  tenant_id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  image_url: string | null;
+  status: StockStatus;
+  supplier: string | null;
+  total_stock: number;
+  total_value: number;
+  variants: InventoryVariant[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InventoryStats {
+  total_skus: number;
+  total_value: number;
+  low_stock_count: number;
+  out_of_stock_count: number;
+  total_variants: number;
+}
+
+export interface InventoryListResponse {
+  data: InventoryItem[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+}
