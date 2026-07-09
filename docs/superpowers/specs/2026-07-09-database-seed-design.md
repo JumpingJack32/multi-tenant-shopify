@@ -52,7 +52,9 @@ Layer 5 — Orders & History
 | initech | Initech |
 
 Each gets a single `tenant_users` row: `admin@{slug}.com` with a placeholder
-password hash and `is_platform_superuser = true`.
+password hash, `role = 'admin'`, and `is_platform_superuser = false`. Platform
+superuser status is reserved for global SaaS admins who bypass tenant RLS —
+tenant-level admins should be scoped to their own tenant_id.
 
 ### Catalog — per tenant
 
@@ -146,10 +148,21 @@ compatibility, matching the current script's convention.
 
 ## Idempotency
 
-The script always truncates all tenant-scoped tables at the start (via
-`TRUNCATE ... CASCADE` or manual reverse-order DELETE). The three tenants
-themselves are created with `ON CONFLICT DO NOTHING` so re-running doesn't
-duplicate them.
+The script always truncates tenant-scoped child tables at the start (via
+manual reverse-order DELETE, not `TRUNCATE ... CASCADE`) — targeting
+`order_items`, `orders`, `inventory`, `locations`, `product_collections`,
+`collections`, `customer_addresses`, `customers`, `product_images`,
+`variants`, `products`, `categories`, `tenant_users` in that order. The
+`tenants` table itself is never truncated, so the 3 stable identities survive
+re-runs. New rows in child tables use their tenant_id FK to link back to
+existing tenants.
+
+## Technology choices
+
+- **asyncpg with raw SQL** is used (not SQLModel `AsyncSession`) for speed and
+  simplicity. The script returns plain dicts of IDs, not ORM model instances.
+  The main orchestrator wraps all layers in a single transaction so a failure
+  in Layer 4 or 5 triggers a full rollback — no partial state.
 
 ## Constraints & edge cases
 
@@ -159,5 +172,7 @@ duplicate them.
 - **Order timestamps**: Spread across a 30-day window so dashboard
   time-series charts have data.
 - **No real PII**: All customer data is fictional.
+- **Variant scoping**: Order-item generation must randomly select variants only
+  from the order's own tenant's product set — never cross-tenant.
 - **Run time**: Should complete in under 5 seconds on a local Supabase
   instance.
