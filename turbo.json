@@ -27,7 +27,7 @@
       "outputs": ["src/generated/**"]
     },
     "typecheck": {
-      "dependsOn": ["^codegen", "codegen", "^typecheck"]
+      "dependsOn": ["^codegen", "^typecheck"]
     },
     "lint": {
       "dependsOn": ["^lint"]
