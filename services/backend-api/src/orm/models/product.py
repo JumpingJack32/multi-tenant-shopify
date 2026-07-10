@@ -13,6 +13,7 @@ from src.orm.models.collection import ProductCollection
 if TYPE_CHECKING:
     from src.orm.models.category import Category
     from src.orm.models.collection import Collection
+    from src.orm.models.purchase_order import Supplier
 
 
 class ProductStatus(str, Enum):
@@ -36,9 +37,10 @@ class Product(BaseModel, table=True):
     weight_unit: str = Field(default="kg", max_length=10)
     price: Decimal = Field(max_digits=10, decimal_places=2, default=0.00)
     is_active: bool = Field(default=True)
-    supplier: Optional[str] = Field(default=None, max_length=255)
+    supplier_id: Optional[UUID] = Field(default=None, foreign_key="suppliers.id", nullable=True, ondelete="RESTRICT")
 
     # Relationships
+    supplier_rel: Optional["Supplier"] = Relationship()
     variants: list["Variant"] = Relationship(back_populates="product", cascade_delete=True)
     images: list["ProductImage"] = Relationship(back_populates="product", cascade_delete=True)
     category_id: Optional[UUID] = Field(default=None, foreign_key="categories.id")
@@ -76,6 +78,8 @@ class Variant(BaseModel, table=True):
     weight_unit: str = Field(default="kg", max_length=10)
     inventory_quantity: int = Field(default=0)
     is_active: bool = Field(default=True)
+    supplier_sku: Optional[str] = Field(default=None, max_length=255)
+    cost_price: Optional[int] = Field(default=None, ge=0)
    # This is the correct pattern for JSON fields in SQLModel
     options: dict[str, Any] = Field(
         default_factory=dict,

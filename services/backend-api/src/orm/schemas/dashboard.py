@@ -28,6 +28,11 @@ class RecentOrderItem(BaseModel):
     created_at: str
 
 
+class PendingPOStats(BaseModel):
+    count: int = 0
+    total: int = 0
+
+
 class DashboardSummaryResponse(BaseModel):
     revenue_mtd: int = 0
     revenue_total: int = 0
@@ -41,3 +46,4 @@ class DashboardSummaryResponse(BaseModel):
     fulfillment: FulfillmentCounts = FulfillmentCounts()
     low_stock: list[LowStockItem] = []
     recent_orders: list[RecentOrderItem] = []
+    pending_pos: PendingPOStats = PendingPOStats()

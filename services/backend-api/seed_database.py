@@ -10,8 +10,11 @@ import random
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import text
+
+from src.orm.base import BaseModel
 
 random.seed(42)
 
@@ -487,6 +490,8 @@ async def seed_orders(
 
 
 async def main() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(BaseModel.metadata.create_all)
     async with AsyncSession(engine) as session:
         async with session.begin():
             await clear_data(session)
