@@ -190,13 +190,34 @@ app.include_router(inventory_router, prefix="/api/v1")
 
 ## 4. DB Schema Changes
 
-Add `supplier` column to `Product` model in `src/orm/models/product.py`:
+### `supplier` column on `Product`
+
+Add to `src/orm/models/product.py`:
 
 ```python
 supplier: Optional[str] = Field(default=None, max_length=255)
 ```
 
-(This is a new column — not yet in the DB. Will need an Alembic migration or manual `ALTER TABLE`.)
+**Migration:** Alembic autogenerate with `nullable=True`:
+```bash
+alembic revision --autogenerate -m "add_supplier_to_product"
+```
+
+The existing seeded data will not be affected — `nullable=True` allows NULL for existing rows.
+
+### SKU uniqueness constraint
+
+Add a composite unique index on `Variant` scoped per-tenant. Since `Variant` doesn't directly hold `tenant_id`, enforce via application-level validation in `POST`/`PATCH`:
+
+```python
+# In create/update: check for duplicate SKU within the same tenant
+stmt = select(Variant).join(Product).where(
+    Variant.sku == sku,
+    Product.tenant_id == tenant_id,
+)
+if (await db.exec(stmt)).first():
+    raise HTTPException(409, "SKU already exists for this tenant")
+```
 
 ---
 
@@ -244,9 +265,17 @@ Threshold (`reorder_level`) pulled from the primary variant's first `Inventory.r
 
 ---
 
-## Open Questions
+## Resolved Decisions (from design review)
 
-- `supplier` column migration: Alembic migration or manual `ALTER TABLE`? (Current migration pipeline status unknown.)
-- Default location for new inventory records: query first active `Location` per tenant, or create a synthetic "Default Warehouse" on the fly?
-- SKU uniqueness: scoped per-tenant or globally? (Recommend: per-tenant `WHERE tenant_id = :tid`.)
-- The `category` field on the frontend is a free-text string. The DB has a `Category` table with IDs. For now, store as product attribute; future work can normalize.
+| Question | Decision |
+|----------|----------|
+| `supplier` migration | Alembic autogenerate, `nullable=True` |
+| Default location | Query first active `Location` per tenant; 400 if none exists |
+| SKU uniqueness | Application-level validation joining `Variant → Product.tenant_id` |
+| Category normalization | Keep text-based for now; future work to normalize to lookup table |
+| Status discontinued | `Product.is_active` exists — keep the check |
+
+## Implementation Notes
+
+- **Variant.sku in list query:** The `GET /inventory` query must select `Variant.sku` alongside `Product` to populate the top-level `InventoryItemResponse.sku` field without triggering lazy loads.
+- **Status threshold:** `reorder_level` default of 5 if no `Inventory.reorder_level` record exists.
