@@ -11,6 +11,7 @@ import {
 
 export interface TenantInfo {
   id: string;
+  tenant_id: string;
   name: string;
   slug: string;
   status: "active" | "suspended" | "deleted";
@@ -90,8 +91,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         const { getToken } = await import("@clerk/nextjs");
         const token = await getToken();
 
-        const API_BASE =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
         const response = await fetch(`${API_BASE}/tenants`, {
           // 2. Use `undefined` instead of an empty object `{}` when no token exists
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -108,12 +108,16 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         if (tenants.length > 0) {
           const savedId = sessionStorage.getItem(STORAGE_KEY);
           const activeTenant =
-            (savedId && tenants.find((t) => t.id === savedId)) || tenants[0];
+            (savedId &&
+              tenants.find(
+                (t) => t.tenant_id === savedId || t.id === savedId,
+              )) ||
+            tenants[0];
 
           if (activeTenant) {
             setCurrentTenant(activeTenant);
-            setCurrentTenantId(activeTenant.id);
-            sessionStorage.setItem(STORAGE_KEY, activeTenant.id);
+            setCurrentTenantId(activeTenant.tenant_id);
+            sessionStorage.setItem(STORAGE_KEY, activeTenant.tenant_id);
           }
         }
       } catch (error) {
@@ -134,11 +138,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   const setTenant = useCallback(
     (tenantId: string) => {
-      const tenant = tenantList.find((t) => t.id === tenantId);
+      const tenant = tenantList.find(
+        (t) => t.tenant_id === tenantId || t.id === tenantId,
+      );
       if (tenant) {
         setCurrentTenant(tenant);
-        setCurrentTenantId(tenantId);
-        sessionStorage.setItem(STORAGE_KEY, tenantId);
+        setCurrentTenantId(tenant.tenant_id);
+        sessionStorage.setItem(STORAGE_KEY, tenant.tenant_id);
       }
     },
     [tenantList],

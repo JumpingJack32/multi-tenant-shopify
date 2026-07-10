@@ -11,12 +11,12 @@ export function TenantSwitcher() {
   return (
     <div className="space-y-2">
       <select
-        value={currentTenant.id}
+        value={currentTenant.tenant_id}
         onChange={(e) => setTenant(e.target.value)}
         className="w-full rounded-lg border px-3 py-2 text-sm bg-background"
       >
         {tenantList.map((tenant) => (
-          <option key={tenant.id} value={tenant.id}>
+          <option key={tenant.id} value={tenant.tenant_id}>
             {tenant.name}
           </option>
         ))}
