@@ -55,6 +55,7 @@ class OrderResponse(PydanticBaseModel):
     shipping_address: dict
     billing_address: dict
     notes: Optional[str] = None
+    customer_email: Optional[str] = None
     options: Optional[dict] = None
     items: list["OrderItemResponse"]
     created_at: datetime
