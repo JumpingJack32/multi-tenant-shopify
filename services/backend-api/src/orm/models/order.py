@@ -100,6 +100,7 @@ class Customer(BaseModel, table=True):
     is_verified: bool = Field(default=False)
     total_orders: int = Field(default=0)
     total_spent: int = Field(default=0, ge=0)
+    refunded_total: int = Field(default=0, ge=0)
     # last_order_at: Optional[datetime] = mapped_column(DateTime(timezone=True), default=None)
     last_order_at: Optional[datetime] = Field(
         default=None, 
