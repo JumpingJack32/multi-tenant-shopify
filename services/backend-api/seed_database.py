@@ -169,6 +169,8 @@ async def clear_data(session: AsyncSession) -> None:
     ]
     for table in tables:
         await session.execute(text(f"DELETE FROM {table}"))
+    # Remove test tenants that may have been created by test suites
+    await session.execute(text("DELETE FROM tenants WHERE slug = 'test-tenant'"))
 
 
 async def seed_tenants(session: AsyncSession) -> dict[str, dict]:
