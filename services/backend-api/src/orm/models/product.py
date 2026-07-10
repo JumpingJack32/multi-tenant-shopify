@@ -36,6 +36,7 @@ class Product(BaseModel, table=True):
     weight_unit: str = Field(default="kg", max_length=10)
     price: Decimal = Field(max_digits=10, decimal_places=2, default=0.00)
     is_active: bool = Field(default=True)
+    supplier: Optional[str] = Field(default=None, max_length=255)
 
     # Relationships
     variants: list["Variant"] = Relationship(back_populates="product", cascade_delete=True)
