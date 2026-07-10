@@ -72,6 +72,7 @@ export default function DashboardPage() {
         aov={data.aov}
         active_customers={data.active_customers}
         active_customers_prev={data.active_customers_prev}
+        pending_pos={data.pending_pos}
       />
 
       {/* Fulfillment Pipeline */}

@@ -1,5 +1,7 @@
 "use client";
 
+import type { PendingPOStats } from "@repo/tenant-orm/types";
+
 import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
@@ -74,6 +76,7 @@ interface SectionCardsProps {
   aov: number;
   active_customers: number;
   active_customers_prev: number;
+  pending_pos: PendingPOStats;
 }
 
 export function SectionCards(props: SectionCardsProps) {
@@ -116,10 +119,21 @@ export function SectionCards(props: SectionCardsProps) {
           : "Customer base shrinking",
       trendDesc: "Unique customers vs previous period",
     },
+    {
+      label: "Pending POs",
+      value: props.pending_pos.count,
+      prev: 0,
+      format: (n) => n.toString(),
+      trendLabel:
+        props.pending_pos.count > 0
+          ? `${formatPence(props.pending_pos.total)} total value`
+          : "No pending orders",
+      trendDesc: "Purchase orders awaiting approval",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-5 dark:*:data-[slot=card]:bg-card">
       {cards.map((def) => (
         <StatCardInner key={def.label} def={def} />
       ))}
@@ -129,8 +143,8 @@ export function SectionCards(props: SectionCardsProps) {
 
 export function SectionCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {[1, 2, 3, 4].map((i) => (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {[1, 2, 3, 4, 5].map((i) => (
         <StatCardSkeleton key={i} />
       ))}
     </div>
