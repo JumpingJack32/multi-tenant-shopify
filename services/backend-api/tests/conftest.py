@@ -1,4 +1,7 @@
 import os
+
+os.environ.setdefault("APP_ENV", "test")
+
 import sys
 from collections.abc import AsyncGenerator
 
