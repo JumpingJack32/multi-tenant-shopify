@@ -1,10 +1,13 @@
 import type {
+  AssociatedPO,
   Collection,
   CustomerDetail,
   DashboardSummary,
   InventoryItem,
   InventoryListResponse,
   InventoryStats,
+  Order,
+  OrderListResponse,
   Product,
   ProductCreate,
   ProductUpdate,
@@ -319,6 +322,38 @@ export const api = {
         body: JSON.stringify({ ids }),
         ...options,
       });
+    },
+  },
+
+  orders: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<OrderListResponse>(
+        "/orders" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<Order>("/orders/" + id, options ?? {});
+    },
+    updateStatus(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Order>("/orders/" + id, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    getLinkedPOs(id: string, options?: { tenantId?: string | null }) {
+      return request<AssociatedPO[]>(
+        "/orders/" + id + "/purchase-orders",
+        options ?? {},
+      );
     },
   },
 
