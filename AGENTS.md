@@ -1,3 +1,37 @@
+# Session Context — Saved 2026-07-10
+
+## Completed This Session (2026-07-10)
+
+### Inventory Backend Connectivity Fixes
+
+- **Root cause #1**: `NEXT_PUBLIC_API_URL=http://localhost:8000` missing `/api/v1` prefix. All backend calls went to `http://localhost:8000/tenants`, `http://localhost:8000/inventory` etc. — all 404.
+- **Fix**: Changed both `client.ts:13` and `tenant-context.tsx:94` to always append `/api/v1`: `` `${...}/api/v1` ``
+- **Root cause #2**: `TenantInfo` had no `tenant_id` field. Code stored `activeTenant.id` (row PK) as `currentTenantId`. For auto-selected "Test Tenant", `id` was different from `tenant_id`, so `X-Tenant-ID` sent the wrong UUID.
+- **Fix**: Added `tenant_id: string` to `TenantInfo`; use `tenant.tenant_id` everywhere for `currentTenantId`/sessionStorage; backward-compatible matching `tenants.find(t => t.tenant_id === savedId || t.id === savedId)`
+
+### DashboardSummary Types Fixed
+
+- Aligned `DashboardSummary.low_stock` (now `DashboardLowStockItem`: `variant_id`, `product_name`, `sku`, `quantity`, `threshold`) and `recent_orders` (now `DashboardRecentOrder`: adds `customer_name`) with actual backend Python Pydantic schemas
+- Removed `: any` casts from `dashboard/page.tsx` (2 occurrences)
+- Updated zod example types to match
+
+### Sidebar Restructured (Ergonomic Sidebar Framework)
+
+- Top Zone: Dashboard, Analytics
+- Middle Zone: Management (Products, Content, Customers) + Commerce & Revenue (Sales Channels, Marketing, Discounts, Finances) — with section labels as visual dividers
+- Bottom Zone (sticky via `mt-auto`): Settings, Help
+- Switched `nav-main` to shadcn sidebar-07 Collapsible accordion (ChevronRight, click-to-expand)
+- Changed sidebar to `collapsible="icon"` with `SidebarRail`
+
+### On Back Burner
+
+- SectionCards dashboard polish (aesthetic only, not a priority)
+
+## Still To Do
+
+- Dashboard backend tests
+- Schema alignment: ORM/Alembic drift (`tenants.plan/settings/options`, `orders.total` type)
+
 # Session Context — Saved 2026-07-08
 
 ## CI Fixes Summary (resolved 2026-07-09)
