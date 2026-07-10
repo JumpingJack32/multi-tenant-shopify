@@ -2,7 +2,7 @@ import re
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, text
+from sqlalchemy import func, inspect as sa_inspect, text
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -57,22 +57,33 @@ async def _get_or_create_category(db: AsyncSession, name: str, tenant_id: UUID) 
 
 
 async def _build_item_response(db: AsyncSession, product: Product) -> InventoryItemResponse:
-    stmt = (
-        select(Variant)
-        .options(selectinload(Variant.inventory))
-        .where(Variant.product_id == product.id, Variant.is_active == True)  # noqa: E712
-    )
-    result = await db.exec(stmt)
-    variants = result.all()
+    insp = sa_inspect(product)
 
-    img_stmt = (
-        select(ProductImage)
-        .where(ProductImage.product_id == product.id)
-        .order_by(ProductImage.sort_order)
-        .limit(1)
-    )
-    img_result = await db.exec(img_stmt)
-    first_image = img_result.first()
+    if "variants" not in insp.unloaded:
+        all_variants = product.variants or []
+        variants = [v for v in all_variants if v.is_active]
+    else:
+        stmt = (
+            select(Variant)
+            .options(selectinload(Variant.inventory))
+            .where(Variant.product_id == product.id, Variant.is_active == True)  # noqa: E712
+        )
+        result = await db.exec(stmt)
+        variants = result.all()
+
+    if "images" not in insp.unloaded:
+        images = product.images or []
+        sorted_images = sorted(images, key=lambda img: img.sort_order)
+        first_image = sorted_images[0] if sorted_images else None
+    else:
+        img_stmt = (
+            select(ProductImage)
+            .where(ProductImage.product_id == product.id)
+            .order_by(ProductImage.sort_order)
+            .limit(1)
+        )
+        img_result = await db.exec(img_stmt)
+        first_image = img_result.first()
     image_url = first_image.url if first_image else None
 
     total_stock = 0
@@ -194,7 +205,11 @@ async def list_items(
 
     stmt = (
         select(Product)
-        .options(selectinload(Product.category))
+        .options(
+            selectinload(Product.variants).selectinload(Variant.inventory),
+            selectinload(Product.images),
+            selectinload(Product.category),
+        )
         .where(Product.tenant_id == tenant_id)
     )
     if q:
@@ -210,7 +225,7 @@ async def list_items(
             continue
         items.append(item)
 
-    total_pages = max(1, (total + page_size - 1) // page_size)
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
     return InventoryListResponse(
         data=items,
@@ -300,7 +315,7 @@ async def create_item(
     db.add(inventory)
     await db.flush()
 
-    await db.refresh(product)
+    await db.refresh(product, ["category"])
     return await _build_item_response(db, product)
 
 
@@ -367,7 +382,7 @@ async def update_item(
                 variant.inventory[0].quantity = update_data["stock"]
 
     await db.flush()
-    await db.refresh(product)
+    await db.refresh(product, ["category"])
     return await _build_item_response(db, product)
 
 
