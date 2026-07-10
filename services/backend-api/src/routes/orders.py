@@ -137,12 +137,12 @@ async def get_order_purchase_orders(
     # Find POs from PO items
     po_stmt = (
         select(PurchaseOrder)
+        .join(PurchaseOrderItem)
         .where(
-            PurchaseOrderItem.purchase_order_id == PurchaseOrder.id,
             PurchaseOrderItem.id.in_(list(poi_ids)),
             PurchaseOrder.tenant_id == tenant_id,
         )
-        .distinct()
+        .distinct(PurchaseOrder.id)
     )
     po_result = await db.exec(po_stmt)
     pos = po_result.all()
