@@ -247,6 +247,25 @@ export type CustomerDetail = z.infer<typeof CustomerDetailSchema>;
 // Dashboard
 // ==========================================
 
+export const DashboardLowStockItemSchema = z.object({
+  variant_id: z.string(),
+  product_name: z.string(),
+  sku: z.string(),
+  quantity: z.number(),
+  threshold: z.number(),
+});
+export type DashboardLowStockItem = z.infer<typeof DashboardLowStockItemSchema>;
+
+export const DashboardRecentOrderSchema = z.object({
+  id: z.string(),
+  order_number: z.string(),
+  customer_name: z.string().nullable(),
+  total: z.number(),
+  status: z.string(),
+  created_at: z.string(),
+});
+export type DashboardRecentOrder = z.infer<typeof DashboardRecentOrderSchema>;
+
 export const DashboardSummarySchema = z.object({
   revenue_mtd: z.number(),
   revenue_total: z.number(),
@@ -263,22 +282,8 @@ export const DashboardSummarySchema = z.object({
     shipped: z.number(),
     delivered: z.number(),
   }),
-  low_stock: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      stock: z.number(),
-    }),
-  ),
-  recent_orders: z.array(
-    z.object({
-      id: z.string(),
-      order_number: z.string(),
-      total: z.number(),
-      status: z.string(),
-      created_at: z.string(),
-    }),
-  ),
+  low_stock: z.array(DashboardLowStockItemSchema),
+  recent_orders: z.array(DashboardRecentOrderSchema),
 });
 export type DashboardSummary = z.infer<typeof DashboardSummarySchema>;
 

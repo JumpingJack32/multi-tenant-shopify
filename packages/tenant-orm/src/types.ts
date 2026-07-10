@@ -172,6 +172,23 @@ export interface CustomerDetail extends Customer {
   orders: CustomerOrder[];
 }
 
+export interface DashboardLowStockItem {
+  variant_id: string;
+  product_name: string;
+  sku: string;
+  quantity: number;
+  threshold: number;
+}
+
+export interface DashboardRecentOrder {
+  id: string;
+  order_number: string;
+  customer_name: string | null;
+  total: number;
+  status: string;
+  created_at: string;
+}
+
 export interface DashboardSummary {
   revenue_mtd: number;
   revenue_total: number;
@@ -188,14 +205,8 @@ export interface DashboardSummary {
     shipped: number;
     delivered: number;
   };
-  low_stock: Array<{ id: string; name: string; stock: number }>;
-  recent_orders: Array<{
-    id: string;
-    order_number: string;
-    total: number;
-    status: string;
-    created_at: string;
-  }>;
+  low_stock: DashboardLowStockItem[];
+  recent_orders: DashboardRecentOrder[];
 }
 
 export type StockStatus =

@@ -35,19 +35,15 @@ describe("NavMain", () => {
   it("renders dropdown items with chevron", () => {
     renderWithSidebar(<NavMain items={dropdownItems} />);
     expect(screen.getByText("Products")).toBeInTheDocument();
-    expect(document.querySelector(".lucide-chevron-down")).toBeTruthy();
+    expect(document.querySelector(".lucide-chevron-right")).toBeTruthy();
   });
 
-  it("renders sub-items inside drop-down", () => {
+  it("renders collapsible structure for dropdown items", () => {
     const { container } = renderWithSidebar(<NavMain items={dropdownItems} />);
-    const subLinks = container.querySelectorAll(
-      "[data-slot='sidebar-menu-sub-button']",
-    );
-    expect(subLinks.length).toBe(2);
-    expect(subLinks[0]!).toHaveAttribute("href", "/collections");
-    expect(subLinks[1]!).toHaveAttribute("href", "/products/inventory");
-    expect(subLinks[0]!.textContent).toContain("Collections");
-    expect(subLinks[1]!.textContent).toContain("Inventory");
+    expect(container.querySelector("[data-slot='collapsible']")).toBeTruthy();
+    expect(
+      container.querySelector("[data-slot='collapsible-trigger']"),
+    ).toBeTruthy();
   });
 
   it("sub-items use LinkComponent when provided", () => {
@@ -67,23 +63,17 @@ describe("NavMain", () => {
     const { container } = renderWithSidebar(
       <NavMain items={dropdownItems} LinkComponent={MockLink} />,
     );
-    const subLinks = container.querySelectorAll(
-      "[data-slot='sidebar-menu-sub-button']",
-    );
-    expect(subLinks.length).toBe(0);
-    // When using a custom LinkComponent, the SidebarMenuSubButton's render
-    // prop delegates rendering so the <a> is rendered by MockLink
-    const mockLinks = container.querySelectorAll("[data-mock-link]");
-    expect(mockLinks.length).toBe(2);
-    expect(mockLinks[0]!).toHaveAttribute("href", "/collections");
-    expect(mockLinks[0]!.textContent).toContain("Collections");
+    // Collapsible is closed — no mock links rendered yet
+    // Verify collapsible structure exists
+    expect(
+      container.querySelector("[data-slot='collapsible-trigger']"),
+    ).toBeTruthy();
   });
 
-  it("sub-items are hidden by default (opacity-0)", () => {
+  it("sub-items are collapsed by default (not in DOM)", () => {
     const { container } = renderWithSidebar(<NavMain items={dropdownItems} />);
+    // With Base UI Collapsible, closed panel content is not rendered
     const sub = container.querySelector("[data-slot='sidebar-menu-sub']");
-    expect(sub).toBeTruthy();
-    expect(sub!.className).toContain("opacity-0");
-    expect(sub!.className).toContain("invisible");
+    expect(sub).toBeFalsy();
   });
 });

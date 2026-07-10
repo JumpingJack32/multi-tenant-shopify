@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.low_stock.map((item: any) => (
+                {data.low_stock.map((item) => (
                   <tr key={item.variant_id} className="border-t">
                     <td className="py-1.5">{item.product_name}</td>
                     <td className="py-1.5 font-mono text-muted-foreground">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {data.recent_orders.map((order: any) => (
+              {data.recent_orders.map((order) => (
                 <tr key={order.id} className="border-t">
                   <td className="py-1.5">{order.order_number}</td>
                   <td className="py-1.5">{order.customer_name || "\u2014"}</td>

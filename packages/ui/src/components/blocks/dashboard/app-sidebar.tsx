@@ -2,8 +2,7 @@
 
 import type { ElementType } from "react";
 
-import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
+import { NavMain, type NavItem } from "./nav-main";
 import { NavUser } from "./nav-user";
 import {
   Sidebar,
@@ -13,20 +12,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@repo/ui/components/ui/sidebar";
 import {
-  LayoutDashboardIcon,
-  PackageIcon,
-  UsersIcon,
-  FileTextIcon,
-  BanknoteIcon,
   BarChart3Icon,
-  MegaphoneIcon,
-  PercentIcon,
-  StoreIcon,
-  Settings2Icon,
   CircleHelpIcon,
   CommandIcon,
+  FileTextIcon,
+  LayoutDashboardIcon,
+  MegaphoneIcon,
+  PackageIcon,
+  PercentIcon,
+  Settings2Icon,
+  BanknoteIcon,
+  StoreIcon,
+  UsersIcon,
 } from "@repo/ui/icons";
 
 export interface SubNavItem {
@@ -54,8 +54,23 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   LinkComponent?: ElementType;
 }
 
-const navMain: SidebarNavItem[] = [
+// ─── TOP ZONE: Quick Navigation & Daily Pulse ─────────────────────────
+const navTop: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: <LayoutDashboardIcon /> },
+  {
+    title: "Analytics",
+    icon: <BarChart3Icon />,
+    items: [
+      { title: "Dashboards", url: "/analytics/dashboards" },
+      { title: "Reports", url: "/analytics/reports" },
+      { title: "Live View", url: "/analytics/live-view" },
+      { title: "Custom Reports", url: "/analytics/custom-reports" },
+    ],
+  },
+];
+
+// ─── MIDDLE ZONE: Management ──────────────────────────────────────────
+const navManagement: NavItem[] = [
   {
     title: "Products",
     icon: <PackageIcon />,
@@ -67,7 +82,6 @@ const navMain: SidebarNavItem[] = [
       { title: "Gift Cards", url: "/products/gift-cards" },
     ],
   },
-  { title: "Customers", url: "/customers", icon: <UsersIcon /> },
   {
     title: "Content",
     icon: <FileTextIcon />,
@@ -78,24 +92,18 @@ const navMain: SidebarNavItem[] = [
       { title: "Metafields", url: "/content/metafields" },
     ],
   },
+  { title: "Customers", url: "/customers", icon: <UsersIcon /> },
+];
+
+// ─── MIDDLE ZONE: Commerce & Revenue ──────────────────────────────────
+const navCommerce: NavItem[] = [
   {
-    title: "Finances",
-    icon: <BanknoteIcon />,
+    title: "Sales Channels",
+    icon: <StoreIcon />,
     items: [
-      { title: "Financial Overview", url: "/finances/overview" },
-      { title: "Payouts & Settlements", url: "/finances/payouts" },
-      { title: "Capital / Financing", url: "/finances/capital" },
-      { title: "Tax Liabilities", url: "/finances/taxes" },
-    ],
-  },
-  {
-    title: "Analytics",
-    icon: <BarChart3Icon />,
-    items: [
-      { title: "Dashboards", url: "/analytics/dashboards" },
-      { title: "Reports", url: "/analytics/reports" },
-      { title: "Live View", url: "/analytics/live-view" },
-      { title: "Custom Reports", url: "/analytics/custom-reports" },
+      { title: "Online Store", url: "/sales-channel/online-store" },
+      { title: "Point of Sale", url: "/sales-channel/pos" },
+      { title: "Shop", url: "/sales-channel/shop" },
     ],
   },
   {
@@ -117,17 +125,19 @@ const navMain: SidebarNavItem[] = [
     ],
   },
   {
-    title: "Sales Channel",
-    icon: <StoreIcon />,
+    title: "Finances",
+    icon: <BanknoteIcon />,
     items: [
-      { title: "Online Store", url: "/sales-channel/online-store" },
-      { title: "Point of Sale", url: "/sales-channel/pos" },
-      { title: "Shop", url: "/sales-channel/shop" },
+      { title: "Financial Overview", url: "/finances/overview" },
+      { title: "Payouts & Settlements", url: "/finances/payouts" },
+      { title: "Capital / Financing", url: "/finances/capital" },
+      { title: "Tax Liabilities", url: "/finances/taxes" },
     ],
   },
 ];
 
-const navSecondary: SidebarNavItem[] = [
+// ─── BOTTOM ZONE: Low-Frequency / Utility ─────────────────────────────
+const navUtility: NavItem[] = [
   {
     title: "Settings",
     icon: <Settings2Icon />,
@@ -160,7 +170,7 @@ export function AppSidebar({
   };
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -176,16 +186,32 @@ export function AppSidebar({
         {tenantSwitcher && <div className="px-2 pb-2">{tenantSwitcher}</div>}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} LinkComponent={LinkComponent} />
-        <NavSecondary
-          items={navSecondary}
+        {/* TOP ZONE */}
+        <NavMain items={navTop} LinkComponent={LinkComponent} />
+
+        {/* MIDDLE ZONE — Management */}
+        <NavMain
+          items={navManagement}
+          label="Management"
           LinkComponent={LinkComponent}
-          className="mt-auto"
         />
+
+        {/* MIDDLE ZONE — Commerce & Revenue */}
+        <NavMain
+          items={navCommerce}
+          label="Commerce & Revenue"
+          LinkComponent={LinkComponent}
+        />
+
+        {/* BOTTOM ZONE — pinned to bottom */}
+        <div className="mt-auto">
+          <NavMain items={navUtility} LinkComponent={LinkComponent} />
+        </div>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={propUser ?? fallbackUser} onLogout={onLogout} />
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
