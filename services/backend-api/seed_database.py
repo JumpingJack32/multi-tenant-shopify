@@ -453,7 +453,7 @@ async def seed_orders(
         tc = catalog[slug]
         cust_ids = customers[slug]
         products = tc["products"]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
         order_data: list[dict] = []
 
@@ -582,7 +582,7 @@ async def seed_purchase_orders(
         tc = catalog[slug]
         suppliers = tc["suppliers"]
         orders = order_data[slug]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
 
         # Pick the last 4 orders to attach POs to
         po_candidates = orders[-4:] if len(orders) >= 4 else orders
