@@ -189,6 +189,11 @@ export interface DashboardRecentOrder {
   created_at: string;
 }
 
+export interface PendingPOStats {
+  count: number;
+  total: number;
+}
+
 export interface DashboardSummary {
   revenue_mtd: number;
   revenue_total: number;
@@ -207,6 +212,7 @@ export interface DashboardSummary {
   };
   low_stock: DashboardLowStockItem[];
   recent_orders: DashboardRecentOrder[];
+  pending_pos: PendingPOStats;
 }
 
 export type StockStatus =
@@ -253,6 +259,74 @@ export interface InventoryStats {
   low_stock_count: number;
   out_of_stock_count: number;
   total_variants: number;
+}
+
+export interface Supplier {
+  id: string;
+  tenant_id: string;
+  name: string;
+  contact_email: string | null;
+  contact_phone: string | null;
+  delivery_method: string;
+  product_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierListResponse {
+  data: Supplier[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
+export interface PurchaseOrderItem {
+  id: string;
+  purchase_order_id: string;
+  variant_id: string;
+  supplier_sku: string | null;
+  product_name: string;
+  variant_label: string;
+  quantity: number;
+  unit_cost: number;
+  subtotal: number;
+  received_quantity: number | null;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  po_number: string;
+  source_order_number: string | null;
+  supplier_id: string;
+  status: string;
+  fulfillment_strategy: string;
+  ship_to_address_snapshot: Record<string, unknown> | null;
+  tracking_number: string | null;
+  carrier: string | null;
+  subtotal: number;
+  tax: number;
+  shipping_cost: number;
+  total: number;
+  notes: string | null;
+  sent_at: string | null;
+  confirmed_at: string | null;
+  closed_at: string | null;
+  items: PurchaseOrderItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PurchaseOrderListResponse {
+  data: PurchaseOrder[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
 }
 
 export interface InventoryListResponse {

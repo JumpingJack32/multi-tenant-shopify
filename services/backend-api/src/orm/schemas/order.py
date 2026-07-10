@@ -6,15 +6,23 @@ from pydantic import BaseModel as PydanticBaseModel, Field
 
 
 class OrderItemCreate(PydanticBaseModel):
-    variant_id: UUID
+    variant_id: Optional[UUID] = None
+    product_id: Optional[UUID] = None
+    product_name: str = ""
+    sku: str = ""
     quantity: int = Field(..., ge=1)
-    unit_price: float = Field(..., ge=0)
-    discount: float = Field(default=0, ge=0)
+    unit_price: int = Field(..., ge=0)
+    total_price: int = Field(default=0, ge=0)
+    discount: int = Field(default=0, ge=0)
 
 
 class OrderCreate(PydanticBaseModel):
-    customer_id: UUID
+    customer_id: Optional[UUID] = None
+    order_number: Optional[str] = None
+    status: Optional[str] = None
     items: list[OrderItemCreate]
+    subtotal: int = Field(default=0, ge=0)
+    total: int = Field(default=0, ge=0)
     shipping_address: dict = Field(default_factory=dict)
     billing_address: dict = Field(default_factory=dict)
     notes: Optional[str] = None
@@ -38,16 +46,16 @@ class OrderResponse(PydanticBaseModel):
     payment_status: str
     payment_method: Optional[str] = None
     payment_intent_id: Optional[str] = None
-    subtotal: float
-    tax: float
-    shipping: float
-    discount: float
-    total: float
+    subtotal: int
+    tax: int
+    shipping: int
+    discount: int
+    total: int
     currency: str
     shipping_address: dict
     billing_address: dict
     notes: Optional[str] = None
-    metadata: dict
+    options: Optional[dict] = None
     items: list["OrderItemResponse"]
     created_at: datetime
     updated_at: datetime
@@ -62,7 +70,7 @@ class OrderItemResponse(PydanticBaseModel):
     variant_name: Optional[str] = None
     sku: str
     quantity: int
-    unit_price: float
-    total_price: float
-    discount: float
+    unit_price: int
+    total_price: int
+    discount: int
     created_at: datetime

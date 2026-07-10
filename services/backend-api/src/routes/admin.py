@@ -9,6 +9,7 @@ from src.orm.schemas.dashboard import (
     DashboardSummaryResponse,
     FulfillmentCounts,
     LowStockItem,
+    PendingPOStats,
     RecentOrderItem,
 )
 
@@ -114,6 +115,18 @@ async def dashboard_summary(
     low_stock = await _low_stock_query(db, tenant_id)
     recent_orders = await _recent_orders_query(db, tenant_id)
 
+    po_query = text("""
+        SELECT
+            COUNT(*)::BIGINT AS count,
+            COALESCE(SUM(total), 0)::BIGINT AS total
+        FROM purchase_orders
+        WHERE tenant_id = :tenant_id
+          AND status IN ('draft', 'pending_review')
+    """)
+    po_result = await db.exec(po_query, params={"tenant_id": tenant_id})
+    po_row = po_result.mappings().first()
+    pending_pos = PendingPOStats(count=po_row["count"], total=po_row["total"])
+
     aov = kpi["revenue_mtd"] // kpi["orders_mtd"] if kpi["orders_mtd"] > 0 else 0
 
     return DashboardSummaryResponse(
@@ -122,4 +135,5 @@ async def dashboard_summary(
         fulfillment=fulfillment,
         low_stock=low_stock,
         recent_orders=recent_orders,
+        pending_pos=pending_pos,
     )

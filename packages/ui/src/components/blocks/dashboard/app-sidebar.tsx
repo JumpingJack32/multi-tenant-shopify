@@ -15,6 +15,7 @@ import {
   SidebarRail,
 } from "@repo/ui/components/ui/sidebar";
 import {
+  BanknoteIcon,
   BarChart3Icon,
   CircleHelpIcon,
   CommandIcon,
@@ -24,8 +25,8 @@ import {
   PackageIcon,
   PercentIcon,
   Settings2Icon,
-  BanknoteIcon,
   StoreIcon,
+  TruckIcon,
   UsersIcon,
 } from "@repo/ui/icons";
 
@@ -77,7 +78,6 @@ const navManagement: NavItem[] = [
     items: [
       { title: "Collections", url: "/collections" },
       { title: "Inventory", url: "/products/inventory" },
-      { title: "Purchase Orders", url: "/products/purchase-orders" },
       { title: "Transfers", url: "/products/transfers" },
       { title: "Gift Cards", url: "/products/gift-cards" },
     ],
@@ -93,6 +93,12 @@ const navManagement: NavItem[] = [
     ],
   },
   { title: "Customers", url: "/customers", icon: <UsersIcon /> },
+];
+
+// ─── MIDDLE ZONE: Procurement ──────────────────────────────────────────
+const navProcurement: NavItem[] = [
+  { title: "Purchase Orders", url: "/purchase-orders", icon: <FileTextIcon /> },
+  { title: "Suppliers", url: "/suppliers", icon: <TruckIcon /> },
 ];
 
 // ─── MIDDLE ZONE: Commerce & Revenue ──────────────────────────────────
@@ -193,6 +199,13 @@ export function AppSidebar({
         <NavMain
           items={navManagement}
           label="Management"
+          LinkComponent={LinkComponent}
+        />
+
+        {/* MIDDLE ZONE — Procurement */}
+        <NavMain
+          items={navProcurement}
+          label="Procurement"
           LinkComponent={LinkComponent}
         />
 

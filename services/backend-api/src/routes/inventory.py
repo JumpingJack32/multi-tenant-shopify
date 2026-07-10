@@ -10,6 +10,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.category import Category
 from src.orm.models.product import Inventory, Location, Product, ProductImage, Variant
+from src.orm.models.purchase_order import Supplier
 from src.orm.schemas.inventory import (
     InventoryItemCreateInput,
     InventoryItemPatchInput,
@@ -120,6 +121,10 @@ async def _build_item_response(db: AsyncSession, product: Product) -> InventoryI
     if variants and variants[0].inventory:
         reorder_level = variants[0].inventory[0].reorder_level or REORDER_THRESHOLD_DEFAULT
 
+    supplier_name = None
+    if hasattr(product, "supplier_rel") and product.supplier_rel:
+        supplier_name = product.supplier_rel.name
+
     return InventoryItemResponse(
         id=product.id,
         tenant_id=product.tenant_id,
@@ -129,7 +134,7 @@ async def _build_item_response(db: AsyncSession, product: Product) -> InventoryI
         category=product.category.name if hasattr(product, "category") and product.category else None,
         image_url=image_url,
         status=_compute_status(total_stock, product.is_active, reorder_level),
-        supplier=product.supplier,
+        supplier=supplier_name,
         total_stock=total_stock,
         total_value=round(total_value, 2),
         variants=variant_responses,
@@ -209,6 +214,7 @@ async def list_items(
             selectinload(Product.variants).selectinload(Variant.inventory),
             selectinload(Product.images),
             selectinload(Product.category),
+            selectinload(Product.supplier_rel),
         )
         .where(Product.tenant_id == tenant_id)
     )
@@ -246,7 +252,10 @@ async def get_item(
 ):
     stmt = (
         select(Product)
-        .options(selectinload(Product.category))
+        .options(
+            selectinload(Product.category),
+            selectinload(Product.supplier_rel),
+        )
         .where(Product.id == item_id, Product.tenant_id == tenant_id)
     )
     result = await db.exec(stmt)
@@ -274,10 +283,24 @@ async def create_item(
         slug=_slugify(data.name),
         tenant_id=tenant_id,
         is_active=True,
-        supplier=data.supplier,
     )
     db.add(product)
     await db.flush()
+
+    if data.supplier:
+        sup_stmt = select(Supplier).where(
+            Supplier.name == data.supplier,
+            Supplier.tenant_id == tenant_id,
+        )
+        sup_result = await db.exec(sup_stmt)
+        supplier = sup_result.first()
+        if not supplier:
+            supplier = Supplier(name=data.supplier, tenant_id=tenant_id)
+            db.add(supplier)
+            await db.flush()
+        product.supplier_id = supplier.id
+        db.add(product)
+        await db.flush()
 
     if data.category:
         cat = await _get_or_create_category(db, data.category, tenant_id)
@@ -328,7 +351,10 @@ async def update_item(
 ):
     stmt = (
         select(Product)
-        .options(selectinload(Product.category))
+        .options(
+            selectinload(Product.category),
+            selectinload(Product.supplier_rel),
+        )
         .where(Product.id == item_id, Product.tenant_id == tenant_id)
     )
     result = await db.exec(stmt)
@@ -338,10 +364,27 @@ async def update_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inventory item not found")
 
     update_data = data.model_dump(exclude_unset=True)
-    product_fields = {"name", "supplier"}
+    product_fields = {"name"}
 
     for key in product_fields & update_data.keys():
         setattr(product, key, update_data[key])
+
+    if "supplier" in update_data:
+        sup_name = update_data["supplier"]
+        if sup_name:
+            sup_stmt = select(Supplier).where(
+                Supplier.name == sup_name,
+                Supplier.tenant_id == tenant_id,
+            )
+            sup_result = await db.exec(sup_stmt)
+            supplier = sup_result.first()
+            if not supplier:
+                supplier = Supplier(name=sup_name, tenant_id=tenant_id)
+                db.add(supplier)
+                await db.flush()
+            product.supplier_id = supplier.id
+        else:
+            product.supplier_id = None
 
     if "category" in update_data:
         cat_name = update_data["category"]

@@ -15,7 +15,7 @@ router = APIRouter()
 async def list_tenants(
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Tenant)
+    stmt = select(Tenant).order_by(Tenant.created_at)
     result = await db.exec(stmt)
     tenants = result.all()
     return tenants

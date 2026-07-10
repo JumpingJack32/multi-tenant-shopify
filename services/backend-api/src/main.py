@@ -78,7 +78,9 @@ from src.routes.collections import router as collections_router  # noqa: E402
 from src.routes.media import router as media_router  # noqa: E402
 from src.routes.admin import router as admin_router  # noqa: E402
 from src.routes.product_images import router as product_images_router
-from src.routes.inventory import router as inventory_router  # noqa: E402  # noqa: E402
+from src.routes.inventory import router as inventory_router  # noqa: E402
+from src.routes.suppliers import router as suppliers_router  # noqa: E402
+from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
 
 app.include_router(public_router, prefix="/api/v1/public")
 app.include_router(tenants_router, prefix="/api/v1/tenants")
@@ -94,6 +96,8 @@ app.include_router(collections_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
+app.include_router(suppliers_router, prefix="/api/v1")
+app.include_router(purchase_orders_router, prefix="/api/v1")
 
 
 @app.get("/health")
