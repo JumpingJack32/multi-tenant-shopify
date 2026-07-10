@@ -180,7 +180,6 @@ async def get_stats(
 @router.get("/inventory", response_model=InventoryListResponse)
 async def list_items(
     q: str | None = Query(None),
-    category: str | None = Query(None),
     status: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
