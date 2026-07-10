@@ -87,9 +87,23 @@ export interface ProductUpdate {
 export interface Order {
   id: string;
   tenant_id: string;
-  customer_email: string;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  customer_id: string | null;
+  customer_email: string | null;
+  order_number: string;
+  status: string;
+  payment_status: string;
+  payment_method: string | null;
+  payment_intent_id: string | null;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount: number;
   total: number;
+  currency: string;
+  shipping_address: Record<string, unknown>;
+  billing_address: Record<string, unknown>;
+  notes: string | null;
+  items: OrderItem[];
   created_at: string;
   updated_at: string;
 }
@@ -97,10 +111,16 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  product_id: string;
-  tenant_id: string;
+  variant_id: string | null;
+  product_id: string | null;
+  product_name: string;
+  variant_name: string | null;
+  sku: string;
   quantity: number;
   unit_price: number;
+  total_price: number;
+  discount: number;
+  created_at: string;
 }
 
 export interface Collection {
@@ -327,6 +347,26 @@ export interface PurchaseOrderListResponse {
     total: number;
     total_pages: number;
   };
+}
+
+export interface OrderListResponse {
+  data: Order[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
+export interface AssociatedPO {
+  id: string;
+  po_number: string;
+  status: string;
+  supplier_name: string;
+  total: number;
+  fulfillment_strategy: string;
+  created_at: string;
 }
 
 export interface InventoryListResponse {
