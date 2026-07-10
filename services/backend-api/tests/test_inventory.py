@@ -146,9 +146,26 @@ class TestCreate:
         resp = await client_a.post("/api/v1/inventory", json={"name": "Second", "sku": "SAME"})
         assert resp.status_code == 409
 
-    # Transactional rollback is implicitly tested by test_create_duplicate_sku:
-    # the second POST fails (409) after Product insertion, and get_db's
-    # rollback undoes the orphan Product — so no cleanup needed.
+    async def test_create_transactional_rollback(self, client_a: AsyncClient, client_b: AsyncClient):
+        # Use Tenant C which has no Location — create succeeds through
+        # Product+Variant creation but fails at the Location check (400).
+        # Verify the orphan Product+Variant are rolled back.
+        TENANT_C = UUID("00000000-0000-0000-0000-000000000003")
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            ac.headers["X-Tenant-ID"] = str(TENANT_C)
+            resp = await ac.post("/api/v1/inventory", json={
+                "name": "Orphan Risk",
+                "sku": "ORPHAN",
+                "stock": 10,
+            })
+            assert resp.status_code == 400
+        # Verify no orphan Product or Variant rows exist for Tenant C
+        async with AsyncSession(async_engine) as db:
+            result = await db.exec(select(Product).where(Product.tenant_id == TENANT_C))
+            assert len(result.all()) == 0
+            result = await db.exec(select(Variant).where(Variant.tenant_id == TENANT_C))
+            assert len(result.all()) == 0
 
 
 class TestGet:
@@ -240,4 +257,4 @@ class TestStats:
         assert body["total_variants"] == 3
         assert body["total_value"] > 0
         assert body["out_of_stock_count"] == 1  # item A: stock=0
-        assert body["low_stock_count"] >= 0
+        assert body["low_stock_count"] == 1  # item B: stock=2, reorder=5
