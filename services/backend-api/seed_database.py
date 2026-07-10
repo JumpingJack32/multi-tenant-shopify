@@ -353,8 +353,8 @@ async def seed_customers(
             phone = f"+1{random.randint(200, 999)}{random.randint(100, 999)}{random.randint(1000, 9999)}"
             await session.execute(
                 text("""
-                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, created_at, updated_at)
-                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, NOW(), NOW())
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, refunded_total, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, 0, NOW(), NOW())
                 """),
                 {"id": cid, "tid": tenant_id, "email": email, "first": first, "last": last, "phone": phone},
             )

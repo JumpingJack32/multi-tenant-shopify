@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "codegen": "openapi-ts",
-    "generate": "openapi-ts",
+    "codegen": "if [ -f openapi.yaml ]; then openapi-ts; else echo 'Skipping codegen - no openapi.yaml'; fi",
+    "generate": "if [ -f openapi.yaml ]; then openapi-ts; else echo 'Skipping generate - no openapi.yaml'; fi",
     "typecheck": "tsc --noEmit"
   },
   "exports": {

@@ -7,41 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/ui/card";
-import { Skeleton } from "@repo/ui/components/ui/skeleton";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useTenantContext } from "@/contexts/tenant-context";
+import {
+  SectionCards,
+  SectionCardsSkeleton,
+} from "@/features/dashboard/components/section-cards";
 import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 
 function formatPence(n: number): string {
   return `\u00A3${(n / 100).toFixed(2)}`;
-}
-
-function StatCard({
-  label,
-  value,
-  prev,
-  format,
-}: {
-  label: string;
-  value: number;
-  prev: number;
-  format: (n: number) => string;
-}) {
-  const delta = prev > 0 ? ((value - prev) / prev) * 100 : 0;
-  const arrow = delta >= 0 ? "\u2191" : "\u2193";
-  const color = delta >= 0 ? "text-green-600" : "text-red-600";
-  return (
-    <Card>
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="font-mono text-2xl">{format(value)}</CardTitle>
-        <p className={`text-xs font-mono ${color}`}>
-          {arrow} {Math.abs(delta).toFixed(1)}% vs previous period
-        </p>
-      </CardHeader>
-    </Card>
-  );
 }
 
 const statusColors: Record<string, string> = {
@@ -59,16 +35,7 @@ export default function DashboardPage() {
   if (tenantLoading || dashboardQuery.isPending) {
     return (
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-8 w-28 mt-2" />
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
+        <SectionCardsSkeleton />
       </div>
     );
   }
@@ -97,28 +64,15 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Big Four KPIs */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard
-          label="Revenue (MTD)"
-          value={data.revenue_mtd}
-          prev={data.revenue_prev_mtd}
-          format={formatPence}
-        />
-        <StatCard
-          label="Orders (MTD)"
-          value={data.orders_mtd}
-          prev={data.orders_prev_mtd}
-          format={(n) => n.toString()}
-        />
-        <StatCard label="AOV" value={data.aov} prev={0} format={formatPence} />
-        <StatCard
-          label="Active Customers"
-          value={data.active_customers}
-          prev={data.active_customers_prev}
-          format={(n) => n.toString()}
-        />
-      </div>
+      <SectionCards
+        revenue_mtd={data.revenue_mtd}
+        revenue_prev_mtd={data.revenue_prev_mtd}
+        orders_mtd={data.orders_mtd}
+        orders_prev_mtd={data.orders_prev_mtd}
+        aov={data.aov}
+        active_customers={data.active_customers}
+        active_customers_prev={data.active_customers_prev}
+      />
 
       {/* Fulfillment Pipeline */}
       <Card>
