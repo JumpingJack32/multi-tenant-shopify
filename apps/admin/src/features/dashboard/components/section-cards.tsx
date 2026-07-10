@@ -29,10 +29,10 @@ function StatCardInner({ def }: { def: CardDef }) {
   const isUp = delta >= 0;
   const arrow = isUp ? "\u2191" : "\u2193";
   return (
-    <Card className="@container/card">
+    <Card>
       <CardHeader>
         <CardDescription>{def.label}</CardDescription>
-        <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+        <CardTitle className="text-2xl font-semibold tabular-nums">
           {def.format(def.value)}
         </CardTitle>
         <CardAction>
@@ -54,7 +54,7 @@ function StatCardInner({ def }: { def: CardDef }) {
 
 function StatCardSkeleton() {
   return (
-    <Card className="@container/card">
+    <Card>
       <CardHeader>
         <Skeleton className="h-4 w-24" />
         <Skeleton className="mt-1 h-8 w-32" />
@@ -119,7 +119,7 @@ export function SectionCards(props: SectionCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       {cards.map((def) => (
         <StatCardInner key={def.label} def={def} />
       ))}
@@ -129,7 +129,7 @@ export function SectionCards(props: SectionCardsProps) {
 
 export function SectionCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {[1, 2, 3, 4].map((i) => (
         <StatCardSkeleton key={i} />
       ))}
