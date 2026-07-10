@@ -299,6 +299,7 @@ export interface PurchaseOrderItem {
 export interface PurchaseOrder {
   id: string;
   po_number: string;
+  source_order_number: string | null;
   supplier_id: string;
   status: string;
   fulfillment_strategy: string;

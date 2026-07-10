@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use } from "react";
 import { useState } from "react";
@@ -179,6 +180,14 @@ export default function PODetailPage(props: {
             <Badge variant={STATUS_VARIANTS[po.status] ?? "outline"}>
               {STATUS_LABELS[po.status] ?? po.status}
             </Badge>
+            {po.source_order_number && (
+              <Link
+                href={`/orders?search=${po.source_order_number}`}
+                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+              >
+                from {po.source_order_number}
+              </Link>
+            )}
           </div>
           <p className="text-muted-foreground mt-1">
             Created {new Date(po.created_at).toLocaleDateString()} &middot;{" "}
