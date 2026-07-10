@@ -106,6 +106,18 @@ class PurchaseOrderPatchInput(BaseModel):
     notes: Optional[str] = None
 
 
+class AssociatedPOResponse(BaseModel):
+    id: UUID
+    po_number: str
+    status: str
+    supplier_name: str
+    total: int
+    fulfillment_strategy: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PendingPOStats(BaseModel):
     pending_po_count: int = 0
     pending_po_total: int = 0

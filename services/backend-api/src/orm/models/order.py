@@ -43,11 +43,11 @@ class Order(BaseModel, table=True):
     payment_status: PaymentStatus = Field(default=PaymentStatus.PENDING, sa_column=Column(SAEnum(PaymentStatus)))
     payment_method: Optional[str] = Field(default=None, max_length=50)
     payment_intent_id: Optional[str] = Field(default=None, max_length=255)
-    subtotal: float = Field(ge=0)
-    tax: float = Field(default=0, ge=0)
-    shipping: float = Field(default=0, ge=0)
-    discount: float = Field(default=0, ge=0)
-    total: float = Field(ge=0)
+    subtotal: int = Field(default=0, ge=0)
+    tax: int = Field(default=0, ge=0)
+    shipping: int = Field(default=0, ge=0)
+    discount: int = Field(default=0, ge=0)
+    total: int = Field(ge=0)
     currency: str = Field(default="USD", max_length=3)
     shipping_address: dict = Field(
         default_factory=dict,
@@ -80,9 +80,9 @@ class OrderItem(BaseModel, table=True):
     variant_name: Optional[str] = Field(default=None, max_length=255)
     sku: str = Field(max_length=100)
     quantity: int = Field(ge=1)
-    unit_price: float = Field(ge=0)
-    total_price: float = Field(ge=0)
-    discount: float = Field(default=0, ge=0)
+    unit_price: int = Field(ge=0)
+    total_price: int = Field(ge=0)
+    discount: int = Field(default=0, ge=0)
 
     order: Order = Relationship(back_populates="items")
 

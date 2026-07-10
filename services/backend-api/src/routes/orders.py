@@ -8,7 +8,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.order import Order, OrderItem, OrderStatus
 from src.orm.models.product import Variant
+from src.orm.models.purchase_order import OrderFulfillmentLink, PurchaseOrder, PurchaseOrderItem, Supplier
 from src.orm.schemas.order import OrderCreate, OrderResponse, OrderUpdate
+from src.orm.schemas.purchase_order import AssociatedPOResponse
 from src.services.fulfillment_router import route_fulfillment
 
 router = APIRouter()
@@ -101,6 +103,67 @@ async def get_order(
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     return order
+
+
+@router.get("/{order_id}/purchase-orders", response_model=list[AssociatedPOResponse])
+async def get_order_purchase_orders(
+    order_id: UUID,
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all purchase orders linked to a given sales order."""
+    # Find order_items for this order
+    oi_stmt = select(OrderItem.id).where(
+        OrderItem.order_id == order_id,
+        OrderItem.tenant_id == tenant_id,
+    )
+    oi_result = await db.exec(oi_stmt)
+    order_item_ids = [row for row in oi_result]
+
+    if not order_item_ids:
+        return []
+
+    # Find fulfillment links from those order items
+    link_stmt = (
+        select(OrderFulfillmentLink.purchase_order_item_id)
+        .where(OrderFulfillmentLink.order_item_id.in_(order_item_ids))
+    )
+    link_result = await db.exec(link_stmt)
+    poi_ids = set(row for row in link_result)
+
+    if not poi_ids:
+        return []
+
+    # Find POs from PO items
+    po_stmt = (
+        select(PurchaseOrder)
+        .where(
+            PurchaseOrderItem.purchase_order_id == PurchaseOrder.id,
+            PurchaseOrderItem.id.in_(list(poi_ids)),
+            PurchaseOrder.tenant_id == tenant_id,
+        )
+        .distinct()
+    )
+    po_result = await db.exec(po_stmt)
+    pos = po_result.all()
+
+    # Attach supplier names
+    result = []
+    for po in pos:
+        sup_stmt = select(Supplier).where(Supplier.id == po.supplier_id)
+        sup_result = await db.exec(sup_stmt)
+        supplier = sup_result.first()
+        result.append(AssociatedPOResponse(
+            id=po.id,
+            po_number=po.po_number,
+            status=po.status,
+            supplier_name=supplier.name if supplier else "Unknown",
+            total=po.total,
+            fulfillment_strategy=po.fulfillment_strategy,
+            created_at=po.created_at,
+        ))
+
+    return result
 
 
 @router.put("/{order_id}", response_model=OrderResponse)

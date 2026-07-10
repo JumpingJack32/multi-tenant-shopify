@@ -37,28 +37,27 @@ TENANTS = [
 # ── Catalog data ─────────────────────────────────────────────────────
 
 CATEGORY_NAMES = ["Outerwear", "Footwear", "Accessories", "Bottoms", "Tops"]
-
 COLLECTION_NAMES = ["New Arrivals", "Best Sellers", "Seasonal", "Featured"]
 
-ACME_PRODUCTS: list[tuple[str, str, str, float, str, int]] = [
-    ("Rocket Skates", "Classic rocket-powered skates", "RSK-001", 299.99, "footwear", 100),
-    ("Laser Watch", "Watch with built-in laser", "LWS-002", 149.99, "accessories", 100),
-    ("Tornado Machine", "Personal weather control device", "TWM-003", 499.99, "outerwear", 50),
-    ("Shrink Ray", "Portable size-reduction device", "SRY-004", 199.99, "accessories", 75),
-    ("Teleporter", "Instant transportation device", "TLP-005", 999.99, "accessories", 25),
+ACME_PRODUCTS: list[tuple[str, str, str, int, str, int, int]] = [
+    ("Rocket Skates", "Classic rocket-powered skates", "RSK-001", 29999, "footwear", 100, 15000),
+    ("Laser Watch", "Watch with built-in laser", "LWS-002", 14999, "accessories", 100, 7500),
+    ("Tornado Machine", "Personal weather control device", "TWM-003", 49999, "outerwear", 50, 25000),
+    ("Shrink Ray", "Portable size-reduction device", "SRY-004", 19999, "accessories", 75, 10000),
+    ("Teleporter", "Instant transportation device", "TLP-005", 99999, "accessories", 25, 50000),
 ]
 
-GLOBEX_PRODUCTS: list[tuple[str, str, str, float, str, int]] = [
-    ("DeLorean Time Machine", "Go back to the future", "DTM-001", 1499.99, "outerwear", 10),
-    ("Plutonium Core", "Power source for time machines", "PLT-002", 750.00, "accessories", 200),
-    ("Flux Capacitor", "1.21 gigawatts required", "FLX-003", 599.99, "accessories", 50),
-    ("Hoverboard", "Anti-gravity personal transport", "HVB-004", 399.99, "footwear", 150),
+GLOBEX_PRODUCTS: list[tuple[str, str, str, int, str, int, int]] = [
+    ("DeLorean Time Machine", "Go back to the future", "DTM-001", 149999, "outerwear", 10, 75000),
+    ("Plutonium Core", "Power source for time machines", "PLT-002", 75000, "accessories", 200, 37500),
+    ("Flux Capacitor", "1.21 gigawatts required", "FLX-003", 59999, "accessories", 50, 30000),
+    ("Hoverboard", "Anti-gravity personal transport", "HVB-004", 39999, "footwear", 150, 20000),
 ]
 
-INITECH_PRODUCTS: list[tuple[str, str, str, float, str, int]] = [
-    ("TPS Report Generator", "Automate your paper pushing", "TPS-001", 9.99, "accessories", 999),
-    ("Staple Remover Pro", "Professional-grade staple removal", "SRP-002", 4.99, "accessories", 500),
-    ("Meeting Scheduler", "Schedule unnecessary meetings", "MTS-003", 0.00, "accessories", 0),
+INITECH_PRODUCTS: list[tuple[str, str, str, int, str, int, int]] = [
+    ("TPS Report Generator", "Automate your paper pushing", "TPS-001", 999, "accessories", 999, 500),
+    ("Staple Remover Pro", "Professional-grade staple removal", "SRP-002", 499, "accessories", 500, 250),
+    ("Meeting Scheduler", "Schedule unnecessary meetings", "MTS-003", 0, "accessories", 0, 0),
 ]
 
 PRODUCTS_BY_TENANT = {
@@ -82,6 +81,26 @@ CATEGORY_MAP = {
     "Meeting Scheduler": "accessories",
     "Zero Point Energy Field": "accessories",
     "Telepathic Paper": "accessories",
+}
+
+# ── Supplier data ─────────────────────────────────────────────────────
+
+SUPPLIERS_BY_TENANT: dict[str, list[tuple[str, str, str, str]]] = {
+    "acme-corp": [
+        ("Acme Raw Materials", "supplier@acme-raw.com", "+1-555-0101", "manual_email"),
+        ("Global Logistics Co", "orders@globallogistics.com", "+1-555-0102", "api"),
+        ("Premium Parts Inc", "sales@premiumparts.com", "+1-555-0103", "manual_email"),
+    ],
+    "globex-inc": [
+        ("FutureTech Supplies", "info@futuretech.com", "+1-555-0201", "manual_email"),
+        ("TimeLab Components", "orders@timelab.com", "+1-555-0202", "api"),
+        ("RetroParts Ltd", "sales@retroparts.com", "+1-555-0203", "manual_email"),
+    ],
+    "initech": [
+        ("OfficeMax Supply Co", "orders@officemax.com", "+1-555-0301", "manual_email"),
+        ("Swift Logistics", "dispatch@swiftlogistics.com", "+1-555-0302", "api"),
+        ("BulkBuy Direct", "sales@bulkbuydirect.com", "+1-555-0303", "manual_email"),
+    ],
 }
 
 # ── Customer data ────────────────────────────────────────────────────
@@ -141,6 +160,8 @@ REFUNDED_WEIGHT = 0.10
 
 async def clear_data(session: AsyncSession) -> None:
     tables = [
+        "order_fulfillment_links", "purchase_order_items", "purchase_orders",
+        "po_sequences", "suppliers",
         "order_items", "orders", "inventory", "locations",
         "product_collections", "collections", "customer_addresses",
         "customers", "product_images", "variants", "products",
@@ -186,15 +207,39 @@ async def seed_users(session: AsyncSession, tenants_by_slug: dict[str, dict]) ->
         )
 
 
-async def seed_catalog(
+async def seed_suppliers(
     session: AsyncSession, tenants_by_slug: dict[str, dict]
+) -> dict[str, list[dict]]:
+    result: dict[str, list[dict]] = {}
+    for slug, tenant in tenants_by_slug.items():
+        tenant_id = uuid.UUID(tenant["tenant_id"])
+        supplier_list: list[dict] = []
+        for name, email, phone, method in SUPPLIERS_BY_TENANT[slug]:
+            sid = uuid.uuid4()
+            await session.execute(
+                text("""
+                    INSERT INTO suppliers (id, tenant_id, name, contact_email, contact_phone, delivery_method, created_at, updated_at)
+                    VALUES (:id, :tid, :name, :email, :phone, :method, NOW(), NOW())
+                """),
+                {"id": sid, "tid": tenant_id, "name": name, "email": email, "phone": phone, "method": method},
+            )
+            # Keep the first supplier as the default for products
+            supplier_list.append({"id": sid, "name": name, "delivery_method": method})
+        result[slug] = supplier_list
+    return result
+
+
+async def seed_catalog(
+    session: AsyncSession,
+    tenants_by_slug: dict[str, dict],
+    suppliers: dict[str, list[dict]],
 ) -> dict[str, dict]:
     catalog: dict[str, dict] = {}
     for slug, tenant in tenants_by_slug.items():
         tenant_id = uuid.UUID(tenant["tenant_id"])
         cat_ids: dict[str, uuid.UUID] = {}
         col_ids: dict[str, uuid.UUID] = {}
-        products: list[tuple[uuid.UUID, uuid.UUID, str, float]] = []
+        products: list[tuple[uuid.UUID, uuid.UUID, str, int, uuid.UUID, str, int]] = []
 
         # Categories
         for sort_order, name in enumerate(CATEGORY_NAMES):
@@ -227,35 +272,41 @@ async def seed_catalog(
             )
             col_ids[col_slug] = col_id
 
+        # Suppliers for this tenant
+        supplier_list = suppliers[slug]
+        default_supplier = supplier_list[0]
+
         # Products, variants, and images
         cloudinary_prefix = "demo/products"
-        for name, desc, sku, price, cat_slug, stock in PRODUCTS_BY_TENANT[slug]:
+        for name, desc, sku, price_cents, cat_slug, stock, cost_cents in PRODUCTS_BY_TENANT[slug]:
             pid = uuid.uuid4()
+            vid = uuid.uuid4()
             product_slug = name.lower().replace(" ", "-")
             cat_id = cat_ids.get(cat_slug)
 
             await session.execute(
                 text("""
-                    INSERT INTO products (id, tenant_id, name, slug, description, price, status, sku, weight_unit, is_active, category_id, created_at, updated_at)
-                    VALUES (:id, :tid, :name, :slug, :desc, :price, 'PUBLISHED', :sku, 'kg', true, :cat_id, NOW(), NOW())
+                    INSERT INTO products (id, tenant_id, name, slug, description, price, status, sku, weight_unit, is_active, category_id, supplier_id, created_at, updated_at)
+                    VALUES (:id, :tid, :name, :slug, :desc, :price_cents, 'PUBLISHED', :sku, 'kg', true, :cat_id, :sup_id, NOW(), NOW())
                 """),
                 {
                     "id": pid, "tid": tenant_id, "name": name,
-                    "slug": product_slug, "desc": desc, "price": price,
-                    "sku": sku, "cat_id": cat_id,
+                    "slug": product_slug, "desc": desc, "price_cents": price_cents,
+                    "sku": sku, "cat_id": cat_id, "sup_id": default_supplier["id"],
                 },
             )
 
-            # Variant
-            vid = uuid.uuid4()
+            # Variant with supplier fields
             await session.execute(
                 text("""
-                    INSERT INTO variants (id, tenant_id, product_id, sku, price, weight_unit, inventory_quantity, is_active, options, created_at, updated_at)
-                    VALUES (:id, :tid, :pid, :sku, :price, 'kg', :stock, true, '{}'::jsonb, NOW(), NOW())
+                    INSERT INTO variants (id, tenant_id, product_id, sku, price, weight_unit, inventory_quantity, is_active, supplier_sku, cost_price, options, created_at, updated_at)
+                    VALUES (:id, :tid, :pid, :sku, :price, 'kg', :stock, true, :sup_sku, :cost_price, '{}'::jsonb, NOW(), NOW())
                 """),
                 {
                     "id": vid, "tid": tenant_id, "pid": pid,
-                    "sku": f"{sku}-VAR", "price": price, "stock": stock,
+                    "sku": f"{sku}-VAR", "price": price_cents,
+                    "stock": stock, "sup_sku": f"SUP-{sku}",
+                    "cost_price": cost_cents,
                 },
             )
 
@@ -276,12 +327,13 @@ async def seed_catalog(
                     },
                 )
 
-            products.append((pid, vid, name, price))
+            products.append((pid, vid, name, price_cents, default_supplier["id"], sku, cost_cents))
 
         catalog[slug] = {
             "categories": cat_ids,
             "collections": col_ids,
             "products": products,
+            "suppliers": supplier_list,
         }
     return catalog
 
@@ -297,7 +349,7 @@ async def seed_relationships(
         col_ids = list(tc["collections"].values())
 
         # Product-collection mapping
-        for i, (pid, vid, name, price) in enumerate(tc["products"]):
+        for i, (pid, vid, name, price_cents, sup_id, sku, cost_cents) in enumerate(tc["products"]):
             assigned: set[uuid.UUID] = set()
             if i % 2 == 0 and len(col_ids) > 1:
                 assigned.add(col_ids[1])
@@ -329,7 +381,7 @@ async def seed_relationships(
             loc_ids.append(loc_id)
 
         # Inventory (variant x location cartesian product)
-        for pid, vid, name, price in tc["products"]:
+        for pid, vid, name, price_cents, sup_id, sku, cost_cents in tc["products"]:
             for loc_id in loc_ids:
                 inv_id = uuid.uuid4()
                 qty = random.randint(50, 200) if loc_id == loc_ids[0] else random.randint(5, 25)
@@ -392,7 +444,9 @@ async def seed_orders(
     tenants_by_slug: dict[str, dict],
     catalog: dict[str, dict],
     customers: dict[str, list[uuid.UUID]],
-) -> None:
+) -> dict[str, dict]:
+    """Seed orders with integer-cent values and return order data for PO linking."""
+    result: dict[str, dict] = {}
     order_number = 0
     for slug, tenant in tenants_by_slug.items():
         tenant_id = uuid.UUID(tenant["tenant_id"])
@@ -401,24 +455,27 @@ async def seed_orders(
         products = tc["products"]
         now = datetime.now(timezone.utc)
 
+        order_data: list[dict] = []
+
         num_orders = random.randint(15, 20)
         for _ in range(num_orders):
             order_number += 1
             oid = uuid.uuid4()
             customer_id = random.choice(cust_ids)
 
-            items = random.sample(products, random.randint(1, min(3, len(products))))
+            items_sample = random.sample(products, random.randint(1, min(3, len(products))))
 
-            subtotal = 0.0
-            order_items_data: list[tuple[uuid.UUID, uuid.UUID, str, float, int]] = []
-            for pid, vid, pname, price in items:
+            subtotal = 0
+            order_items_data: list[tuple[uuid.UUID, uuid.UUID, str, int, int, uuid.UUID, str, int]] = []
+            for pid, vid, pname, price_cents, sup_id, sku, cost_cents in items_sample:
                 qty = random.randint(1, 3)
-                subtotal += price * qty
-                order_items_data.append((pid, vid, pname, price, qty))
+                line_total = price_cents * qty
+                subtotal += line_total
+                order_items_data.append((pid, vid, pname, price_cents, qty, sup_id, sku, cost_cents))
 
-            tax = round(subtotal * 0.08, 2)
-            shipping = round(random.uniform(5.0, 25.0), 2)
-            total = round(subtotal + tax + shipping, 2)
+            tax = int(subtotal * 0.08)
+            shipping = random.randint(500, 2500)
+            total = subtotal + tax + shipping
 
             status_choice = random.choices(
                 ORDER_STATUSES + ["REFUNDED"],
@@ -451,32 +508,54 @@ async def seed_orders(
                 },
             )
 
-            for pid, vid, pname, price, qty in order_items_data:
+            items_for_links: list[dict] = []
+            for pid, vid, pname, price_cents, qty, sup_id, sku, cost_cents in order_items_data:
+                oiid = uuid.uuid4()
                 await session.execute(
                     text("""
                         INSERT INTO order_items (id, tenant_id, order_id, variant_id, product_id, product_name, variant_name, sku, quantity, unit_price, total_price, discount, created_at, updated_at)
                         VALUES (:id, :tid, :oid, :vid, :pid, :pname, :vname, :sku, :qty, :unit_price, :total_price, 0, :ts, :ts)
                     """),
                     {
-                        "id": uuid.uuid4(), "tid": tenant_id, "oid": oid,
+                        "id": oiid, "tid": tenant_id, "oid": oid,
                         "vid": vid, "pid": pid,
                         "pname": pname, "vname": f"{pname} - Default",
                         "sku": f"SKU-{order_number:04d}",
-                        "qty": qty, "unit_price": price,
-                        "total_price": price * qty, "ts": ts,
+                        "qty": qty, "unit_price": price_cents,
+                        "total_price": price_cents * qty, "ts": ts,
                     },
                 )
+                items_for_links.append({
+                    "order_item_id": oiid,
+                    "variant_id": vid,
+                    "quantity": qty,
+                    "supplier_id": sup_id,
+                    "cost_cents": cost_cents,
+                    "product_name": pname,
+                    "sku": sku,
+                })
 
-    # Sync customer aggregates (orders.total is float; total_spent is BIGINT cents)
+            order_data.append({
+                "order_id": oid,
+                "order_number": f"ORD-{order_number:04d}",
+                "customer_id": customer_id,
+                "status": status_choice,
+                "tenant_id": tenant_id,
+                "items": items_for_links,
+            })
+
+        result[slug] = order_data
+
+    # Sync customer aggregates
     await session.execute(text("""
         UPDATE customers c SET
             total_orders = sub.ord_count,
-            total_spent = (sub.revenue * 100)::BIGINT,
+            total_spent = sub.revenue,
             last_order_at = sub.last_at
         FROM (
             SELECT customer_id,
                    count(*) AS ord_count,
-                   COALESCE(SUM(total), 0) AS revenue,
+                   COALESCE(SUM(total), 0)::BIGINT AS revenue,
                    MAX(created_at) AS last_at
             FROM orders WHERE customer_id IS NOT NULL
             GROUP BY customer_id
@@ -488,6 +567,154 @@ async def seed_orders(
     total_items = await session.scalar(text("SELECT count(*) FROM order_items"))
     print(f"Orders: {total_orders}, Order items: {total_items}")
 
+    return result
+
+
+async def seed_purchase_orders(
+    session: AsyncSession,
+    tenants_by_slug: dict[str, dict],
+    catalog: dict[str, dict],
+    order_data: dict[str, list[dict]],
+) -> None:
+    """Create purchase orders and fulfillment links for seeded orders."""
+    for slug, tenant in tenants_by_slug.items():
+        tenant_id = uuid.UUID(tenant["tenant_id"])
+        tc = catalog[slug]
+        suppliers = tc["suppliers"]
+        orders = order_data[slug]
+        now = datetime.now(timezone.utc)
+
+        # Pick the last 4 orders to attach POs to
+        po_candidates = orders[-4:] if len(orders) >= 4 else orders
+
+        # Track which PO numbers we've used for this tenant
+        po_counter = 0
+
+        for idx, order in enumerate(po_candidates):
+            po_counter += 1
+            po_id = uuid.uuid4()
+            supplier = suppliers[idx % len(suppliers)]
+
+            if idx == 0:
+                # pending_review #1 — no tracking, no dates
+                status = "pending_review"
+                fulfillment_strategy = "dropship"
+                tracking_number = None
+                carrier = None
+                sent_at = None
+                confirmed_at = None
+                closed_at = None
+            elif idx == 1:
+                # pending_review #2 — different supplier, api delivery
+                status = "pending_review"
+                fulfillment_strategy = "dropship"
+                tracking_number = None
+                carrier = None
+                sent_at = None
+                confirmed_at = None
+                closed_at = None
+                supplier = suppliers[(idx + 1) % len(suppliers)]
+            elif idx == 2:
+                # in_transit
+                status = "in_transit"
+                fulfillment_strategy = "dropship"
+                tracking_number = "1Z999AA10123456784"
+                carrier = "UPS"
+                sent_at = (now - timedelta(days=5))
+                confirmed_at = (now - timedelta(days=4))
+                closed_at = None
+            else:
+                # closed
+                status = "closed"
+                fulfillment_strategy = "dropship"
+                tracking_number = "1Z888BB20234567891"
+                carrier = "FedEx"
+                sent_at = (now - timedelta(days=20))
+                confirmed_at = (now - timedelta(days=19))
+                closed_at = (now - timedelta(days=14))
+
+            # Calculate PO totals from order items
+            po_subtotal = 0
+            item_count = 0
+            for oi in order["items"]:
+                qty = oi["quantity"]
+                cost = oi["cost_cents"]
+                po_subtotal += cost * qty
+                item_count += qty
+
+            po_tax = int(po_subtotal * 0.08)
+            po_shipping = 0
+            po_total = po_subtotal + po_tax + po_shipping
+
+            po_number = f"PO-{now.strftime('%Y%m%d')}-{po_counter:04d}-SEED"
+
+            await session.execute(
+                text("""
+                    INSERT INTO purchase_orders (id, tenant_id, po_number, supplier_id, status, fulfillment_strategy, tracking_number, carrier, subtotal, tax, shipping_cost, total, notes, sent_at, confirmed_at, closed_at, created_at, updated_at)
+                    VALUES (:id, :tid, :po_number, :sup_id, :status, :strategy, :tracking, :carrier, :subtotal, :tax, :shipping, :total, :notes, :sent_at, :confirmed_at, :closed_at, NOW(), NOW())
+                """),
+                {
+                    "id": po_id, "tid": tenant_id,
+                    "po_number": po_number,
+                    "sup_id": supplier["id"],
+                    "status": status,
+                    "strategy": fulfillment_strategy,
+                    "tracking": tracking_number,
+                    "carrier": carrier,
+                    "subtotal": po_subtotal,
+                    "tax": po_tax,
+                    "shipping": po_shipping,
+                    "total": po_total,
+                    "notes": f"Seeded PO from order {order['order_number']}",
+                    "sent_at": sent_at,
+                    "confirmed_at": confirmed_at,
+                    "closed_at": closed_at,
+                },
+            )
+
+            # Create PO items + fulfillment links for each order item
+            for oi in order["items"]:
+                poi_id = uuid.uuid4()
+                qty = oi["quantity"]
+                cost = oi["cost_cents"]
+                line_subtotal = cost * qty
+
+                await session.execute(
+                    text("""
+                        INSERT INTO purchase_order_items (id, tenant_id, purchase_order_id, variant_id, supplier_sku, product_name, variant_label, quantity, unit_cost, subtotal, created_at, updated_at)
+                        VALUES (:id, :tid, :poi_id, :vid, :sup_sku, :pname, :vlabel, :qty, :unit_cost, :subtotal, NOW(), NOW())
+                    """),
+                    {
+                        "id": poi_id, "tid": tenant_id,
+                        "poi_id": po_id,
+                        "vid": oi["variant_id"],
+                        "sup_sku": f"SUP-{oi['sku']}",
+                        "pname": oi["product_name"],
+                        "vlabel": f"{oi['product_name']} - Default",
+                        "qty": qty,
+                        "unit_cost": cost,
+                        "subtotal": line_subtotal,
+                    },
+                )
+
+                # Fulfillment link
+                await session.execute(
+                    text("""
+                        INSERT INTO order_fulfillment_links (id, tenant_id, order_item_id, purchase_order_item_id, quantity, created_at, updated_at)
+                        VALUES (:id, :tid, :oiid, :poiiid, :qty, NOW(), NOW())
+                    """),
+                    {
+                        "id": uuid.uuid4(), "tid": tenant_id,
+                        "oiid": oi["order_item_id"],
+                        "poiiid": poi_id,
+                        "qty": qty,
+                    },
+                )
+
+    total_pos = await session.scalar(text("SELECT count(*) FROM purchase_orders"))
+    total_links = await session.scalar(text("SELECT count(*) FROM order_fulfillment_links"))
+    print(f"Purchase orders: {total_pos}, Fulfillment links: {total_links}")
+
 
 async def main() -> None:
     async with engine.begin() as conn:
@@ -497,10 +724,12 @@ async def main() -> None:
             await clear_data(session)
             tenants = await seed_tenants(session)
             await seed_users(session, tenants)
-            catalog = await seed_catalog(session, tenants)
+            suppliers = await seed_suppliers(session, tenants)
+            catalog = await seed_catalog(session, tenants, suppliers)
             await seed_relationships(session, tenants, catalog)
             customers = await seed_customers(session, tenants)
-            await seed_orders(session, tenants, catalog, customers)
+            order_data = await seed_orders(session, tenants, catalog, customers)
+            await seed_purchase_orders(session, tenants, catalog, order_data)
 
         total_tenants = len(tenants)
         total_products = sum(len(PRODUCTS_BY_TENANT[s]) for s in tenants)
