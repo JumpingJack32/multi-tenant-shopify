@@ -26,3 +26,12 @@ from src.orm.schemas.order import (  # noqa: F401
     OrderItemCreate,
     OrderItemResponse,
 )
+from src.orm.schemas.inventory import (  # noqa: F401
+    InventoryItemCreateInput,
+    InventoryItemPatchInput,
+    InventoryItemResponse,
+    InventoryVariantResponse,
+    InventoryStatsResponse,
+    PaginationMeta,
+    InventoryListResponse,
+)

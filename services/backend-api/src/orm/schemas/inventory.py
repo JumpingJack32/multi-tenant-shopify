@@ -1,0 +1,79 @@
+from datetime import datetime
+from typing import Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class InventoryVariantResponse(BaseModel):
+    id: UUID
+    item_id: UUID  # aliased from product_id
+    name: str
+    sku: str
+    barcode: Optional[str] = None
+    price: float
+    cost: float = 0
+    stock: int
+    reorder_point: int = 0
+    warehouse: str = "Default"
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryItemResponse(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    sku: str
+    name: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+    image_url: Optional[str] = None
+    status: str  # computed: in_stock / low_stock / out_of_stock / discontinued
+    supplier: Optional[str] = None
+    total_stock: int
+    total_value: float
+    variants: list[InventoryVariantResponse]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryStatsResponse(BaseModel):
+    total_skus: int
+    total_value: float
+    low_stock_count: int
+    out_of_stock_count: int
+    total_variants: int
+
+
+class PaginationMeta(BaseModel):
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
+
+
+class InventoryListResponse(BaseModel):
+    data: list[InventoryItemResponse]
+    pagination: PaginationMeta
+
+
+class InventoryItemCreateInput(BaseModel):
+    name: str = Field(..., min_length=1)
+    sku: str = Field(..., min_length=1)
+    category: Optional[str] = None
+    supplier: Optional[str] = None
+    price: Optional[float] = Field(None, gt=0)
+    stock: Optional[int] = Field(0, ge=0)
+
+
+class InventoryItemPatchInput(BaseModel):
+    name: Optional[str] = None
+    sku: Optional[str] = None
+    category: Optional[str] = None
+    supplier: Optional[str] = None
+    price: Optional[float] = Field(None, gt=0)
+    stock: Optional[int] = Field(None, ge=0)
