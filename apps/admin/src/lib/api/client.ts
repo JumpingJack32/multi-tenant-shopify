@@ -8,6 +8,10 @@ import type {
   Product,
   ProductCreate,
   ProductUpdate,
+  PurchaseOrder,
+  PurchaseOrderListResponse,
+  Supplier,
+  SupplierListResponse,
 } from "@repo/tenant-orm/types";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
@@ -210,6 +214,111 @@ export const api = {
         "/admin/dashboard/summary",
         options ?? {},
       );
+    },
+  },
+
+  suppliers: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<SupplierListResponse>(
+        "/suppliers" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<Supplier>("/suppliers/" + id, options ?? {});
+    },
+    create(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Supplier>("/suppliers", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Supplier>("/suppliers/" + id, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<void>("/suppliers/" + id, {
+        method: "DELETE",
+        ...options,
+      });
+    },
+  },
+
+  purchaseOrders: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<PurchaseOrderListResponse>(
+        "/purchase-orders" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id, options ?? {});
+    },
+    approve(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id + "/approve", {
+        method: "POST",
+        ...options,
+      });
+    },
+    cancel(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id + "/cancel", {
+        method: "POST",
+        ...options,
+      });
+    },
+    updateTracking(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<PurchaseOrder>("/purchase-orders/" + id, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    markConfirmed(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id + "/confirm", {
+        method: "POST",
+        ...options,
+      });
+    },
+    markInTransit(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id + "/in-transit", {
+        method: "POST",
+        ...options,
+      });
+    },
+    markClosed(id: string, options?: { tenantId?: string | null }) {
+      return request<PurchaseOrder>("/purchase-orders/" + id + "/close", {
+        method: "POST",
+        ...options,
+      });
+    },
+    batchApprove(ids: string[], options?: { tenantId?: string | null }) {
+      return request<{ approved: number }>("/purchase-orders/batch/approve", {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+        ...options,
+      });
     },
   },
 
