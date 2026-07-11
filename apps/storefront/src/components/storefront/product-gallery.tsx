@@ -32,7 +32,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
   return (
     <div>
       <div
-        className="relative aspect-[16/9] overflow-hidden bg-black"
+        className="relative aspect-[16/9] overflow-hidden bg-background"
         onMouseEnter={() => setHoveredIndex(0)}
         onMouseLeave={() => setHoveredIndex(null)}
       >
@@ -66,7 +66,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
         return (
           <div
             key={img.url}
-            className="relative aspect-[4/5] overflow-hidden bg-black"
+            className="relative aspect-[4/5] overflow-hidden bg-background"
             onMouseEnter={() => setHoveredIndex(actualIndex)}
             onMouseLeave={() => setHoveredIndex(null)}
           >

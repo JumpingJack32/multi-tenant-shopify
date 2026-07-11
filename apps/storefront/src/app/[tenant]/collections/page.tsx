@@ -18,7 +18,7 @@ export default async function CollectionsPage({
           <Link
             key={col.id}
             href={`/${tenant}/collections/${col.slug}`}
-            className="relative aspect-[3/2] rounded-lg overflow-hidden bg-black group"
+            className="relative aspect-[3/2] rounded-lg overflow-hidden bg-background group"
           >
             {col.hero_image_url && (
               <img

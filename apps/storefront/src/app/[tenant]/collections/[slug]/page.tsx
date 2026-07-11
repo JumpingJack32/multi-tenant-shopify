@@ -20,7 +20,7 @@ export default async function CollectionDetailPage({
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="relative aspect-[3/1] rounded-lg overflow-hidden bg-black mb-12">
+      <div className="relative aspect-[3/1] rounded-lg overflow-hidden bg-background mb-12">
         {collection.hero_image_url && (
           <img
             src={collection.hero_image_url}

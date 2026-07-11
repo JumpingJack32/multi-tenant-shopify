@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 
 import { Providers } from "@/components/providers";
 import "@repo/ui/globals.css";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/shared-utils/cn";
 
 const InstrumentTitleHeading: NextFontWithVariable = Instrument_Serif({
   weight: ["400"],
