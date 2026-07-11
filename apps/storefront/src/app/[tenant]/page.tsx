@@ -8,7 +8,7 @@ export default async function TenantLandingPage({
   const { tenant } = await params;
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero */}
       <section className="flex min-h-[80vh] flex-col items-center justify-center px-4 text-center">
         <h1 className="max-w-4xl text-5xl font-light tracking-tight sm:text-7xl md:text-8xl">
@@ -19,8 +19,8 @@ export default async function TenantLandingPage({
         </p>
         <div className="mt-10 flex gap-4">
           <Link
-            href={`/${tenant}/shop/all`}
-            className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-black transition-colors hover:bg-white/90"
+            href={`/${tenant}/products`}
+            className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-foreground transition-colors hover:bg-white/90"
           >
             Shop All
           </Link>
