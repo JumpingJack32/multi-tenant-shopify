@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./index": "./src/index.ts",
-    "./cn": "./src/cn.ts"
+    "./cn": "./src/cn.ts",
+    "./currency": "./src/currency.ts"
   },
   "dependencies": {
     "clsx": "^2.1.0",
