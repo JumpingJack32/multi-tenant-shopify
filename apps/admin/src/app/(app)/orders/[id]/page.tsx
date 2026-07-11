@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCurrency } from "@repo/tenant-orm/utils";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import {
@@ -17,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
-import { formatCurrency } from "@repo/tenant-orm/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use } from "react";

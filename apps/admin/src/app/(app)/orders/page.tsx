@@ -22,7 +22,7 @@ const STATUS_TABS = [
 const PAYMENT_OPTIONS = [
   { label: "All Payment Statuses", value: "" },
   { label: "Paid", value: "paid" },
-  { label: "Pending", value: "pending" },
+  { label: "Unpaid", value: "pending" },
   { label: "Refunded", value: "refunded" },
   { label: "Failed", value: "failed" },
 ];

@@ -1,5 +1,5 @@
 import type { Order } from "@repo/tenant-orm/types";
-
+import { formatCurrency } from "@repo/tenant-orm/utils";
 import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Table,
@@ -9,8 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
-
-import { formatCurrency } from "@repo/tenant-orm/utils";
 
 const STATUS_VARIANTS: Record<string, string> = {
   pending: "secondary",
