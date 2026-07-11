@@ -57,3 +57,10 @@ class TenantTokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+class TenantSettingsResponse(BaseModel):
+    name: str
+    slug: str
+    currency: str = "USD"
+    theme: dict = {}

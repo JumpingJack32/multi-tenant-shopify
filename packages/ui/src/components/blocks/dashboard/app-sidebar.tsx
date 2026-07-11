@@ -24,6 +24,7 @@ import {
   MegaphoneIcon,
   PackageIcon,
   PercentIcon,
+  ReceiptIcon,
   Settings2Icon,
   StoreIcon,
   TruckIcon,
@@ -92,6 +93,7 @@ const navManagement: NavItem[] = [
       { title: "Metafields", url: "/content/metafields" },
     ],
   },
+  { title: "Orders", url: "/orders", icon: <ReceiptIcon /> },
   { title: "Customers", url: "/customers", icon: <UsersIcon /> },
 ];
 

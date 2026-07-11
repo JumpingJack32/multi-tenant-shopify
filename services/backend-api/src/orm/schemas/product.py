@@ -1,13 +1,8 @@
 from datetime import datetime
-from decimal import Decimal
-from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel as PydanticBaseModel, Field, validator
-from sqlmodel import Field as SQLModelField
-
-from src.orm.schemas.customer import CustomerResponse
+from pydantic import BaseModel as PydanticBaseModel, Field
 
 
 # ── Product ──────────────────────────────────────────────────────────────
@@ -48,7 +43,6 @@ class ProductResponse(PydanticBaseModel):
     name: str
     slug: str
     description: Optional[str] = None
-    price: Decimal = Decimal("0.00")
     status: str
     sku: Optional[str] = None
     weight: Optional[float] = None
@@ -62,8 +56,8 @@ class ProductResponse(PydanticBaseModel):
 class VariantCreate(PydanticBaseModel):
     sku: str = Field(..., min_length=1, max_length=100)
     barcode: Optional[str] = None
-    price: float = Field(..., ge=0)
-    compare_at_price: Optional[float] = Field(None, ge=0)
+    price: int = Field(..., ge=0)
+    compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: str = "kg"
     inventory_quantity: int = Field(default=0, ge=0)
@@ -74,8 +68,8 @@ class VariantCreate(PydanticBaseModel):
 class VariantUpdate(PydanticBaseModel):
     sku: Optional[str] = Field(None, min_length=1, max_length=100)
     barcode: Optional[str] = None
-    price: Optional[float] = Field(None, ge=0)
-    compare_at_price: Optional[float] = Field(None, ge=0)
+    price: Optional[int] = Field(None, ge=0)
+    compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: Optional[str] = None
     inventory_quantity: Optional[int] = Field(None, ge=0)
@@ -88,8 +82,8 @@ class VariantResponse(PydanticBaseModel):
     product_id: UUID
     sku: str
     barcode: Optional[str] = None
-    price: float
-    compare_at_price: Optional[float] = None
+    price: int = Field(ge=0)
+    compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: str
     inventory_quantity: int

@@ -11,14 +11,13 @@ from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.category import Category
 from src.orm.models.product import Inventory, Location, Product, ProductImage, Variant
 from src.orm.models.purchase_order import Supplier
+from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.inventory import (
     InventoryItemCreateInput,
     InventoryItemPatchInput,
     InventoryItemResponse,
-    InventoryListResponse,
     InventoryStatsResponse,
     InventoryVariantResponse,
-    PaginationMeta,
 )
 
 router = APIRouter(tags=["inventory"])
@@ -88,7 +87,7 @@ async def _build_item_response(db: AsyncSession, product: Product) -> InventoryI
     image_url = first_image.url if first_image else None
 
     total_stock = 0
-    total_value = 0.0
+    total_value = 0
     variant_responses = []
 
     for v in variants:
@@ -108,8 +107,8 @@ async def _build_item_response(db: AsyncSession, product: Product) -> InventoryI
             name=product.name,
             sku=v.sku,
             barcode=v.barcode,
-            price=float(v.price) if v.price is not None else 0.0,
-            cost=float(v.price) if v.price is not None else 0.0,
+            price=v.price or 0,
+            cost=v.price or 0,
             stock=v_stock,
             reorder_point=reorder_point,
             warehouse=warehouse,
@@ -136,7 +135,7 @@ async def _build_item_response(db: AsyncSession, product: Product) -> InventoryI
         status=_compute_status(total_stock, product.is_active, reorder_level),
         supplier=supplier_name,
         total_stock=total_stock,
-        total_value=round(total_value, 2),
+        total_value=total_value,
         variants=variant_responses,
         created_at=product.created_at,
         updated_at=product.updated_at,
@@ -162,7 +161,7 @@ async def get_stats(
         .where(Product.tenant_id == tenant_id)
     )
     result = await db.exec(value_stmt)
-    total_value = float(result.one())
+    total_value = int(result.one())
 
     low_stmt = text("""
         SELECT COUNT(*) FROM variants v
@@ -186,14 +185,14 @@ async def get_stats(
 
     return InventoryStatsResponse(
         total_skus=total_variants,
-        total_value=round(total_value, 2),
+        total_value=total_value,
         low_stock_count=low_stock_count,
         out_of_stock_count=out_of_stock_count,
         total_variants=total_variants,
     )
 
 
-@router.get("/inventory", response_model=InventoryListResponse)
+@router.get("/inventory", response_model=PaginatedResponse[InventoryItemResponse])
 async def list_items(
     q: str | None = Query(None),
     status: str | None = Query(None),
@@ -233,7 +232,7 @@ async def list_items(
 
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
-    return InventoryListResponse(
+    return PaginatedResponse(
         data=items,
         pagination=PaginationMeta(
             page=page,

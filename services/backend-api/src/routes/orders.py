@@ -1,15 +1,16 @@
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import joinedload, selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.order import Order, OrderItem, OrderStatus
+from src.orm.models.order import Customer, Order, OrderItem, OrderStatus
 from src.orm.models.product import Variant
 from src.orm.models.purchase_order import OrderFulfillmentLink, PurchaseOrder, PurchaseOrderItem, Supplier
-from src.orm.schemas.order import OrderCreate, OrderResponse, OrderUpdate
+from src.orm.schemas.order import OrderCreate, OrderItemResponse, OrderResponse, OrderUpdate
 from src.orm.schemas.purchase_order import AssociatedPOResponse
 from src.services.fulfillment_router import route_fulfillment
 
@@ -20,11 +21,39 @@ router = APIRouter()
 async def list_orders(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query(None),
+    payment_status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
 ):
-    stmt = select(Order).options(selectinload(Order.items)).where(Order.tenant_id == tenant_id)
-    result = await db.exec(stmt)
-    orders = result.all()
-    return orders
+    stmt = (
+        select(Order)
+        .options(joinedload(Order.customer), selectinload(Order.items))
+        .where(Order.tenant_id == tenant_id)
+    )
+
+    if status:
+        stmt = stmt.where(Order.status == status)
+    if payment_status:
+        stmt = stmt.where(Order.payment_status == payment_status)
+    if search:
+        stmt = stmt.where(
+            Order.order_number.ilike(f"%{search}%")
+            | Order.customer.has(Customer.email.ilike(f"%{search}%"))
+        )
+
+    stmt = stmt.order_by(Order.created_at.desc())
+    result = await db.exec(stmt.offset((page - 1) * page_size).limit(page_size))
+    orders = result.unique().all()
+    return [
+        OrderResponse(
+            **order.model_dump(),
+            customer_email=order.customer.email if order.customer else None,
+            items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
+        )
+        for order in orders
+    ]
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
@@ -96,13 +125,21 @@ async def get_order(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Order).options(selectinload(Order.items)).where(Order.id == order_id, Order.tenant_id == tenant_id)
+    stmt = (
+        select(Order)
+        .options(joinedload(Order.customer), selectinload(Order.items))
+        .where(Order.id == order_id, Order.tenant_id == tenant_id)
+    )
     result = await db.exec(stmt)
-    order = result.one_or_none()
+    order = result.unique().one_or_none()
 
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-    return order
+    return OrderResponse(
+        **order.model_dump(),
+        customer_email=order.customer.email if order.customer else None,
+        items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
+    )
 
 
 @router.get("/{order_id}/purchase-orders", response_model=list[AssociatedPOResponse])
@@ -173,9 +210,13 @@ async def update_order(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Order).where(Order.id == order_id, Order.tenant_id == tenant_id)
+    stmt = (
+        select(Order)
+        .options(joinedload(Order.customer))
+        .where(Order.id == order_id, Order.tenant_id == tenant_id)
+    )
     result = await db.exec(stmt)
-    order = result.one_or_none()
+    order = result.unique().one_or_none()
 
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
@@ -200,4 +241,18 @@ async def update_order(
 
     await db.flush()
     await db.refresh(order, ["items"])
-    return order
+    return OrderResponse(
+        **order.model_dump(),
+        customer_email=order.customer.email if order.customer else None,
+        items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
+    )
+
+
+@router.patch("/{order_id}", response_model=OrderResponse)
+async def patch_order(
+    order_id: UUID,
+    order_data: OrderUpdate,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    return await update_order(order_id, order_data, tenant_id, db)

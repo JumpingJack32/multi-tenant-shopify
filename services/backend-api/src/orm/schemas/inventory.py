@@ -11,8 +11,8 @@ class InventoryVariantResponse(BaseModel):
     name: str
     sku: str
     barcode: Optional[str] = None
-    price: float
-    cost: float = 0
+    price: int = Field(ge=0)
+    cost: int = Field(ge=0)
     stock: int
     reorder_point: int = 0
     warehouse: str = "Default"
@@ -33,7 +33,7 @@ class InventoryItemResponse(BaseModel):
     status: str  # computed: in_stock / low_stock / out_of_stock / discontinued
     supplier: Optional[str] = None
     total_stock: int
-    total_value: float
+    total_value: int
     variants: list[InventoryVariantResponse]
     created_at: datetime
     updated_at: datetime
@@ -43,7 +43,7 @@ class InventoryItemResponse(BaseModel):
 
 class InventoryStatsResponse(BaseModel):
     total_skus: int
-    total_value: float
+    total_value: int
     low_stock_count: int
     out_of_stock_count: int
     total_variants: int
@@ -66,7 +66,7 @@ class InventoryItemCreateInput(BaseModel):
     sku: str = Field(..., min_length=1)
     category: Optional[str] = None
     supplier: Optional[str] = None
-    price: Optional[float] = Field(None, gt=0)
+    price: Optional[int] = Field(None, ge=0)
     stock: Optional[int] = Field(0, ge=0)
 
 
@@ -75,5 +75,5 @@ class InventoryItemPatchInput(BaseModel):
     sku: Optional[str] = None
     category: Optional[str] = None
     supplier: Optional[str] = None
-    price: Optional[float] = Field(None, gt=0)
+    price: Optional[int] = Field(None, ge=0)
     stock: Optional[int] = Field(None, ge=0)

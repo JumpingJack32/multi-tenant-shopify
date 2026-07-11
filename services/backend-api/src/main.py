@@ -81,8 +81,10 @@ from src.routes.product_images import router as product_images_router
 from src.routes.inventory import router as inventory_router  # noqa: E402
 from src.routes.suppliers import router as suppliers_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
+from src.routes.storefront import router as storefront_router  # noqa: E402
 
 app.include_router(public_router, prefix="/api/v1/public")
+app.include_router(storefront_router, prefix="/api/v1/storefront")
 app.include_router(tenants_router, prefix="/api/v1/tenants")
 app.include_router(products_router, prefix="/api/v1/products")
 app.include_router(orders_router, prefix="/api/v1/orders")

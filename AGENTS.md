@@ -1,6 +1,29 @@
-# Session Context — Saved 2026-07-10
+# Session Context — Saved 2026-07-11
 
-## Completed This Session (2026-07-10)
+## Sales Orders UI — Complete (2026-07-11)
+
+All 9 tasks from `docs/superpowers/plans/2026-07-10-sales-orders-ui.md` implemented.
+
+### What was built
+
+- **Tasks 1-3** (backend, types, API client): `customer_email` on `OrderResponse`, `PATCH /{order_id}`, expanded TypeScript interfaces, `api.orders` namespace in `client.ts`
+- **Task 4**: `packages/tenant-orm/src/utils.ts` — `formatCurrency(cents, currencyCode)` using `Intl.NumberFormat`
+- **Task 5**: `apps/admin/src/features/orders/api/orders-service.ts` + `hooks/use-orders.ts` — service functions and React Query hooks (`useOrders`, `useOrder`, `useUpdateOrderStatus`, `useOrderLinkedPOs`)
+- **Task 6**: Orders nav item in sidebar (`app-sidebar.tsx`) with `ReceiptIcon`, positioned above Customers
+- **Task 7**: Orders list page (`/orders`) with search input, 7 status filter tabs, paginated `OrdersTable` showing order number/customer/status/payment/total/date
+- **Task 8**: Order detail page (`/orders/[id]`) with items table, procurement linked POs, notes, status timeline, action buttons (Mark Paid, Ship, Deliver, Cancel, Refund), metadata card
+- **Task 9**: All verifications pass — lint clean, typecheck clean, 20/20 admin tests pass
+
+### Commits
+
+- `2423f27` feat: add formatCurrency utility
+- `e2de3e0` feat: add orders service + hooks
+- `442cca8` feat(sidebar): add Orders nav item + list/detail pages
+
+### Backlog Cleared (2026-07-11)
+
+- Dashboard backend tests — **done** (`c441a4f`, 10 tests in `services/backend-api/tests/test_dashboard.py`)
+- Schema alignment — **done** (`4bac120` + `401f579`, migrations 0007 + 0009)
 
 ### Inventory Backend Connectivity Fixes
 
@@ -27,10 +50,9 @@
 
 - SectionCards dashboard polish (aesthetic only, not a priority)
 
-## Still To Do
+## Backlog Cleared (2026-07-11)
 
-- Dashboard backend tests
-- Schema alignment: ORM/Alembic drift (`tenants.plan/settings/options`, `orders.total` type)
+Both items from earlier sessions completed — see details in 2026-07-11 section above.
 
 # Session Context — Saved 2026-07-08
 
@@ -125,18 +147,15 @@ All 3 fixes committed in `4d1c47b` and pushed. Need to verify CI passes — if `
 - **Typecheck**: clean
 - **Tests**: all 20 admin tests pass
 
-## Still To Do
+## Still To Do (retrospective — resolved 2026-07-10)
 
-### Medium Priority
+All items completed:
 
-- Fix `@repo/tenant-orm` `DashboardSummary` types to match backend response shape (e.g., `low_stock.name` → `product_name`, missing `sku`/`threshold`)
-- Remove `: any` casts in dashboard `page.tsx` (low_stock items, recent orders)
-- Add dashboard backend tests
-
-### Low Priority
-
-- Replace dashboard page skeleton with shadcn `dashboard-01` SectionCards pattern
-- Schema alignment: reconcile ORM model columns with Alembic migrations
+- `DashboardSummary` types aligned with backend — **done** (`0403df1`)
+- `: any` casts removed — **done** (`0403df1`)
+- Dashboard backend tests — **done** (`c441a4f`)
+- Schema alignment — **done** (`4bac120` + `401f579`, migrations 0007 + 0009)
+- SectionCards dashboard polish — on back burner (aesthetic, not priority)
 
 ## Key Decisions (All)
 
