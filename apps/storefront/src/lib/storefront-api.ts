@@ -3,6 +3,7 @@ import type {
   CartAddItemRequest,
   CartUpdateItemRequest,
   CheckoutRequest,
+  OrderResponse,
   StorefrontProductResponse,
   TenantSettingsResponse,
   PaginatedResponseStorefrontProductResponse as PaginatedProducts,
@@ -166,8 +167,8 @@ export async function checkoutCart(
     shipping_address: {},
     billing_address: {},
   },
-): Promise<{ order_id: string }> {
-  return fetchJson<{ order_id: string }>(
+): Promise<OrderResponse> {
+  return fetchJson<OrderResponse>(
     `${API_URL}/api/v1/storefront/${tenantSlug}/carts/${cartId}/checkout`,
     {
       method: "POST",
