@@ -1,12 +1,13 @@
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import joinedload, selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.order import Order, OrderItem, OrderStatus
+from src.orm.models.order import Customer, Order, OrderItem, OrderStatus
 from src.orm.models.product import Variant
 from src.orm.models.purchase_order import OrderFulfillmentLink, PurchaseOrder, PurchaseOrderItem, Supplier
 from src.orm.schemas.order import OrderCreate, OrderItemResponse, OrderResponse, OrderUpdate
@@ -20,14 +21,27 @@ router = APIRouter()
 async def list_orders(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
 ):
     stmt = (
         select(Order)
         .options(joinedload(Order.customer), selectinload(Order.items))
         .where(Order.tenant_id == tenant_id)
-        .order_by(Order.created_at.desc())
     )
-    result = await db.exec(stmt)
+
+    if status:
+        stmt = stmt.where(Order.status == status)
+    if search:
+        stmt = stmt.where(
+            Order.order_number.ilike(f"%{search}%")
+            | Order.customer.has(Customer.email.ilike(f"%{search}%"))
+        )
+
+    stmt = stmt.order_by(Order.created_at.desc())
+    result = await db.exec(stmt.offset((page - 1) * page_size).limit(page_size))
     orders = result.unique().all()
     return [
         OrderResponse(
