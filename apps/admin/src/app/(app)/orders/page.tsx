@@ -32,7 +32,11 @@ export default function OrdersPage() {
     page: String(page),
     page_size: "20",
   };
-  if (statusFilter) params.status = statusFilter;
+  if (statusFilter === "paid") {
+    params.payment_status = "paid";
+  } else if (statusFilter) {
+    params.status = statusFilter;
+  }
   if (search) params.search = search;
 
   const { data, isLoading, isError, error, refetch } = useOrders(

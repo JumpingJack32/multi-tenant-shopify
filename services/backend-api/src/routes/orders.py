@@ -22,6 +22,7 @@ async def list_orders(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
     status: Optional[str] = Query(None),
+    payment_status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -34,6 +35,8 @@ async def list_orders(
 
     if status:
         stmt = stmt.where(Order.status == status)
+    if payment_status:
+        stmt = stmt.where(Order.payment_status == payment_status)
     if search:
         stmt = stmt.where(
             Order.order_number.ilike(f"%{search}%")
