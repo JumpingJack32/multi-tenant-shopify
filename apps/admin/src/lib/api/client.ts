@@ -330,10 +330,7 @@ export const api = {
       params?: Record<string, string>,
       options?: { tenantId?: string | null },
     ) {
-      return request<OrderListResponse>(
-        "/orders" + buildQuery(params),
-        options ?? {},
-      );
+      return request<Order[]>("/orders" + buildQuery(params), options ?? {});
     },
     get(id: string, options?: { tenantId?: string | null }) {
       return request<Order>("/orders/" + id, options ?? {});
