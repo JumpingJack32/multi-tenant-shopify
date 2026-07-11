@@ -28,6 +28,7 @@ def upgrade() -> None:
         ALTER TABLE variants ALTER COLUMN price TYPE INTEGER USING price::integer
     """)
     op.execute("ALTER TABLE variants ALTER COLUMN price SET DEFAULT 0")
+    op.execute("ALTER TABLE variants DROP CONSTRAINT IF EXISTS variants_price_check")
     op.execute("ALTER TABLE variants ADD CONSTRAINT variants_price_check CHECK (price >= 0)")
 
 

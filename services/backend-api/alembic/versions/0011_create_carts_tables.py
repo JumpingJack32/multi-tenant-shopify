@@ -46,6 +46,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["cart_id"], ["carts.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["variant_id"], ["variants.id"], ondelete="CASCADE"),
     )
+    op.create_index("ix_cart_items_tenant_id", "cart_items", ["tenant_id"])
     op.create_index("ix_cart_items_cart_id", "cart_items", ["cart_id"])
     op.create_index("ix_cart_items_variant_id", "cart_items", ["variant_id"])
 

@@ -124,7 +124,6 @@ async def list_storefront_products(
             selectinload(Product.variants),
             selectinload(Product.images),
             selectinload(Product.category),
-            selectinload(Product.variants),
             selectinload(Product.collections),
         )
         .where(*base_filters)
