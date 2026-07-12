@@ -19,7 +19,7 @@ export default async function TenantLandingPage({
         </p>
         <div className="mt-10 flex gap-4">
           <Link
-            href={`/${tenant}/products`}
+            href={`/${tenant}/shop/all`}
             className="inline-flex h-12 items-center justify-center rounded-md bg-white px-8 text-sm font-medium text-foreground transition-colors hover:bg-white/90"
           >
             Shop All

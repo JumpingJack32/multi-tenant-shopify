@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     # Doppler project reference
     doppler_pr: str = "dev"
 
+    # Exchange Rates
+    exchange_rate_provider: str = "frankfurter"
+    exchange_rate_api_key: str | None = None
+    exchange_rate_refresh_hours: int = 6
+    exchange_rate_base_currency: str = "GBP"
+
     # App
     app_env: str = "development"
     debug: bool = False

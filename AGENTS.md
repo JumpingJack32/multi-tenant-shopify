@@ -1,6 +1,17 @@
-# Session Context — Saved 2026-07-12 (Storefront Currency Switcher)
+# Session Context — Saved 2026-07-12 (Storefront Currency Switcher — Merged)
 
-## Storefront Currency Switcher Completed (2026-07-12)
+## Storefront Currency Switcher — Merged to main (2026-07-12)
+
+### PR #11 — `feat: storefront currency switcher`
+
+- Backend: PriceConverter, CurrencyAwareRoute (APIRoute), CurrencyExtractorMiddleware
+- Frontend: CurrencySwitcher component with 20 currencies, SSR cookie
+- 24 backend tests + 154 frontend tests
+
+### PR #12 — `fix: add missing tenant-orm exports and orders service tests`
+
+- Added `./utils` and `./types` exports to `@repo/tenant-orm/package.json`
+- Committed orders service tests that were missed in prior session
 
 ### 1. Order Status Transition Validation
 
@@ -99,26 +110,6 @@
 - Exchange rates cached in Redis by the `RateService` — no DB in the conversion path
 - `_apply_rate` uses `ROUND_HALF_UP` quantize to nearest integer cent
 - 24 interceptor unit tests run in <0.1s without Doppler (env vars via pytest inline overrides)
-- Coverage: v8 provider (root vitest.config.ts with workspace projects), 30% threshold
-- Secrets via Doppler only (never .env directly)
-- Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
-- Price in cents, display as `£{(n / 100).toFixed(2)}`
-- Server components for data fetching; client components for interactivity
-- `@repo/ui/components/motion` re-exports `motion` + `AnimatePresence` from `motion/react`
-- `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts project)
-- ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`
-- `proxy.ts` (not `middleware.ts`) is the correct middleware filename for Next.js 16.2.9
-- `e.stopPropagation()` required in toggle click handler when placed inside Base UI/Radix menu popovers
-- `MobileStickyCta` uses `document.getElementById` (not ref forwarding)
-- Safe area padding: `pb-[env(safe-area-inset-bottom)]` via Tailwind v4 arbitrary value
-- Atomic UI components live in `packages/ui/src/components/ui/`
-- Hook files use `.ts` extension (not `.tsx`) unless they contain JSX
-- Rate limiter is in-memory (no Redis dependency) — swap for Redis in production if needed
-- Error tracking: console + sendBeacon to `/api/v1/public/errors` — swap for Sentry post-launch
-- Cart cookie `Secure` flag determined by `location.protocol` at runtime (not build-time env)
-- Order state machine follows `po_state_machine.py` pattern with `VALID_TRANSITIONS` dict and `validate_transition()` function
-- Order status transitions: `pending→{confirmed,paid,cancelled}`, `confirmed→{paid,processing,shipped,cancelled}`, `paid→{processing,shipped,cancelled,refunded}`, `processing→{shipped,cancelled}`, `shipped→{delivered,cancelled,refunded}`, `delivered→{refunded}`, `cancelled/refunded` terminal
-- `tests/conftest.py` inserts parent of `tests/` into sys.path (not `src/`) for `from src.xxx import` to work
 
 ## UI Design
 
