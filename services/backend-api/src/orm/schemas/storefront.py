@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 class StorefrontVariantResponse(BaseModel):
     id: UUID
     sku: str
-    price: int = Field(ge=0)
-    compare_at_price: Optional[int] = Field(None, ge=0)
+    price: int = Field(ge=0, json_schema_extra={"is_price": True})
+    compare_at_price: Optional[int] = Field(None, ge=0, json_schema_extra={"is_price": True})
     is_active: bool
     in_stock: bool
     options: dict
@@ -21,8 +21,8 @@ class StorefrontProductResponse(BaseModel):
     name: str
     description: Optional[str] = None
     status: str
-    min_price: int = Field(ge=0)
-    max_price: int = Field(ge=0)
+    min_price: int = Field(ge=0, json_schema_extra={"is_price": True})
+    max_price: int = Field(ge=0, json_schema_extra={"is_price": True})
     images: list["StorefrontImageResponse"] = []
     variants: list[StorefrontVariantResponse] = []
     category_slug: Optional[str] = None

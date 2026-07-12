@@ -9,6 +9,7 @@ import Link from "next/link";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartHydrator } from "@/components/storefront/cart-hydrator";
 import { CartToggle } from "@/components/storefront/cart-toggle";
+import { CurrencySwitcher } from "@/components/storefront/currency-switcher";
 import { SettingsHydrator } from "@/components/storefront/settings-hydrator";
 import { getCartCookieName } from "@/lib/cart-cookie";
 import { fetchSettings, getCart } from "@/lib/storefront-api";
@@ -26,9 +27,11 @@ export default async function TenantLayout({
   // SSR: fetch settings
   const settings = await fetchSettings(tenant);
 
-  // SSR: read cart cookie and prefetch cart
+  // SSR: read cookies
   const cookieStore = await cookies();
   const cartId = cookieStore.get(getCartCookieName(tenant))?.value ?? null;
+  const preferredCurrency =
+    cookieStore.get("preferred_currency")?.value ?? null;
 
   if (cartId) {
     queryClient.prefetchQuery({
@@ -61,6 +64,7 @@ export default async function TenantLayout({
           >
             Products
           </Link>
+          <CurrencySwitcher defaultCurrency={preferredCurrency ?? undefined} />
           <CartToggle />
         </nav>
       </header>

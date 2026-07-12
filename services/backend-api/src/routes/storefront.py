@@ -2,12 +2,13 @@
 
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.tenant_isolation import set_tenant_context
+from src.core.throttle import throttle_checkout, throttle_storefront
 from src.dependencies import get_db
 from src.orm.models.cart import Cart, CartItem
 from src.orm.models.collection import Collection, ProductCollection
@@ -15,7 +16,7 @@ from src.orm.models.product import Product, Variant
 from src.orm.models.tenant import Tenant
 from src.orm.schemas.cart import CartAddItemRequest, CartItemResponse, CartResponse, CartUpdateItemRequest, CheckoutRequest
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
-from src.orm.schemas.order import OrderCreate, OrderItemCreate, OrderResponse
+from src.orm.schemas.order import OrderResponse
 from src.orm.schemas.storefront import (
     StorefrontImageResponse,
     StorefrontProductResponse,
@@ -23,7 +24,9 @@ from src.orm.schemas.storefront import (
 )
 from src.orm.schemas.tenant import TenantSettingsResponse
 
-router = APIRouter()
+from src.core.pricing.interceptor import CurrencyAwareRoute
+
+router = APIRouter(route_class=CurrencyAwareRoute)
 
 
 async def _resolve_tenant(db: AsyncSession, tenant_slug: str) -> Tenant:
@@ -81,6 +84,7 @@ def _build_storefront_product(product: Product) -> StorefrontProductResponse:
 @router.get("/{tenant_slug}/products", response_model=PaginatedResponse[StorefrontProductResponse])
 async def list_storefront_products(
     tenant_slug: str,
+    request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     category: str | None = Query(None),
@@ -90,6 +94,7 @@ async def list_storefront_products(
 ):
     """Paginated list of published products for storefront PLP."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
 
     # Base filters
     base_filters = [
@@ -166,11 +171,13 @@ async def list_storefront_products(
 @router.get("/{tenant_slug}/products/{product_slug}", response_model=StorefrontProductResponse)
 async def get_storefront_product(
     tenant_slug: str,
+    request: Request,
     product_slug: str,
     db: AsyncSession = Depends(get_db),
 ):
     """Single product detail for storefront PDP."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
 
     stmt = (
         select(Product)
@@ -202,10 +209,12 @@ async def get_storefront_product(
 @router.get("/{tenant_slug}/settings", response_model=TenantSettingsResponse)
 async def get_tenant_settings(
     tenant_slug: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Public tenant settings — store name, currency, theme preferences."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     return TenantSettingsResponse(
         name=tenant.name,
         slug=tenant.slug,
@@ -264,11 +273,14 @@ def _build_cart_response(cart: Cart) -> CartResponse:
 @router.post("/{tenant_slug}/carts", response_model=CartResponse, status_code=status.HTTP_201_CREATED)
 async def create_cart(
     tenant_slug: str,
+    request: Request,
     body: CartAddItemRequest,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_storefront),
 ):
     """Create a new cart with the first item."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
 
     # Validate variant exists and belongs to tenant
     stmt = select(Variant).where(Variant.id == body.variant_id, Variant.tenant_id == tenant.tenant_id)
@@ -291,11 +303,13 @@ async def create_cart(
 @router.get("/{tenant_slug}/carts/{cart_id}", response_model=CartResponse)
 async def get_cart(
     tenant_slug: str,
+    request: Request,
     cart_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
     """Get cart contents."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
     return _build_cart_response(cart)
 
@@ -303,12 +317,15 @@ async def get_cart(
 @router.post("/{tenant_slug}/carts/{cart_id}/items", response_model=CartResponse)
 async def add_cart_item(
     tenant_slug: str,
+    request: Request,
     cart_id: UUID,
     body: CartAddItemRequest,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_storefront),
 ):
     """Add an item to an existing cart."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
 
     # Validate variant
@@ -333,6 +350,7 @@ async def add_cart_item(
 @router.patch("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
 async def update_cart_item(
     tenant_slug: str,
+    request: Request,
     cart_id: UUID,
     item_id: UUID,
     body: CartUpdateItemRequest,
@@ -340,6 +358,7 @@ async def update_cart_item(
 ):
     """Update item quantity. If quantity is 0, removes the item."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
 
     item = next((ci for ci in cart.items if ci.id == item_id), None)
@@ -359,12 +378,14 @@ async def update_cart_item(
 @router.delete("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
 async def remove_cart_item(
     tenant_slug: str,
+    request: Request,
     cart_id: UUID,
     item_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
     """Remove an item from the cart."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
 
     item = next((ci for ci in cart.items if ci.id == item_id), None)
@@ -380,11 +401,13 @@ async def remove_cart_item(
 @router.delete("/{tenant_slug}/carts/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cart(
     tenant_slug: str,
+    request: Request,
     cart_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
     """Clear all items from the cart."""
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     stmt = select(Cart).where(Cart.id == cart_id, Cart.tenant_id == tenant.tenant_id)
     cart = (await db.exec(stmt)).one_or_none()
     if not cart:
@@ -401,13 +424,16 @@ async def clear_cart(
 async def checkout(
     tenant_slug: str,
     cart_id: UUID,
+    request: Request,
     body: CheckoutRequest,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_checkout),
 ):
     """Convert cart to order. Validates stock, creates order, decrements inventory."""
     from src.orm.models.order import Order, OrderItem as OrderItemModel
 
     tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
 
     if not cart.items:
@@ -423,6 +449,11 @@ async def checkout(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Insufficient stock for variant {v.sku}: requested {ci.quantity}, available {v.inventory_quantity}",
             )
+
+    # Use consumer's preferred currency if available
+    preferred = getattr(request.state, "target_currency", None)
+    if preferred:
+        body.currency = preferred
 
     # Calculate totals
     subtotal = 0
@@ -467,5 +498,32 @@ async def checkout(
     await db.delete(cart)
     await db.flush()
     await db.refresh(order, ["items"])
+
+    return order
+
+
+@router.get("/{tenant_slug}/orders/{order_id}", response_model=OrderResponse)
+async def get_storefront_order(
+    tenant_slug: str,
+    request: Request,
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Tenant-scoped order lookup for order confirmation page."""
+    from src.orm.models.order import Order
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(Order.id == order_id, Order.tenant_id == tenant.tenant_id)
+    )
+    result = await db.exec(stmt)
+    order = result.one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
     return order
