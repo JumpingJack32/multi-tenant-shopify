@@ -1,16 +1,42 @@
+import asyncio
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from src.config import settings
-from src.database import init_db
+from src.database import init_db, async_engine
 from src.core.cache import redis_client
+from src.core.pricing.middleware import CurrencyExtractorMiddleware
 from src.core.tenant_isolation import reset_tenant_context, setup_tenant_isolation
+from src.core.exchange_rates.service import RateService
+
+logger = logging.getLogger(__name__)
+
+_exchange_rate_task: asyncio.Task | None = None
+
+
+async def _exchange_rate_refresh_worker():
+    """Background worker that refreshes exchange rates periodically."""
+    while True:
+        try:
+            from sqlmodel.ext.asyncio.session import AsyncSession
+
+            svc = RateService()
+            async with AsyncSession(async_engine) as session:
+                await svc.refresh_rates(session)
+        except Exception:
+            logger.exception("Failed to refresh exchange rates")
+
+        await asyncio.sleep(settings.exchange_rate_refresh_hours * 3600)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize resources on startup and cleanup on shutdown."""
+    global _exchange_rate_task
+
     # Validate config
     _ = settings.database_url
     _ = settings.redis_url
@@ -33,9 +59,19 @@ async def lifespan(app: FastAPI):
         if not connected:
             settings.redis_enabled = False
 
+    # Start exchange rate background refresh
+    if settings.redis_enabled:
+        _exchange_rate_task = asyncio.create_task(_exchange_rate_refresh_worker())
+
     yield
 
     # Cleanup
+    if _exchange_rate_task:
+        _exchange_rate_task.cancel()
+        try:
+            await _exchange_rate_task
+        except asyncio.CancelledError:
+            pass
     await redis_client.close()
 
 app = FastAPI(
@@ -56,6 +92,8 @@ app.add_middleware(
     expose_headers=["X-Tenant-ID"],
 )
 
+
+app.add_middleware(CurrencyExtractorMiddleware)
 
 @app.middleware("http")
 async def tenant_isolation_middleware(request: Request, call_next):
@@ -82,9 +120,11 @@ from src.routes.inventory import router as inventory_router  # noqa: E402
 from src.routes.suppliers import router as suppliers_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
 from src.routes.storefront import router as storefront_router  # noqa: E402
+from src.core.exchange_rates.router import router as exchange_rates_router  # noqa: E402
 
 app.include_router(public_router, prefix="/api/v1/public")
 app.include_router(storefront_router, prefix="/api/v1/storefront")
+app.include_router(exchange_rates_router)
 app.include_router(tenants_router, prefix="/api/v1/tenants")
 app.include_router(products_router, prefix="/api/v1/products")
 app.include_router(orders_router, prefix="/api/v1/orders")

@@ -1,12 +1,12 @@
+import json
 import logging
-import types
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Any
+from typing import Any, Callable
 
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from pydantic import BaseModel
-from starlette.datastructures import State
-from starlette.routing import Route
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.core.exchange_rates.service import RateService
 
@@ -121,39 +121,37 @@ class PriceConverter:
         return None
 
 
-class CurrencyAwareRoute(Route):
-    """APIRoute subclass that applies PriceConverter to storefront responses."""
+class CurrencyAwareRoute(APIRoute):
+    """APIRoute subclass that converts tagged price fields before serialization."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def get_route_handler(self) -> Callable:
+        original_handler = super().get_route_handler()
 
-    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
-        state: State = scope.get("state") or State()
-        state = scope.get("app").state if hasattr(scope.get("app"), "state") else state
-        base_currency: str = getattr(state, "base_currency", "GBP")
-        target_currency: str = getattr(state, "target_currency", "GBP")
+        async def custom_handler(request: Request) -> Response:
+            response: Response = await original_handler(request)
 
-        original_send = send
+            target = getattr(request.state, "target_currency", None)
+            if not target:
+                return response
+            if not isinstance(response, JSONResponse):
+                return response
+            response_model = self.response_model
+            if not response_model:
+                return response
 
-        async def patched_send(message: dict) -> None:
-            if message["type"] == "http.response.start":
-                pass
-            elif message["type"] == "http.response.body" and message.get("body"):
-                body = message["body"]
-                try:
-                    import json as json_mod
-                    data = json_mod.loads(body)
-                    if isinstance(data, (dict, list)):
-                        converter = PriceConverter(
-                            target_currency=target_currency,
-                            base_currency=base_currency,
-                        )
-                        converted = await converter.convert_response(
-                            data, model=self.response_model,
-                        )
-                        message["body"] = json_mod.dumps(converted).encode("utf-8")
-                except Exception:
-                    logger.exception("Failed to convert response prices")
-            await original_send(message)
+            try:
+                body = json.loads(response.body)
+                base = getattr(request.state, "base_currency", "GBP")
+                converter = PriceConverter(target, base)
+                converted = await converter.convert_response(body, response_model)
+                return JSONResponse(
+                    content=converted,
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type=response.media_type,
+                )
+            except Exception:
+                logger.exception("Currency conversion failed, returning unconverted response")
+                return response
 
-        await super().handle(scope, receive, patched_send)
+        return custom_handler

@@ -214,15 +214,21 @@ class TestPriceConverter:
 class TestCurrencyAwareRoute:
     def test_route_subclass(self):
         from src.core.pricing.interceptor import CurrencyAwareRoute
-        from starlette.routing import Route
-        assert issubclass(CurrencyAwareRoute, Route)
+        from fastapi.routing import APIRoute
+        assert issubclass(CurrencyAwareRoute, APIRoute)
 
-    def test_can_instantiate(self):
+    def test_get_route_handler(self):
         from src.core.pricing.interceptor import CurrencyAwareRoute
-        async def dummy(request):
-            return None
-        route = CurrencyAwareRoute("/test", endpoint=dummy)
-        assert route.path == "/test"
+        from fastapi import APIRouter
+        router = APIRouter(route_class=CurrencyAwareRoute)
+
+        @router.get("/test")
+        async def dummy():
+            return {"ok": True}
+
+        route = router.routes[0]
+        handler = route.get_route_handler()
+        assert handler is not None
 
 
 # ---------------------------------------------------------------------------
