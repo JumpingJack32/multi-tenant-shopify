@@ -68,7 +68,7 @@ class AbandonedCartService:
             .where(
                 Cart.status == CartStatus.ACTIVE,
                 Cart.email.isnot(None),
-                not Cart.unsubscribed,
+                Cart.unsubscribed == False,  # noqa: E712 — SQLAlchemy column expression, not plain bool
                 Cart.updated_at < cutoff,
                 or_(
                     Cart.last_reminded_at.is_(None),
