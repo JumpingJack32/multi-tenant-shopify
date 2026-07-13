@@ -149,8 +149,8 @@ class ResendEmailService(EmailService):
 
 
 def create_email_service() -> EmailService:
-    """Factory — returns ResendEmailService when API key configured, else LogEmailService."""
-    if settings.resend_api_key:
+    """Factory — ResendEmailService in production when key configured, else LogEmailService for dev."""
+    if settings.is_production and settings.resend_api_key:
         return ResendEmailService(
             api_key=settings.resend_api_key,
             from_email=settings.resend_from_email,
