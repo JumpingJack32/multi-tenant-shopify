@@ -29,3 +29,24 @@ class TestCartModel:
         if default is None and field_info.default_factory:
             default = field_info.default_factory()
         assert default == CartStatus.ACTIVE
+
+
+class TestEmailService:
+    async def test_log_email_service_sends(self):
+        from src.services.email_service import LogEmailService
+
+        svc = LogEmailService()
+        result = await svc.send_abandoned_cart(
+            to_email="test@example.com",
+            cart={"id": "abc", "items": [{"product_name": "Widget", "quantity": 1, "unit_price": 1000}]},
+            recovery_url="https://example.com/cart?recover=abc",
+            tenant_name="Test Store",
+            unsubscribe_token="test-token",
+        )
+        assert result is True
+
+    async def test_create_email_service_returns_log(self):
+        from src.services.email_service import LogEmailService, create_email_service
+
+        svc = create_email_service()
+        assert isinstance(svc, LogEmailService)
