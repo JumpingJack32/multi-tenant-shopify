@@ -235,6 +235,10 @@ export type CartResponse = {
    */
   total: number;
   /**
+   * Status
+   */
+  status?: string;
+  /**
    * Created At
    */
   created_at: string;
@@ -368,6 +372,10 @@ export type CheckoutRequest = {
    * Currency
    */
   currency?: string;
+  /**
+   * Customer Email
+   */
+  customer_email?: string | null;
   /**
    * Shipping Address
    */

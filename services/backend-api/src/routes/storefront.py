@@ -266,6 +266,7 @@ def _build_cart_response(cart: Cart) -> CartResponse:
         items=items,
         item_count=sum(i.quantity for i in cart.items),
         total=total,
+        status=cart.status.value if hasattr(cart.status, "value") else cart.status,
         created_at=cart.created_at,
         updated_at=cart.updated_at,
     )

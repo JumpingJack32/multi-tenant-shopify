@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { formatCents } from "@repo/shared-utils/currency";
 import {
   Sheet,
@@ -13,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import {
   useCartQuery,
+  useCheckout,
   useClearCart,
   useRemoveFromCart,
   useUpdateQuantity,
@@ -23,6 +26,7 @@ import { useTenantStore } from "@/hooks/use-tenant-store";
 export function CartDrawer() {
   const { tenant } = useParams<{ tenant: string }>();
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const cartId = useCartStore((s) => s.cartId);
   const isOpen = useCartStore((s) => s.isDrawerOpen);
   const closeDrawer = useCartStore((s) => s.closeDrawer);
@@ -31,14 +35,23 @@ export function CartDrawer() {
   const { mutate: updateQty, isPending: isUpdating } = useUpdateQuantity();
   const { mutate: removeItem } = useRemoveFromCart();
   const { mutate: clear } = useClearCart();
+  const checkoutMutation = useCheckout();
 
   const items = cart?.items ?? [];
   const itemCount = cart?.item_count ?? 0;
   const total = cart?.total ?? 0;
 
   const handleCheckout = () => {
+    if (!cartId) return;
     closeDrawer();
-    router.push(`/${tenant}/checkout`);
+    checkoutMutation.mutate(
+      { cartId, customer_email: email || undefined },
+      {
+        onSuccess: (order) => {
+          router.push(`/${tenant}/order-confirmation/${order.id}`);
+        },
+      },
+    );
   };
 
   return (
@@ -157,11 +170,32 @@ export function CartDrawer() {
               <p className="text-xs text-muted-foreground">
                 Shipping & taxes calculated at checkout.
               </p>
+              <div>
+                <label
+                  htmlFor="drawer-email"
+                  className="text-xs text-muted-foreground"
+                >
+                  Email (for order updates)
+                </label>
+                <input
+                  id="drawer-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full border border-border rounded-sm px-3 py-2 text-sm bg-transparent mt-1"
+                />
+              </div>
               <button
                 onClick={handleCheckout}
-                className="w-full bg-primary text-primary-foreground py-3 rounded font-semibold text-sm hover:opacity-90 transition-opacity"
+                disabled={checkoutMutation.isPending}
+                className="w-full bg-primary text-primary-foreground py-3 rounded font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                CHECKOUT
+                {checkoutMutation.isPending ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin mx-auto" />
+                ) : (
+                  "CHECKOUT"
+                )}
               </button>
               <button
                 onClick={closeDrawer}

@@ -21,6 +21,7 @@ class CartResponse(BaseModel):
     items: list[CartItemResponse] = []
     item_count: int = 0
     total: int = Field(ge=0, json_schema_extra={"is_price": True})
+    status: str = "active"
     created_at: datetime
     updated_at: datetime
 

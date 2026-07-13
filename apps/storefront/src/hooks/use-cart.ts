@@ -10,6 +10,8 @@ import {
   removeCartId,
   setCartId as setCartCookie,
 } from "@/lib/cart-cookie";
+import type { CheckoutRequest } from "@repo/codegen/client/types.gen";
+
 import {
   addCartItem,
   checkoutCart,
@@ -184,7 +186,11 @@ export function useCheckout() {
   const { setCartId } = useCartStore();
 
   return useMutation({
-    mutationFn: (cartId: string) => checkoutCart(tenantSlug, cartId),
+    mutationFn: ({
+      cartId,
+      ...data
+    }: { cartId: string } & Partial<CheckoutRequest>) =>
+      checkoutCart(tenantSlug, cartId, data),
     onSuccess: () => {
       removeCartId(tenantSlug);
       setCartId(null);
