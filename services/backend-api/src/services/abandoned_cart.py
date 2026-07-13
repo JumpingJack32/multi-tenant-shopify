@@ -13,7 +13,8 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
-from src.orm.models.cart import Cart, CartStatus
+from src.orm.models.cart import Cart, CartItem, CartStatus
+from src.orm.models.product import Variant
 from src.orm.models.tenant import Tenant
 from src.services.email_service import EmailService
 
@@ -63,7 +64,11 @@ class AbandonedCartService:
 
         stmt = (
             select(Cart)
-            .options(selectinload(Cart.items))
+            .options(
+                selectinload(Cart.items)
+                .selectinload(CartItem.variant)
+                .selectinload(Variant.product),
+            )
             .where(
                 Cart.status == CartStatus.ACTIVE,
                 Cart.email.isnot(None),
@@ -102,6 +107,10 @@ class AbandonedCartService:
 
                 items = []
                 for i in (cart.items or []):
+                    # Defense-in-depth: cart_items.variant_id has ON DELETE CASCADE,
+                    # so orphaned variant references shouldn't occur at the DB level.
+                    # This guard protects against edge cases like corrupted DB restores,
+                    # replication delays, or manual SQL edits that bypass the cascade.
                     try:
                         v = i.variant
                         unit_price = v.price if v else 0
