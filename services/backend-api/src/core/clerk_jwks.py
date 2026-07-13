@@ -7,7 +7,6 @@ from typing import Any
 import httpx
 import jwt
 from cryptography.hazmat.primitives.asymmetric.ec import (
-    ECDSA,
     SECP256R1,
     EllipticCurvePublicKey,
 )

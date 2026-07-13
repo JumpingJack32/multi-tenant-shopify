@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import uuid4
 from datetime import datetime, timezone
 
 from src.orm.schemas.inventory import (

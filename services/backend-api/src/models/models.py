@@ -5,7 +5,7 @@ Optional module docstring goes here.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, List, Any
+from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
 # from sqlmodel import SQLModel, Field

@@ -2,29 +2,24 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
-from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.order import Order, OrderItem
-from src.orm.models.product import Variant
 from src.orm.models.purchase_order import (
     OrderFulfillmentLink,
     PurchaseOrder,
     PurchaseOrderItem,
     Supplier,
 )
-from src.orm.schemas.dashboard import DashboardSummaryResponse
 from src.orm.schemas.purchase_order import (
     PaginationMeta,
-    PendingPOStats,
     PurchaseOrderListResponse,
     PurchaseOrderPatchInput,
     PurchaseOrderItemResponse,
     PurchaseOrderResponse,
 )
-from src.services.fulfillment_router import route_fulfillment
 from src.services.po_state_machine import validate_transition
 
 router = APIRouter(tags=["purchase_orders"])

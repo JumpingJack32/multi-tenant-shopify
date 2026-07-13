@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select, func

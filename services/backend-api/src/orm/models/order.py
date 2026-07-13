@@ -1,10 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, DateTime, Enum as SAEnum, ForeignKey, Index, String
-from sqlalchemy.orm import Mapped
+from sqlalchemy import JSON, DateTime, Enum as SAEnum, Index
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel

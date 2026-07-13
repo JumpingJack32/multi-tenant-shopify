@@ -1,4 +1,3 @@
-from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,7 +7,6 @@ import bcrypt
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.config import settings
 from src.core.cache import blacklist_jwt, is_jwt_blacklisted
 from src.core.security import create_access_token, create_refresh_token, decode_token
 from src.dependencies import get_db

@@ -6,12 +6,12 @@ import pytest
 from uuid import UUID, uuid4
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import text
-from sqlmodel import delete, select
+from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.main import app
 from src.orm.base import BaseModel
-from src.orm.models.order import Order, OrderItem, OrderStatus
+from src.orm.models.order import Order, OrderItem
 from src.orm.models.product import Product, Variant, Inventory, Location
 from src.orm.models.purchase_order import (
     OrderFulfillmentLink,

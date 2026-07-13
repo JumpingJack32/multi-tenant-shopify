@@ -3,13 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.product import Product
-from src.orm.models.purchase_order import PurchaseOrder, Supplier
+from src.orm.models.purchase_order import Supplier
 from src.orm.schemas.purchase_order import (
     PaginationMeta,
     SupplierCreateInput,

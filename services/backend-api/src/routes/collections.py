@@ -1,7 +1,6 @@
-from typing import Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select, func, delete
+from sqlmodel import select, func
 from src.dependencies import get_db, get_current_tenant_id
 from src.orm.models.collection import Collection, ProductCollection
 from src.orm.models.product import Product

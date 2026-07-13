@@ -9,11 +9,9 @@ os.environ.setdefault("CLERK_JWKS_URL", "https://placeholder.clerk.accounts.dev"
 os.environ.setdefault("JWT_SECRET", "test-secret")
 
 from decimal import Decimal
-from typing import Optional
 from unittest.mock import patch
 
 from pydantic import BaseModel, Field
-import pytest
 
 from src.core.pricing.interceptor import (
     PriceConverter,

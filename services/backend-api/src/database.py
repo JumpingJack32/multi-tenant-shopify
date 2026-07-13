@@ -1,7 +1,7 @@
 import importlib
 import os
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine as sa_create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine as sa_create_async_engine
 from sqlalchemy.pool import NullPool
 
 from src.config import settings

@@ -1,6 +1,5 @@
 from uuid import UUID
 
-import pytest
 from src.orm.models.tenant import TenantUser
 from src.orm.schemas.tenant import TenantUserAuthResponse
 

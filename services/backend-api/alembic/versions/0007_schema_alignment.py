@@ -11,8 +11,6 @@ Create Date: 2026-07-10
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
-import sqlmodel
 
 revision: str = "0007"
 down_revision: Union[str, None] = "5ffe6f1c9bd2"

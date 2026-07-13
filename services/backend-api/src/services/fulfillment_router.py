@@ -99,7 +99,7 @@ async def _create_dropship_po(
         fulfillment_strategy=FulfillmentStrategy.DROPSHIP.value,
         subtotal=0,
         total=0,
-        notes=f"Auto-generated from Sales Order item",
+        notes="Auto-generated from Sales Order item",
     )
     db.add(po)
     await db.flush()

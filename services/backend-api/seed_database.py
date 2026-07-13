@@ -10,7 +10,6 @@ import random
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import text
 
@@ -736,7 +735,7 @@ async def main() -> None:
         total_tenants = len(tenants)
         total_products = sum(len(PRODUCTS_BY_TENANT[s]) for s in tenants)
         total_customers = sum(len(CUSTOMERS_BY_TENANT[s]) for s in tenants)
-        print(f"\nDatabase seeded successfully!")
+        print("\nDatabase seeded successfully!")
         print(f"Tenants: {total_tenants}, Products: {total_products}, Customers: {total_customers}")
 
 

@@ -159,6 +159,21 @@ export async function clearCart(
   });
 }
 
+// ── Orders ──
+
+export async function fetchOrder(
+  tenantSlug: string,
+  orderId: string,
+): Promise<OrderResponse | null> {
+  try {
+    return await fetchJson<OrderResponse>(
+      `${API_URL}/api/v1/storefront/${tenantSlug}/orders/${orderId}`,
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function checkoutCart(
   tenantSlug: string,
   cartId: string,

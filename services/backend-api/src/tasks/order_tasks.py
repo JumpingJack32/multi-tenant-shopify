@@ -1,11 +1,9 @@
 from uuid import UUID
 
-from sqlmodel import Session, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.dependencies import get_db
-from src.orm.models.order import Order, OrderItem, PaymentStatus
-from src.orm.models.product import Variant
+from src.orm.models.order import Order, PaymentStatus
 
 
 async def process_order_payment(
@@ -30,7 +28,6 @@ async def _process_order_payment_impl(
     db: AsyncSession,
 ) -> None:
     """Internal implementation for processing order payment."""
-    from src.orm.models.order import Order
 
     stmt = select(Order).where(Order.id == order_id)
     result = await db.exec(stmt)

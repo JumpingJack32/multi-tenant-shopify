@@ -8,9 +8,7 @@ Requires env vars (Doppler) to run. The key invariant tested:
   - Only valid UUIDs from `x-tenant-id` header or `tenant_id` claim are accepted
 """
 
-from uuid import UUID
 
-import pytest
 from fastapi.testclient import TestClient
 
 

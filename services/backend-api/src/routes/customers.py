@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.order import Customer, CustomerAddress, Order
+from src.orm.models.order import Customer
 from src.orm.schemas.customer import (
     CustomerAddressResponse,
     CustomerDetailResponse,
