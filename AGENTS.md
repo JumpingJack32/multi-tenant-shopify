@@ -75,16 +75,14 @@
 
 ## Completed 2026-07-13 — Abandoned Cart Recovery
 
-### PR #13 — `feat: abandoned cart recovery`
-
 **Architecture:**
 
 - Cart model: `CartStatus` enum, `email`, `status`, `last_reminded_at`, `unsubscribed`, `completed_at` fields + migration
 - Checkout: accepts `customer_email`, soft-delete (`status=completed`) instead of hard-delete
-- EmailService: abstract base + `LogEmailService` mock (ready for `ResendEmailService` in phase 2)
+- EmailService: abstract base + `LogEmailService` mock + `ResendEmailService` (production via httpx)
 - Background worker: `asyncio.create_task()` polls every 15min, `SELECT FOR UPDATE SKIP LOCKED`, commit-before-IO
 - Unsubscribe: `POST /api/v1/public/carts/unsubscribe/{hmac_token}` — privacy-safe
-- Recovery URL: `/{slug}/cart?recover={cart_id}` (placeholder host — needs domain config for production)
+- Recovery URL: uses `Tenant.domain` when configured, falls back to slug placeholder
 
 **Frontend:**
 
@@ -92,47 +90,39 @@
 - Cart cookie + localStorage cleared on checkout success
 - Stale completed cart detection on hydration
 
-**Email templates:** Jinja2 HTML + plaintext (`£` hardcoded — needs parameterization for multi-currency)
+**Email:** Jinja2 templates parameterized with `{{ currency_symbol }}` from `Tenant.settings["currency"]`. ResendEmailService fully implemented — activated when `RESEND_API_KEY` is set in Doppler.
 
-**Tests:** 13 backend tests + 12 admin detail page tests, all passing
+**Defensive error handling:**
 
-**Files Changed (42 files in the full session):**
+- Per-cart `try/except` in payload building loop — a single bad cart doesn't crash the batch
+- Per-item `try/except` for `variant.product.name` — deleted variants gracefully become "Product" with price 0
+- Per-cart `try/except` in send loop — network or API errors logged, cart retries in 24h
+- `selectinload(Cart.items).selectinload(CartItem.variant).selectinload(Variant.product)` — prevents async greenlet lazy-load crashes
 
-| File                                                                      | Change                                                                                                |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `services/backend-api/src/orm/models/cart.py`                             | Added `CartStatus` enum, `email`, `status`, `last_reminded_at`, `unsubscribed`, `completed_at` fields |
-| `services/backend-api/alembic/versions/0012_add_abandoned_cart_fields.py` | New: migration for cart schema changes                                                                |
-| `services/backend-api/src/orm/schemas/cart.py`                            | Added `customer_email` to `CheckoutRequest`, `status` to `CartResponse`                               |
-| `services/backend-api/src/routes/storefront.py`                           | Checkout captures email, sets `status=completed`, no hard-delete                                      |
-| `services/backend-api/src/services/email_service.py`                      | New: `EmailService` (ABC) + `LogEmailService` mock + factory                                          |
-| `services/backend-api/src/services/abandoned_cart.py`                     | New: `AbandonedCartService`, token utils, recovery URL builder                                        |
-| `services/backend-api/src/main.py`                                        | Added `_abandoned_cart_worker` background task in lifespan                                            |
-| `services/backend-api/src/routes/public.py`                               | Added `POST /carts/unsubscribe/{token}` endpoint                                                      |
-| `services/backend-api/src/templates/email/abandoned_cart.html`            | New: HTML email template                                                                              |
-| `services/backend-api/src/templates/email/abandoned_cart.txt`             | New: plaintext email template                                                                         |
-| `services/backend-api/tests/test_abandoned_cart.py`                       | 13 tests: model, email service, token utils, service, unsubscribe                                     |
-| `apps/admin/src/app/(app)/orders/[id]/page.tsx`                           | Refactored to thin shell + `OrderDetailContent`                                                       |
-| `apps/admin/src/app/(app)/orders/[id]/order-detail-content.tsx`           | New: extracted content component                                                                      |
-| `apps/admin/src/app/(app)/orders/__tests__/order-detail-page.test.tsx`    | New: 12 tests for order detail page                                                                   |
-| `apps/storefront/src/lib/storefront-api.ts`                               | Added `fetchOrder` (was missing)                                                                      |
-| `apps/storefront/src/components/storefront/cart-drawer.tsx`               | Email input in checkout, wired to useCheckout                                                         |
-| `apps/storefront/src/components/storefront/cart-hydrator.tsx`             | Stale completed cart detection                                                                        |
-| `apps/storefront/src/hooks/use-cart.ts`                                   | useCheckout cleanup improved                                                                          |
-| `packages/codegen/src/client/types.gen.ts`                                | Added `status` to CartResponse                                                                        |
+**Resend config:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL` set in Doppler (`dev` config). Domain `multi-tenant-shopify.com` added in Resend (Ireland region) — DNS verification (TXT record) pending before emails send.
+
+**Ruff:** 72 auto-fixed + 13 unsafe-fixed. 2 remaining: Alembic star import (`alembic/env.py:16` — intentional) and `CustomerResponse` forward reference (`src/orm/schemas/product.py:154` — pre-existing).
+
+**Tests:** 14 backend tests (model, email service, token utils, service, unsubscribe, recovery URL variants) + 12 admin detail page tests + 48 total admin tests — all passing.
 
 ## Key Decisions
 
 - Background worker follows existing `asyncio.create_task()` pattern (no Celery/Redis queue)
-- Email: `LogEmailService` for dev, `ResendEmailService` for production (phase 2)
+- Email: `LogEmailService` for dev, `ResendEmailService` for production (auto-detected from settings.resend_api_key)
 - `SELECT FOR UPDATE SKIP LOCKED` + commit-before-IO prevents double-email
 - `Cart.tenant_id` matches `Tenant.tenant_id` (business identifier), not `Tenant.id` (PK)
 - `use(Promise)` pattern in page params requires extracting content into separate component for testability
 - `Cart.unsubscribed == False` with `# noqa: E712` — correct SQLAlchemy column expression despite ruff rule
+- Currency symbol in email templates resolved from `Tenant.settings["currency"]` via 20-entry `CURRENCY_SYMBOLS` map
+- Recovery URL uses `Tenant.domain` when set, otherwise falls back to `https://{slug}/cart?recover={id}`
+- Defensive per-cart/per-item try/except in abandoned cart worker prevents single bad payload from crashing 15-min cycle
+- Resend API calls use `httpx.AsyncClient` with 30s timeout; non-2xx responses return False (no exception thrown)
+- `selectinload` chaining required for async CartItem.variant.Variant.product access (greenlet error otherwise)
 
 ## Pending — Next Session
 
-- **ResendEmailService** (phase 2) — swap LogEmailService for production email sending
-- Recovery URL domain configuration — `build_recovery_url` needs tenant domain, not placeholder slug
+- **Verify Resend domain** — add Resend's DNS TXT record to `multi-tenant-shopify.com`, restart server, worker will pick up seeded test cart on next 15-min tick
+- Seed test cart script saved at `services/backend-api/scripts/seed_test_abandoned_cart.py`
 
 ## Key Decisions (All)
 
