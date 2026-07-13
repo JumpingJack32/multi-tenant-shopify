@@ -10,7 +10,6 @@ from src.orm.base import BaseModel
 
 if TYPE_CHECKING:
     from src.orm.models.product import Variant
-    from src.orm.models.tenant import Tenant
 
 
 class CartStatus(str, enum.Enum):
