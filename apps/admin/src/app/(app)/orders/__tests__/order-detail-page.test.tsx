@@ -90,6 +90,8 @@ function mockTenant(overrides: Record<string, unknown> = {}) {
   vi.mocked(useTenantContext).mockReturnValue({
     currentTenantId: "tenant-001",
     isLoading: false,
+    networkError: false,
+    retry: vi.fn(),
     ...overrides,
   } as ReturnType<typeof useTenantContext>);
 }

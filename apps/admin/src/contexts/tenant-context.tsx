@@ -23,6 +23,8 @@ interface TenantContextValue {
   tenantList: TenantInfo[];
   setTenant: (tenantId: string) => void;
   isLoading: boolean;
+  networkError: boolean;
+  retry: () => void;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
@@ -34,6 +36,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [currentTenant, setCurrentTenant] = useState<TenantInfo | null>(null);
   const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -121,9 +124,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        // 5. Actually log the error instead of swallowing it silently
         console.error("Failed to fetch tenants:", error);
-        if (isMounted) setTenantList([]);
+        if (isMounted) {
+          setTenantList([]);
+          setNetworkError(true);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -134,6 +139,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  const retry = useCallback(() => {
+    setNetworkError(false);
+    setIsLoading(true);
+    // Re-trigger by forcing isLoading to reset — the effect can't be re-run,
+    // so reload the page as the simplest reliable recovery
+    window.location.reload();
   }, []);
 
   const setTenant = useCallback(
@@ -158,6 +171,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         tenantList,
         setTenant,
         isLoading,
+        networkError,
+        retry,
       }}
     >
       {children}
