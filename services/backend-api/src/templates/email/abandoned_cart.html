@@ -16,7 +16,7 @@
         <p style="margin: 0; font-size: 14px;">{{ item.product_name }}</p>
         <p style="margin: 4px 0 0; color: #666; font-size: 12px;">Qty: {{ item.quantity }}</p>
       </td>
-      <td style="padding: 12px 0; text-align: right; font-size: 14px;">£{{ "%.2f"|format(item.unit_price / 100) }}</td>
+      <td style="padding: 12px 0; text-align: right; font-size: 14px;">{{ currency_symbol }}{{ "%.2f"|format(item.unit_price / 100) }}</td>
     </tr>
     {% endfor %}
   </table>

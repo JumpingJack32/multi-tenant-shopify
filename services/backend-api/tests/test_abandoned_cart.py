@@ -49,6 +49,7 @@ class TestEmailService:
             cart={"id": "abc", "items": [{"product_name": "Widget", "quantity": 1, "unit_price": 1000}]},
             recovery_url="https://example.com/cart?recover=abc",
             tenant_name="Test Store",
+            currency="GBP",
             unsubscribe_token="test-token",
         )
         assert result is True
@@ -84,9 +85,13 @@ class TestTokenUtils:
         with pytest.raises(ValueError, match="Invalid token"):
             verify_unsubscribe_token(token[:-1] + "X", "secret")
 
-    def test_build_recovery_url(self):
+    def test_build_recovery_url_without_domain(self):
         url = build_recovery_url("my-store", uuid.UUID(int=1))
         assert url == "https://my-store/cart?recover=00000000-0000-0000-0000-000000000001"
+
+    def test_build_recovery_url_with_domain(self):
+        url = build_recovery_url("my-store", uuid.UUID(int=1), tenant_domain="shop.example.com")
+        assert url == "https://shop.example.com/cart?recover=00000000-0000-0000-0000-000000000001"
 
 
 class TestAbandonedCartService:
@@ -121,15 +126,18 @@ class TestAbandonedCartService:
         mock_cart.email = "buyer@example.com"
         mock_cart.unsubscribed = False
         mock_cart.items = []
+        mock_cart.tenant_id = uuid.uuid4()
         mock_tenant = MagicMock()
         mock_tenant.slug = "my-store"
         mock_tenant.name = "My Store"
-        mock_cart.tenant = mock_tenant
+        mock_tenant.domain = "shop.example.com"
+        mock_tenant.settings = {"currency": "EUR"}
+        mock_tenant.tenant_id = mock_cart.tenant_id
 
         cart_result = MagicMock()
         cart_result.scalars.return_value.all.return_value = [mock_cart]
         tenant_result = MagicMock()
-        tenant_result.scalars.return_value.all.return_value = []
+        tenant_result.scalars.return_value.all.return_value = [mock_tenant]
         db_session.execute.side_effect = [cart_result, tenant_result]
         email_service.send_abandoned_cart.return_value = True
 
@@ -139,6 +147,10 @@ class TestAbandonedCartService:
         assert mock_cart.last_reminded_at is not None
         db_session.commit.assert_called_once()
         email_service.send_abandoned_cart.assert_awaited_once()
+        # Verify currency and domain were passed through
+        call_kwargs = email_service.send_abandoned_cart.call_args[1]
+        assert call_kwargs["currency"] == "EUR"
+        assert "shop.example.com" in call_kwargs["recovery_url"]
 
 
 class TestUnsubscribeEndpoint:

@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     exchange_rate_refresh_hours: int = 6
     exchange_rate_base_currency: str = "GBP"
 
+    # Resend (optional — for production email)
+    resend_api_key: str | None = None
+    resend_from_email: str = "noreply@yourplatform.com"
+
     # App
     app_env: str = "development"
     debug: bool = False

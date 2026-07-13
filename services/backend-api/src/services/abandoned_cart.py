@@ -43,11 +43,10 @@ def verify_unsubscribe_token(token: str, secret: str) -> dict:
         raise ValueError("Invalid token") from e
 
 
-def build_recovery_url(tenant_slug: str, cart_id: UUID) -> str:
-    """Build recovery URL linking back to the storefront cart.
-    NOTE: The host is set to tenant_slug as a local placeholder.
-    In production this should use the tenant's actual domain from settings."""
-    return f"https://{tenant_slug}/cart?recover={cart_id}"
+def build_recovery_url(tenant_slug: str, cart_id: UUID, tenant_domain: str | None = None) -> str:
+    """Build recovery URL using tenant's domain or slug-based fallback."""
+    host = tenant_domain or f"{tenant_slug}"
+    return f"https://{host}/cart?recover={cart_id}"
 
 
 class AbandonedCartService:
@@ -98,9 +97,11 @@ class AbandonedCartService:
         for cart in carts:
             cart.last_reminded_at = datetime.now(timezone.utc)
             tenant = tenant_map.get(cart.tenant_id) if cart.tenant_id else None
+            tenant_currency = (tenant.settings or {}).get("currency", "GBP") if tenant else "GBP"
             payloads.append({
                 "id": cart.id,
                 "email": cart.email,
+                "currency": tenant_currency,
                 "items": [
                     {
                         "id": str(i.id) if hasattr(i, "id") else None,
@@ -112,6 +113,7 @@ class AbandonedCartService:
                 ],
                 "tenant_slug": tenant.slug if tenant else "store",
                 "tenant_name": tenant.name if tenant else "Store",
+                "tenant_domain": tenant.domain if tenant else None,
             })
 
         await self.db.commit()
@@ -119,7 +121,9 @@ class AbandonedCartService:
         # Network I/O outside transaction
         for payload in payloads:
             try:
-                recovery_url = build_recovery_url(payload["tenant_slug"], payload["id"])
+                recovery_url = build_recovery_url(
+                    payload["tenant_slug"], payload["id"], payload.get("tenant_domain"),
+                )
                 unsub_token = sign_unsubscribe_token(
                     payload["id"], payload["email"], settings.jwt_secret
                 )
@@ -128,6 +132,7 @@ class AbandonedCartService:
                     cart=payload,
                     recovery_url=recovery_url,
                     tenant_name=payload["tenant_name"],
+                    currency=payload["currency"],
                     unsubscribe_token=unsub_token,
                 )
             except Exception:

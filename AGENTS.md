@@ -73,11 +73,66 @@
 | `apps/storefront/src/components/storefront/currency-switcher.tsx` | New: CurrencySwitcher dropdown component                                              |
 | `apps/storefront/src/app/[tenant]/layout.tsx`                     | Added CurrencySwitcher to header nav, SSR cookie read                                 |
 
+## Completed 2026-07-13 — Abandoned Cart Recovery
+
+### PR #13 — `feat: abandoned cart recovery`
+
+**Architecture:**
+
+- Cart model: `CartStatus` enum, `email`, `status`, `last_reminded_at`, `unsubscribed`, `completed_at` fields + migration
+- Checkout: accepts `customer_email`, soft-delete (`status=completed`) instead of hard-delete
+- EmailService: abstract base + `LogEmailService` mock (ready for `ResendEmailService` in phase 2)
+- Background worker: `asyncio.create_task()` polls every 15min, `SELECT FOR UPDATE SKIP LOCKED`, commit-before-IO
+- Unsubscribe: `POST /api/v1/public/carts/unsubscribe/{hmac_token}` — privacy-safe
+- Recovery URL: `/{slug}/cart?recover={cart_id}` (placeholder host — needs domain config for production)
+
+**Frontend:**
+
+- Email input in checkout flow
+- Cart cookie + localStorage cleared on checkout success
+- Stale completed cart detection on hydration
+
+**Email templates:** Jinja2 HTML + plaintext (`£` hardcoded — needs parameterization for multi-currency)
+
+**Tests:** 13 backend tests + 12 admin detail page tests, all passing
+
+**Files Changed (42 files in the full session):**
+
+| File                                                                      | Change                                                                                                |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `services/backend-api/src/orm/models/cart.py`                             | Added `CartStatus` enum, `email`, `status`, `last_reminded_at`, `unsubscribed`, `completed_at` fields |
+| `services/backend-api/alembic/versions/0012_add_abandoned_cart_fields.py` | New: migration for cart schema changes                                                                |
+| `services/backend-api/src/orm/schemas/cart.py`                            | Added `customer_email` to `CheckoutRequest`, `status` to `CartResponse`                               |
+| `services/backend-api/src/routes/storefront.py`                           | Checkout captures email, sets `status=completed`, no hard-delete                                      |
+| `services/backend-api/src/services/email_service.py`                      | New: `EmailService` (ABC) + `LogEmailService` mock + factory                                          |
+| `services/backend-api/src/services/abandoned_cart.py`                     | New: `AbandonedCartService`, token utils, recovery URL builder                                        |
+| `services/backend-api/src/main.py`                                        | Added `_abandoned_cart_worker` background task in lifespan                                            |
+| `services/backend-api/src/routes/public.py`                               | Added `POST /carts/unsubscribe/{token}` endpoint                                                      |
+| `services/backend-api/src/templates/email/abandoned_cart.html`            | New: HTML email template                                                                              |
+| `services/backend-api/src/templates/email/abandoned_cart.txt`             | New: plaintext email template                                                                         |
+| `services/backend-api/tests/test_abandoned_cart.py`                       | 13 tests: model, email service, token utils, service, unsubscribe                                     |
+| `apps/admin/src/app/(app)/orders/[id]/page.tsx`                           | Refactored to thin shell + `OrderDetailContent`                                                       |
+| `apps/admin/src/app/(app)/orders/[id]/order-detail-content.tsx`           | New: extracted content component                                                                      |
+| `apps/admin/src/app/(app)/orders/__tests__/order-detail-page.test.tsx`    | New: 12 tests for order detail page                                                                   |
+| `apps/storefront/src/lib/storefront-api.ts`                               | Added `fetchOrder` (was missing)                                                                      |
+| `apps/storefront/src/components/storefront/cart-drawer.tsx`               | Email input in checkout, wired to useCheckout                                                         |
+| `apps/storefront/src/components/storefront/cart-hydrator.tsx`             | Stale completed cart detection                                                                        |
+| `apps/storefront/src/hooks/use-cart.ts`                                   | useCheckout cleanup improved                                                                          |
+| `packages/codegen/src/client/types.gen.ts`                                | Added `status` to CartResponse                                                                        |
+
+## Key Decisions
+
+- Background worker follows existing `asyncio.create_task()` pattern (no Celery/Redis queue)
+- Email: `LogEmailService` for dev, `ResendEmailService` for production (phase 2)
+- `SELECT FOR UPDATE SKIP LOCKED` + commit-before-IO prevents double-email
+- `Cart.tenant_id` matches `Tenant.tenant_id` (business identifier), not `Tenant.id` (PK)
+- `use(Promise)` pattern in page params requires extracting content into separate component for testability
+- `Cart.unsubscribed == False` with `# noqa: E712` — correct SQLAlchemy column expression despite ruff rule
+
 ## Pending — Next Session
 
-- **Abandoned Cart Recovery** — post-launch optimization
-- Admin detail page tests (the `[id]/page.tsx` order detail page)
-- Lint + typecheck verification (backend)
+- **ResendEmailService** (phase 2) — swap LogEmailService for production email sending
+- Recovery URL domain configuration — `build_recovery_url` needs tenant domain, not placeholder slug
 
 ## Key Decisions (All)
 
@@ -110,6 +165,11 @@
 - Exchange rates cached in Redis by the `RateService` — no DB in the conversion path
 - `_apply_rate` uses `ROUND_HALF_UP` quantize to nearest integer cent
 - 24 interceptor unit tests run in <0.1s without Doppler (env vars via pytest inline overrides)
+
+## Database Reseeding
+
+- After any backend update involving models or schemas (new fields, new models, Alembic migrations), run the seed script to ensure test data matches the schema: `doppler run -- uv run python seed_database.py` from `services/backend-api/`
+- The seed script is idempotent — it truncates all tenant-scoped data and re-seeds in a single transaction
 
 ## UI Design
 
