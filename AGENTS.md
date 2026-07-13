@@ -121,7 +121,7 @@
 
 ## Pending — Next Session
 
-- **Verify Resend domain** — add Resend's DNS TXT record to `multi-tenant-shopify.com`, restart server, worker will pick up seeded test cart on next 15-min tick
+- **Resend email test** — requires DNS TXT record for `multi-tenant-shopify.com` or a Resend test API key. Until then, `LogEmailService` is used in dev (logs payload to console). `ResendEmailService` auto-activates in production (`doppler_pr: prod` + `RESEND_API_KEY` set).
 - Seed test cart script saved at `services/backend-api/scripts/seed_test_abandoned_cart.py`
 
 ## Key Decisions (All)
