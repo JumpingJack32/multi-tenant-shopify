@@ -1,10 +1,20 @@
 """Tests for abandoned cart recovery."""
 
-from datetime import datetime, timezone
+import uuid
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from sqlmodel import select
 
 from src.orm.models.cart import Cart, CartItem, CartStatus
+from src.services.abandoned_cart import (
+    AbandonedCartService,
+    build_recovery_url,
+    sign_unsubscribe_token,
+    verify_unsubscribe_token,
+)
+from src.services.email_service import LogEmailService
 
 
 class TestCartModel:
@@ -50,3 +60,84 @@ class TestEmailService:
 
         svc = create_email_service()
         assert isinstance(svc, LogEmailService)
+
+
+class TestTokenUtils:
+    def test_sign_and_verify_token(self):
+        cart_id = uuid.uuid4()
+        email = "test@example.com"
+        secret = "test-secret"
+
+        token = sign_unsubscribe_token(cart_id, email, secret)
+        payload = verify_unsubscribe_token(token, secret)
+
+        assert str(payload["cart_id"]) == str(cart_id)
+        assert payload["email"] == email
+
+    def test_verify_wrong_secret_fails(self):
+        cart_id = uuid.uuid4()
+        token = sign_unsubscribe_token(cart_id, "test@example.com", "secret1")
+        with pytest.raises(ValueError, match="Invalid token"):
+            verify_unsubscribe_token(token, "wrong-secret")
+
+    def test_verify_tampered_token_fails(self):
+        cart_id = uuid.uuid4()
+        token = sign_unsubscribe_token(cart_id, "test@example.com", "secret")
+        with pytest.raises(ValueError, match="Invalid token"):
+            verify_unsubscribe_token(token[:-1] + "X", "secret")
+
+    def test_build_recovery_url(self):
+        url = build_recovery_url("my-store", uuid.UUID(int=1))
+        assert url == "https://my-store/cart?recover=00000000-0000-0000-0000-000000000001"
+
+
+class TestAbandonedCartService:
+    @pytest.fixture
+    def db_session(self):
+        """Return a mock AsyncSession."""
+        return AsyncMock()
+
+    @pytest.fixture
+    def email_service(self):
+        return AsyncMock(spec=LogEmailService)
+
+    @pytest.fixture
+    def service(self, db_session, email_service):
+        return AbandonedCartService(db_session, email_service)
+
+    async def test_process_no_candidates(self, service, db_session):
+        """When no carts qualify, no emails are sent."""
+        result_mock = MagicMock()
+        result_mock.scalars.return_value.all.return_value = []
+        db_session.execute.return_value = result_mock
+
+        count = await service.process_abandoned_carts()
+
+        assert count == 0
+        db_session.commit.assert_called_once()
+
+    async def test_process_with_candidates(self, service, db_session, email_service):
+        """Carts meeting criteria are processed and email is sent."""
+        mock_cart = MagicMock(spec=Cart)
+        mock_cart.id = uuid.uuid4()
+        mock_cart.email = "buyer@example.com"
+        mock_cart.unsubscribed = False
+        mock_cart.items = []
+        mock_tenant = MagicMock()
+        mock_tenant.slug = "my-store"
+        mock_tenant.name = "My Store"
+        mock_cart.tenant = mock_tenant
+
+        cart_result = MagicMock()
+        cart_result.scalars.return_value.all.return_value = [mock_cart]
+        tenant_result = MagicMock()
+        tenant_result.scalars.return_value.all.return_value = []
+        db_session.execute.side_effect = [cart_result, tenant_result]
+        email_service.send_abandoned_cart.return_value = True
+
+        count = await service.process_abandoned_carts()
+
+        assert count == 1
+        assert mock_cart.last_reminded_at is not None
+        db_session.commit.assert_called_once()
+        email_service.send_abandoned_cart.assert_awaited_once()
