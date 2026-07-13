@@ -141,3 +141,47 @@ class TestAbandonedCartService:
         assert mock_cart.last_reminded_at is not None
         db_session.commit.assert_called_once()
         email_service.send_abandoned_cart.assert_awaited_once()
+
+
+class TestUnsubscribeEndpoint:
+    @pytest.fixture
+    def db_session(self):
+        return AsyncMock()
+
+    @pytest.fixture
+    def test_app(self, db_session):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from src.dependencies import get_db
+        from src.routes.public import router
+
+        app = FastAPI()
+        app.dependency_overrides[get_db] = lambda: db_session
+        app.include_router(router, prefix="/api/v1/public")
+        return TestClient(app)
+
+    def test_unsubscribe_invalid_token(self, test_app):
+        response = test_app.post("/api/v1/public/carts/unsubscribe/invalid-token")
+        assert response.status_code == 400
+        assert "Invalid" in response.json()["detail"]
+
+    def test_unsubscribe_valid_token(self, test_app, db_session):
+        from src.config import settings
+        from src.orm.models.cart import Cart
+
+        cart = Cart(tenant_id=uuid.uuid4(), email="test@example.com")
+
+        async def mock_get(model, ident):
+            if model == Cart and str(ident) == str(cart.id):
+                return cart
+            return None
+
+        db_session.get.side_effect = mock_get
+
+        token = sign_unsubscribe_token(cart.id, "test@example.com", settings.jwt_secret)
+        response = test_app.post(f"/api/v1/public/carts/unsubscribe/{token}")
+        assert response.status_code == 200
+
+        assert cart.unsubscribed is True
+        db_session.commit.assert_awaited_once()

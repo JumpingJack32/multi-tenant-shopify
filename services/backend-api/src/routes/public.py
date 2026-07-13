@@ -1,15 +1,16 @@
 """Public storefront endpoints — no auth or tenant header required."""
 
-from uuid import UUID
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.config import settings
 from src.core.tenant_isolation import set_tenant_context
 from src.dependencies import get_db
+from src.orm.models.cart import Cart
 from src.orm.models.category import Category
+from src.services.abandoned_cart import verify_unsubscribe_token
 from src.orm.models.product import Product
 from src.orm.models.tenant import Tenant
 from src.orm.models.collection import Collection
@@ -155,3 +156,22 @@ async def public_collections(
             product_count=len(col.products),
         ))
     return result
+
+
+@router.post("/carts/unsubscribe/{token}")
+async def unsubscribe_cart_recovery(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Unsubscribe from abandoned cart emails via signed token."""
+    try:
+        payload = verify_unsubscribe_token(token, settings.jwt_secret)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid unsubscribe token")
+
+    cart = await db.get(Cart, payload["cart_id"])
+    if cart and cart.email == payload["email"]:
+        cart.unsubscribed = True
+        await db.commit()
+
+    return {"ok": True}

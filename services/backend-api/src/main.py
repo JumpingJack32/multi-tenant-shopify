@@ -15,6 +15,7 @@ from src.core.exchange_rates.service import RateService
 logger = logging.getLogger(__name__)
 
 _exchange_rate_task: asyncio.Task | None = None
+_abandoned_cart_task: asyncio.Task | None = None
 
 
 async def _exchange_rate_refresh_worker():
@@ -32,10 +33,31 @@ async def _exchange_rate_refresh_worker():
         await asyncio.sleep(settings.exchange_rate_refresh_hours * 3600)
 
 
+async def _abandoned_cart_worker():
+    """Background worker that sends abandoned cart reminder emails every 15 min."""
+    while True:
+        try:
+            from sqlmodel.ext.asyncio.session import AsyncSession
+
+            from src.services.abandoned_cart import AbandonedCartService
+            from src.services.email_service import create_email_service
+
+            email_service = create_email_service()
+            async with AsyncSession(async_engine) as session:
+                svc = AbandonedCartService(session, email_service)
+                count = await svc.process_abandoned_carts()
+                if count:
+                    logger.info("Abandoned cart worker: %d reminders sent", count)
+        except Exception:
+            logger.exception("Abandoned cart worker error")
+
+        await asyncio.sleep(900)  # 15 minutes
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize resources on startup and cleanup on shutdown."""
-    global _exchange_rate_task
+    global _exchange_rate_task, _abandoned_cart_task
 
     # Validate config
     _ = settings.database_url
@@ -63,6 +85,9 @@ async def lifespan(app: FastAPI):
     if settings.redis_enabled:
         _exchange_rate_task = asyncio.create_task(_exchange_rate_refresh_worker())
 
+    # Start abandoned cart background worker
+    _abandoned_cart_task = asyncio.create_task(_abandoned_cart_worker())
+
     yield
 
     # Cleanup
@@ -70,6 +95,12 @@ async def lifespan(app: FastAPI):
         _exchange_rate_task.cancel()
         try:
             await _exchange_rate_task
+        except asyncio.CancelledError:
+            pass
+    if _abandoned_cart_task:
+        _abandoned_cart_task.cancel()
+        try:
+            await _abandoned_cart_task
         except asyncio.CancelledError:
             pass
     await redis_client.close()
@@ -115,7 +146,7 @@ from src.routes.customers import router as customers_router  # noqa: E402
 from src.routes.collections import router as collections_router  # noqa: E402
 from src.routes.media import router as media_router  # noqa: E402
 from src.routes.admin import router as admin_router  # noqa: E402
-from src.routes.product_images import router as product_images_router
+from src.routes.product_images import router as product_images_router  # noqa: E402
 from src.routes.inventory import router as inventory_router  # noqa: E402
 from src.routes.suppliers import router as suppliers_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
