@@ -101,7 +101,7 @@ async def list_storefront_products(
     base_filters = [
         Product.tenant_id == tenant.tenant_id,
         Product.status == "published",
-        Product.is_active == True,
+        Product.is_active,
     ]
 
     # Count
@@ -111,13 +111,13 @@ async def list_storefront_products(
     if category:
         from src.orm.models.category import Category
         count_stmt = count_stmt.join(Category, Product.category_id == Category.id).where(
-            Category.slug == category, Category.is_active == True
+            Category.slug == category, Category.is_active
         )
     if collection:
         count_stmt = (
             count_stmt.join(ProductCollection, Product.id == ProductCollection.product_id)
             .join(Collection, ProductCollection.collection_id == Collection.id)
-            .where(Collection.slug == collection, Collection.is_active == True)
+            .where(Collection.slug == collection, Collection.is_active)
         )
 
     result = await db.exec(count_stmt)
@@ -141,14 +141,14 @@ async def list_storefront_products(
     if category:
         from src.orm.models.category import Category
         stmt = stmt.join(Category, Product.category_id == Category.id).where(
-            Category.slug == category, Category.is_active == True
+            Category.slug == category, Category.is_active
         )
 
     if collection:
         stmt = (
             stmt.join(ProductCollection, Product.id == ProductCollection.product_id)
             .join(Collection, ProductCollection.collection_id == Collection.id)
-            .where(Collection.slug == collection, Collection.is_active == True)
+            .where(Collection.slug == collection, Collection.is_active)
         )
 
     stmt = stmt.order_by(Product.created_at.desc())
@@ -192,7 +192,7 @@ async def get_storefront_product(
             Product.tenant_id == tenant.tenant_id,
             Product.slug == product_slug,
             Product.status == "published",
-            Product.is_active == True,
+            Product.is_active,
         )
     )
     result = await db.exec(stmt)

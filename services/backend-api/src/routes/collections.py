@@ -17,7 +17,7 @@ async def list_collections(
 ):
     stmt = select(Collection).where(Collection.tenant_id == tenant_id)
     if not include_inactive:
-        stmt = stmt.where(Collection.is_active == True)
+        stmt = stmt.where(Collection.is_active)
     stmt = stmt.order_by(Collection.sort_order, Collection.name)
     collections = (await db.exec(stmt)).all()
     result = []

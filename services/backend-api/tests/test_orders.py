@@ -87,8 +87,8 @@ class TestListOrders:
     async def test_list_with_orders(self, client_a: AsyncClient):
         async with AsyncSession(async_engine) as db:
             c = await _customer(db)
-            o1 = await _order(db, c, order_number="SO-001")
-            o2 = await _order(db, c, order_number="SO-002", status="paid")
+            await _order(db, c, order_number="SO-001")
+            await _order(db, c, order_number="SO-002", status="paid")
             await db.commit()
 
         resp = await client_a.get("/api/v1/orders/")

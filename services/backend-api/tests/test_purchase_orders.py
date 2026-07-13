@@ -314,7 +314,7 @@ class TestSupplierEdgeCases:
         product = seeded_product_with_supplier
         # Get the supplier ID from the product
         resp = await client_a.get(f"/api/v1/inventory/{product['id']}")
-        supplier_name = resp.json()["supplier"]
+        resp.json()["supplier"]
 
         sup_resp = await client_a.get("/api/v1/suppliers")
         supplier_id = sup_resp.json()["data"][0]["id"]

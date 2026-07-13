@@ -275,7 +275,7 @@ async def me(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get
 async def verify(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     """Verify admin token and return user info (alias for /me)."""
     try:
-        payload_data = decode_token(token)
+        decode_token(token)
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

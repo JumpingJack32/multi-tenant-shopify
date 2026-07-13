@@ -113,7 +113,7 @@ async def create_order(
             v_result = await db.exec(v_stmt)
             variant = v_result.first()
             if variant:
-                po_id = await route_fulfillment(order_item, variant, tenant_id, db)
+                await route_fulfillment(order_item, variant, tenant_id, db)
 
     await db.refresh(order, ["items"])
     return order

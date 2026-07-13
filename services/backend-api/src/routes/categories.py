@@ -17,7 +17,7 @@ async def list_categories(
 ):
     stmt = select(Category).where(Category.tenant_id == tenant_id)
     if not include_inactive:
-        stmt = stmt.where(Category.is_active == True)
+        stmt = stmt.where(Category.is_active)
     stmt = stmt.order_by(Category.sort_order, Category.name)
     categories = (await db.exec(stmt)).all()
     result = []

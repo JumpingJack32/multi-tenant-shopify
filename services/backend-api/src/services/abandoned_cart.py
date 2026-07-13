@@ -95,26 +95,39 @@ class AbandonedCartService:
         # Extract payload and stamp before commit
         payloads = []
         for cart in carts:
-            cart.last_reminded_at = datetime.now(timezone.utc)
-            tenant = tenant_map.get(cart.tenant_id) if cart.tenant_id else None
-            tenant_currency = (tenant.settings or {}).get("currency", "GBP") if tenant else "GBP"
-            payloads.append({
-                "id": cart.id,
-                "email": cart.email,
-                "currency": tenant_currency,
-                "items": [
-                    {
+            try:
+                cart.last_reminded_at = datetime.now(timezone.utc)
+                tenant = tenant_map.get(cart.tenant_id) if cart.tenant_id else None
+                tenant_currency = (tenant.settings or {}).get("currency", "GBP") if tenant else "GBP"
+
+                items = []
+                for i in (cart.items or []):
+                    try:
+                        v = i.variant
+                        unit_price = v.price if v else 0
+                        product_name = v.product.name if v and v.product else "Product"
+                    except AttributeError:
+                        unit_price = 0
+                        product_name = "Product"
+
+                    items.append({
                         "id": str(i.id) if hasattr(i, "id") else None,
-                        "product_name": i.variant.product.name if i.variant and i.variant.product else "Product",
+                        "product_name": product_name,
                         "quantity": i.quantity,
-                        "unit_price": i.variant.price if i.variant else 0,
-                    }
-                    for i in cart.items
-                ],
-                "tenant_slug": tenant.slug if tenant else "store",
-                "tenant_name": tenant.name if tenant else "Store",
-                "tenant_domain": tenant.domain if tenant else None,
-            })
+                        "unit_price": unit_price,
+                    })
+
+                payloads.append({
+                    "id": cart.id,
+                    "email": cart.email,
+                    "currency": tenant_currency,
+                    "items": items,
+                    "tenant_slug": tenant.slug if tenant else "store",
+                    "tenant_name": tenant.name if tenant else "Store",
+                    "tenant_domain": tenant.domain if tenant else None,
+                })
+            except Exception:
+                logger.exception("Skipping cart %s due to payload build error", cart.id)
 
         await self.db.commit()
 
