@@ -36,6 +36,7 @@ class CartUpdateItemRequest(BaseModel):
 
 class CheckoutRequest(BaseModel):
     currency: str = "USD"
+    customer_email: str | None = None
     shipping_address: dict = Field(default_factory=dict)
     billing_address: dict = Field(default_factory=dict)
     notes: str | None = None
