@@ -1,13 +1,11 @@
 """Tests for abandoned cart recovery."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlmodel import select
 
-from src.orm.models.cart import Cart, CartItem, CartStatus
+from src.orm.models.cart import Cart, CartStatus
 from src.services.abandoned_cart import (
     AbandonedCartService,
     build_recovery_url,
