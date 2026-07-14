@@ -46,11 +46,11 @@ def test_create_input_accepts_all_fields():
         sku="WDG-PRO",
         category="Electronics",
         supplier="Acme Corp",
-        price=29.99,
+        price=2999,
         stock=100,
     )
     assert data.name == "Widget Pro"
-    assert data.price == 29.99
+    assert data.price == 2999
     assert data.stock == 100
 
 
@@ -75,14 +75,15 @@ def test_variant_response_from_attributes():
         item_id=pid,
         name="Widget",
         sku="WDG-001",
-        price=19.99,
+        price=1999,
+        cost=1000,
         stock=50,
         created_at=now,
         updated_at=now,
     )
     assert variant.id == vid
     assert variant.item_id == pid
-    assert variant.price == 19.99
+    assert variant.price == 1999
 
 
 def test_item_response_has_all_fields():
@@ -92,12 +93,12 @@ def test_item_response_has_all_fields():
     vid = uuid4()
     variant = InventoryVariantResponse(
         id=vid, item_id=iid, name="Widget", sku="WDG-001",
-        price=19.99, stock=50, created_at=now, updated_at=now,
+        price=1999, cost=1000, stock=50, created_at=now, updated_at=now,
     )
     item = InventoryItemResponse(
         id=iid, tenant_id=tid, sku="WDG-001", name="Widget",
         category="Goods", status="in_stock",
-        total_stock=50, total_value=999.50,
+        total_stock=50, total_value=99950,
         variants=[variant], created_at=now, updated_at=now,
     )
     assert item.id == iid
@@ -108,7 +109,7 @@ def test_item_response_has_all_fields():
 
 def test_stats_response():
     stats = InventoryStatsResponse(
-        total_skus=10, total_value=5000.0,
+        total_skus=10, total_value=5000,
         low_stock_count=2, out_of_stock_count=1, total_variants=10,
     )
     assert stats.total_skus == 10

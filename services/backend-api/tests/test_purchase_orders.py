@@ -43,6 +43,7 @@ async def setup_db():
         await db.exec(delete(PurchaseOrderItem))
         await db.exec(delete(PurchaseOrder))
         await db.exec(delete(POSequence))
+        await db.exec(text("DELETE FROM cart_items"))
         await db.exec(delete(OrderItem))
         await db.exec(delete(Order))
         await db.exec(delete(Inventory))
@@ -51,6 +52,9 @@ async def setup_db():
         await db.exec(delete(Location))
         await db.exec(delete(Supplier))
         await db.commit()
+
+
+from sqlalchemy import text
 
 
 @pytest.fixture
@@ -87,7 +91,7 @@ async def seeded_product_with_supplier(client_a: AsyncClient, seeded_supplier: d
         "name": "Test Widget",
         "sku": "TST-001",
         "supplier": seeded_supplier["name"],
-        "price": 19.99,
+        "price": 1999,
         "stock": 100,
     })
     assert resp.status_code == 201
@@ -218,11 +222,11 @@ class TestPurchaseOrders:
                 "product_name": "Test Widget",
                 "sku": "TST-001",
                 "quantity": 1,
-                "unit_price": 19.99,
-                "total_price": 19.99,
+                "unit_price": 1999,
+                "total_price": 1999,
             }],
-            "subtotal": 19.99,
-            "total": 19.99,
+            "subtotal": 1999,
+            "total": 1999,
         }
         resp = await client_a.post("/api/v1/orders/", json=so_payload)
         assert resp.status_code == 201
@@ -264,11 +268,11 @@ class TestPurchaseOrders:
                 "product_name": "Test Widget",
                 "sku": "TST-001",
                 "quantity": 1,
-                "unit_price": 19.99,
-                "total_price": 19.99,
+                "unit_price": 1999,
+                "total_price": 1999,
             }],
-            "subtotal": 19.99,
-            "total": 19.99,
+            "subtotal": 1999,
+            "total": 1999,
         }
         resp = await client_a.post("/api/v1/orders/", json=so_payload)
         assert resp.status_code == 201
@@ -290,11 +294,11 @@ class TestPurchaseOrders:
                 "product_name": "Test Widget",
                 "sku": "TST-001",
                 "quantity": 1,
-                "unit_price": 19.99,
-                "total_price": 19.99,
+                "unit_price": 1999,
+                "total_price": 1999,
             }],
-            "subtotal": 19.99,
-            "total": 19.99,
+            "subtotal": 1999,
+            "total": 1999,
         }
         await client_a.post("/api/v1/orders/", json=so_payload)
 
@@ -333,11 +337,11 @@ class TestSupplierEdgeCases:
                 "product_name": "Test Widget",
                 "sku": "TST-001",
                 "quantity": 1,
-                "unit_price": 19.99,
-                "total_price": 19.99,
+                "unit_price": 1999,
+                "total_price": 1999,
             }],
-            "subtotal": 19.99,
-            "total": 19.99,
+            "subtotal": 1999,
+            "total": 1999,
         }
         await client_a.post("/api/v1/orders/", json=so_payload)
 
@@ -359,11 +363,11 @@ class TestSupplierEdgeCases:
                 "product_name": "Test Widget",
                 "sku": "TST-001",
                 "quantity": 1,
-                "unit_price": 19.99,
-                "total_price": 19.99,
+                "unit_price": 1999,
+                "total_price": 1999,
             }],
-            "subtotal": 19.99,
-            "total": 19.99,
+            "subtotal": 1999,
+            "total": 1999,
         }
         await client_a.post("/api/v1/orders/", json=so_payload)
 

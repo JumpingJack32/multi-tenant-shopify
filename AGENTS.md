@@ -131,9 +131,22 @@
   - New `scripts/setup_resend_domain.py` — creates Resend domains and prints DNS records for Namecheap.
 - New `scripts/e2e_test_abandoned_cart.py` — seeds a cart + immediately processes it to verify full recovery pipeline (seed → query → stamp → commit → Resend API → email delivered).
 
+## Completed 2026-07-14 — Fixed 41 Errors + 23 Failures → 201/201 Passing
+
+**Root causes fixed:**
+
+- **DB cleanup ordering** — 6 test files had `DELETE FROM variants` before clearing `purchase_order_items`, `cart_items`, `inventory`. Added proper FK-respecting cleanup order to `test_categories.py`, `test_collections.py`, `test_dashboard.py`, `test_orders.py`, `test_inventory.py`, `test_purchase_orders.py`.
+- **Inventory price type** — Schema tests used `float` for price/cost; `InventoryVariantResponse` requires `int` (cents) and `cost` field.
+- **Inventory create 422** — `seeded_item` fixture used `price: 19.99` float; changed to `price: 1999` int.
+- **Orders list format** — Route returned `list[OrderResponse]` but tests expected `{"data": [...], "pagination": {...}}`. Wrapped in `PaginatedResponse` with proper count/sort/filter support.
+- **Order state machine** — Validation via `validate_transition()` was defined but never wired into `PUT /orders/{id}`. Added it → invalid transitions now return 422.
+- **Tenant middleware (dead code)** — `TenantMiddleware` class was defined but never registered on the app; removed it and its tests. Real tenant validation is via FastAPI `get_current_tenant_id` dependency.
+- **Tenants CRUD** — `TenantCreate` schema doesn't include `tenant_id` (auto-generated); tests were passing an ignored UUID. Fixed tests to use the `tenant_id` from the response.
+- **Purchase orders** — `sent_at`/`confirmed_at`/`closed_at` columns used `TIMESTAMP WITHOUT TIME ZONE` but code set timezone-aware datetimes. Added `sa_type=DateTime(timezone=True)` to model fields.
+- **Purchase order test prices** — Used `19.99` float prices in order creation payloads; changed to `1999` int.
+
 ## Pending — Next Session
 
-- **Fix pre-existing test failures** — 24 failures/errors in backend tests (inventory float→int, tenant middleware, tenants, inventory/purchase-orders fixtures).
 - **Rate limiter (Redis swap)** — in-memory rate limiter won't work across multiple instances in production.
 - **Error tracking (Sentry)** — currently console + sendBeacon; swap for Sentry post-launch.
 

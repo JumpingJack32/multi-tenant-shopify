@@ -33,12 +33,18 @@ async def setup_db():
         await db.commit()
     yield
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM order_fulfillment_links"))
+        await db.exec(text("DELETE FROM purchase_order_items"))
+        await db.exec(text("DELETE FROM cart_items"))
         await db.exec(delete(Inventory))
         await db.exec(delete(Variant))
         await db.exec(delete(ProductImage))
         await db.exec(delete(Product))
         await db.exec(delete(Location))
         await db.commit()
+
+
+from sqlalchemy import text
 
 
 @pytest.fixture
@@ -64,7 +70,7 @@ async def seeded_item(client_a: AsyncClient) -> dict:
         "sku": "TST-001",
         "category": "Widgets",
         "supplier": "Acme",
-        "price": 19.99,
+        "price": 1999,
         "stock": 100,
     })
     assert resp.status_code == 201
@@ -128,7 +134,7 @@ class TestCreate:
             "sku": "WDG-PRO",
             "category": "Electronics",
             "supplier": "Acme Corp",
-            "price": 29.99,
+            "price": 2999,
             "stock": 50,
         })
         assert resp.status_code == 201
@@ -136,9 +142,9 @@ class TestCreate:
         assert body["category"] == "Electronics"
         assert body["supplier"] == "Acme Corp"
         assert body["total_stock"] == 50
-        assert body["total_value"] == 29.99 * 50
+        assert body["total_value"] == 2999 * 50
         assert body["status"] == "in_stock"
-        assert body["variants"][0]["price"] == 29.99
+        assert body["variants"][0]["price"] == 2999
         assert body["variants"][0]["stock"] == 50
 
     async def test_create_duplicate_sku(self, client_a: AsyncClient):

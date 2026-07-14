@@ -30,6 +30,7 @@ async def create_tenant(
     db.add(tenant)
     await db.flush()
     await db.refresh(tenant)
+    await db.commit()
     return tenant
 
 
@@ -65,6 +66,7 @@ async def update_tenant(
 
     await db.flush()
     await db.refresh(tenant)
+    await db.commit()
     return tenant
 
 

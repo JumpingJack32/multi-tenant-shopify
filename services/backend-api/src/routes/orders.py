@@ -10,50 +10,103 @@ from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.order import Customer, Order, OrderItem, OrderStatus
 from src.orm.models.product import Variant
 from src.orm.models.purchase_order import OrderFulfillmentLink, PurchaseOrder, PurchaseOrderItem, Supplier
+from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.order import OrderCreate, OrderItemResponse, OrderResponse, OrderUpdate
 from src.orm.schemas.purchase_order import AssociatedPOResponse
 from src.services.fulfillment_router import route_fulfillment
+from src.services.order_state_machine import OrderStateError, validate_transition
 
 router = APIRouter()
 
 
-@router.get("/", response_model=list[OrderResponse])
+SORT_FIELDS: dict[str, str] = {
+    "created_at": "created_at",
+    "order_number": "order_number",
+    "total": "total",
+    "status": "status",
+}
+
+
+@router.get("/", response_model=PaginatedResponse[OrderResponse])
 async def list_orders(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
+    customer_id: Optional[str] = Query(None),
+    created_after: Optional[str] = Query(None),
+    created_before: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     payment_status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("desc"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
-    stmt = (
-        select(Order)
-        .options(joinedload(Order.customer), selectinload(Order.items))
-        .where(Order.tenant_id == tenant_id)
-    )
+    from sqlalchemy import func
+
+    base = select(Order).where(Order.tenant_id == tenant_id)
 
     if status:
-        stmt = stmt.where(Order.status == status)
+        base = base.where(Order.status == status)
     if payment_status:
-        stmt = stmt.where(Order.payment_status == payment_status)
+        base = base.where(Order.payment_status == payment_status)
+    if customer_id:
+        try:
+            base = base.where(Order.customer_id == UUID(customer_id))
+        except ValueError:
+            pass
+    if created_after:
+        try:
+            from datetime import datetime
+
+            base = base.where(Order.created_at >= datetime.fromisoformat(created_after))
+        except ValueError:
+            pass
+    if created_before:
+        try:
+            from datetime import datetime
+
+            base = base.where(Order.created_at <= datetime.fromisoformat(created_before))
+        except ValueError:
+            pass
     if search:
-        stmt = stmt.where(
+        base = base.where(
             Order.order_number.ilike(f"%{search}%")
             | Order.customer.has(Customer.email.ilike(f"%{search}%"))
         )
 
-    stmt = stmt.order_by(Order.created_at.desc())
+    count_stmt = select(func.count()).select_from(base.subquery())
+    total_result = await db.exec(count_stmt)
+    total = total_result.one()
+
+    order_col = SORT_FIELDS.get(sort_by, "created_at")
+    order_dir = getattr(Order, order_col).desc() if sort_order != "asc" else getattr(Order, order_col).asc()
+
+    stmt = (
+        base.options(joinedload(Order.customer), selectinload(Order.items))
+        .order_by(order_dir)
+    )
     result = await db.exec(stmt.offset((page - 1) * page_size).limit(page_size))
     orders = result.unique().all()
-    return [
-        OrderResponse(
-            **order.model_dump(),
-            customer_email=order.customer.email if order.customer else None,
-            items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
-        )
-        for order in orders
-    ]
+
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    return PaginatedResponse(
+        data=[
+            OrderResponse(
+                **order.model_dump(),
+                customer_email=order.customer.email if order.customer else None,
+                items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
+            )
+            for order in orders
+        ],
+        pagination=PaginationMeta(
+            page=page,
+            page_size=page_size,
+            total=total,
+            total_pages=total_pages,
+        ),
+    )
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
@@ -223,6 +276,16 @@ async def update_order(
 
     old_status = order.status
     update_data = data.model_dump(exclude_unset=True)
+
+    # Validate status transition
+    if "status" in update_data and update_data["status"] != old_status:
+        try:
+            validate_transition(old_status, update_data["status"])
+        except OrderStateError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=e.message,
+            )
 
     for key, value in update_data.items():
         setattr(order, key, value)

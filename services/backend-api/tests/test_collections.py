@@ -26,6 +26,11 @@ async def clean_collections():
     from sqlmodel.ext.asyncio.session import AsyncSession
 
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM order_fulfillment_links"))
+        await db.exec(text("DELETE FROM purchase_order_items"))
+        await db.exec(text("DELETE FROM cart_items"))
+        await db.exec(text("DELETE FROM inventory"))
+        await db.exec(delete(Variant))
         stmt = delete(ProductCollection)
         await db.exec(stmt)
         stmt = delete(Collection)
@@ -33,6 +38,10 @@ async def clean_collections():
         stmt = delete(Product)
         await db.exec(stmt)
         await db.commit()
+
+
+from sqlalchemy import text
+from src.orm.models.product import Variant
 
 
 @pytest.fixture

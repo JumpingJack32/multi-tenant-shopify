@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, DateTime
 from sqlmodel import Field, Relationship
 
 from src.orm.base import BaseModel
@@ -40,9 +40,9 @@ class PurchaseOrder(BaseModel, table=True):
     shipping_cost: int = Field(default=0)
     total: int = Field(default=0)
     notes: Optional[str] = Field(default=None)
-    sent_at: Optional[datetime] = Field(default=None)
-    confirmed_at: Optional[datetime] = Field(default=None)
-    closed_at: Optional[datetime] = Field(default=None)
+    sent_at: Optional[datetime] = Field(default=None, sa_type=DateTime(timezone=True))
+    confirmed_at: Optional[datetime] = Field(default=None, sa_type=DateTime(timezone=True))
+    closed_at: Optional[datetime] = Field(default=None, sa_type=DateTime(timezone=True))
 
     supplier: "Supplier" = Relationship()
     items: list["PurchaseOrderItem"] = Relationship(back_populates="purchase_order", cascade_delete=True)

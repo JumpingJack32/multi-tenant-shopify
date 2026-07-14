@@ -23,7 +23,11 @@ async def setup_db():
     async with async_engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.create_all)
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM order_fulfillment_links"))
+        await db.exec(text("DELETE FROM purchase_order_items"))
+        await db.exec(text("DELETE FROM cart_items"))
         await db.exec(text("DELETE FROM product_collections"))
+        await db.exec(text("DELETE FROM inventory"))
         await db.exec(delete(Variant))
         await db.exec(delete(Product))
         await db.exec(delete(Order))
