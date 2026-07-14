@@ -4,6 +4,8 @@ from typing import Protocol
 
 from fastapi import HTTPException, Request, status
 
+from src.config import settings
+
 
 class RateLimiterProtocol(Protocol):
     async def is_allowed(self, key: str) -> bool: ...
@@ -45,8 +47,54 @@ class InMemoryRateLimiter:
         return time.time()
 
 
-_storefront_limiter = InMemoryRateLimiter(max_requests=30, window_seconds=60)
-_checkout_limiter = InMemoryRateLimiter(max_requests=10, window_seconds=60)
+class RedisRateLimiter:
+    """Redis-backed sliding-window rate limiter — works across instances."""
+
+    def __init__(self, max_requests: int = 10, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self._prefix = "rate:"
+
+    async def _client(self):
+        from src.core.cache import redis_client
+
+        return redis_client.client
+
+    async def is_allowed(self, key: str) -> bool:
+        r = await self._client()
+        pipe = r.pipeline()
+        await pipe.incr(f"{self._prefix}{key}")
+        await pipe.ttl(f"{self._prefix}{key}")
+        results = await pipe.execute()
+        count = int(results[0])
+        ttl = int(results[1])
+        if count == 1 or ttl == -1:
+            await r.expire(f"{self._prefix}{key}", self.window_seconds)
+        return count <= self.max_requests
+
+    async def remaining(self, key: str) -> int:
+        r = await self._client()
+        val = await r.get(f"{self._prefix}{key}")
+        if val is None:
+            return self.max_requests
+        return max(0, self.max_requests - int(val))
+
+    async def reset_time(self, key: str) -> float:
+        r = await self._client()
+        ttl = await r.ttl(f"{self._prefix}{key}")
+        if ttl and ttl > 0:
+            return time.time() + ttl
+        return time.time()
+
+
+def _create_limiter(max_requests: int, window_seconds: int) -> RateLimiterProtocol:
+    if settings.redis_enabled and settings.redis_url:
+        return RedisRateLimiter(max_requests, window_seconds)
+    return InMemoryRateLimiter(max_requests, window_seconds)
+
+
+_storefront_limiter = _create_limiter(max_requests=30, window_seconds=60)
+_checkout_limiter = _create_limiter(max_requests=10, window_seconds=60)
 
 
 def _client_key(request: Request) -> str:

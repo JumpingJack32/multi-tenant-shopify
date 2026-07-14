@@ -145,9 +145,14 @@
 - **Purchase orders** — `sent_at`/`confirmed_at`/`closed_at` columns used `TIMESTAMP WITHOUT TIME ZONE` but code set timezone-aware datetimes. Added `sa_type=DateTime(timezone=True)` to model fields.
 - **Purchase order test prices** — Used `19.99` float prices in order creation payloads; changed to `1999` int.
 
+## Completed 2026-07-14 — Rate Limiter: Redis Swap
+
+- **`src/core/throttle.py`** — Added `RedisRateLimiter` class implementing `RateLimiterProtocol` using Redis `INCR` + `TTL` with `rate:` key prefix. Factory `_create_limiter()` returns `RedisRateLimiter` when `redis_enabled` is True, otherwise falls back to `InMemoryRateLimiter`.
+- **6 new tests** — Factory fallback test (in-memory when disabled, Redis when enabled), Redis `is_allowed` (first request, exceeded), `remaining()`, `reset_time()` with mocked Redis client.
+- **All 207 tests passing.**
+
 ## Pending — Next Session
 
-- **Rate limiter (Redis swap)** — in-memory rate limiter won't work across multiple instances in production.
 - **Error tracking (Sentry)** — currently console + sendBeacon; swap for Sentry post-launch.
 
 ## Key Decisions (All)
