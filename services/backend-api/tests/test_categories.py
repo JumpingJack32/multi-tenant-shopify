@@ -1,13 +1,12 @@
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 from sqlmodel import delete
 
 from src.database import async_engine
 from src.main import app
 from src.orm.models.category import Category
-
 
 TENANT_ID = "00000000-0000-0000-0000-000000000001"
 
@@ -16,6 +15,8 @@ TENANT_ID = "00000000-0000-0000-0000-000000000001"
 async def clean_categories():
     from sqlmodel.ext.asyncio.session import AsyncSession
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM stock_transfer_items"))
+        await db.exec(text("DELETE FROM stock_transfers"))
         await db.exec(text("DELETE FROM order_fulfillment_links"))
         await db.exec(text("DELETE FROM purchase_order_items"))
         await db.exec(text("DELETE FROM cart_items"))
@@ -28,6 +29,7 @@ async def clean_categories():
 
 
 from sqlalchemy import text
+
 from src.orm.models.product import Product, Variant
 
 

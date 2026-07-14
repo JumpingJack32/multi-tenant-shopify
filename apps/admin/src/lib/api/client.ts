@@ -13,6 +13,8 @@ import type {
   ProductUpdate,
   PurchaseOrder,
   PurchaseOrderListResponse,
+  StockTransfer,
+  StockTransferListResponse,
   Supplier,
   SupplierListResponse,
 } from "@repo/tenant-orm/types";
@@ -396,6 +398,48 @@ export const api = {
     },
     delete(id: string, options?: { tenantId?: string | null }) {
       return request<void>(`/inventory/${id}`, {
+        method: "DELETE",
+        ...options,
+      });
+    },
+  },
+
+  stockTransfers: {
+    list(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<StockTransferListResponse>(
+        `/stock-transfers${buildQuery(params)}`,
+        options ?? {},
+      );
+    },
+    get(id: string, options?: { tenantId?: string | null }) {
+      return request<StockTransfer>(`/stock-transfers/${id}`, options ?? {});
+    },
+    create(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<StockTransfer>("/stock-transfers", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<StockTransfer>(`/stock-transfers/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<void>(`/stock-transfers/${id}`, {
         method: "DELETE",
         ...options,
       });

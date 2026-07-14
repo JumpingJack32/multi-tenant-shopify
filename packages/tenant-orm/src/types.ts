@@ -369,6 +369,47 @@ export interface AssociatedPO {
   created_at: string;
 }
 
+export interface StockTransferItem {
+  id: string;
+  variant_id: string;
+  quantity: number;
+  received_quantity: number | null;
+  sku: string;
+  product_name: string;
+}
+
+export interface StockTransfer {
+  id: string;
+  tenant_id: string;
+  transfer_number: string;
+  origin_location_id: string;
+  destination_location_id: string;
+  origin_location_name: string;
+  destination_location_name: string;
+  status: string;
+  estimated_arrival: string | null;
+  carrier: string | null;
+  tracking_number: string | null;
+  reference_number: string | null;
+  notes: string | null;
+  sent_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  items: StockTransferItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockTransferListResponse {
+  data: StockTransfer[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
 export interface InventoryListResponse {
   data: InventoryItem[];
   pagination: {

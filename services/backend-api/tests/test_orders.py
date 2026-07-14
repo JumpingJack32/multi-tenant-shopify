@@ -2,8 +2,8 @@
 
 from uuid import uuid4
 
-import pytest
 from httpx import ASGITransport, AsyncClient
+import pytest
 from sqlalchemy import text
 from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -23,6 +23,8 @@ async def setup_db():
     async with async_engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.create_all)
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM stock_transfer_items"))
+        await db.exec(text("DELETE FROM stock_transfers"))
         await db.exec(text("DELETE FROM order_fulfillment_links"))
         await db.exec(text("DELETE FROM purchase_order_items"))
         await db.exec(text("DELETE FROM cart_items"))

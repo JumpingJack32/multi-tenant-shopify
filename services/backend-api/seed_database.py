@@ -5,10 +5,10 @@ Runs inside a single transaction; any failure triggers a full rollback.
 """
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 import os
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import text
@@ -159,11 +159,14 @@ REFUNDED_WEIGHT = 0.10
 
 async def clear_data(session: AsyncSession) -> None:
     tables = [
-        "order_fulfillment_links", "purchase_order_items", "purchase_orders",
-        "po_sequences", "suppliers",
-        "order_items", "orders", "inventory", "locations",
+        "order_fulfillment_links", "stock_transfer_items", "stock_transfers",
+        "purchase_order_items", "purchase_orders",
+        "po_sequences",
+        "order_items", "orders",
+        "inventory", "locations",
         "product_collections", "collections", "customer_addresses",
         "customers", "product_images", "variants", "products",
+        "suppliers",
         "categories", "tenant_users",
     ]
     for table in tables:

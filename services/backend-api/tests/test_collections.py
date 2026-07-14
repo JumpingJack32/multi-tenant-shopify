@@ -1,10 +1,10 @@
 import uuid
 from uuid import UUID
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine
-from sqlmodel import Session, delete
+from sqlmodel import delete, Session
 
 from src.database import async_engine
 from src.main import app
@@ -26,6 +26,8 @@ async def clean_collections():
     from sqlmodel.ext.asyncio.session import AsyncSession
 
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM stock_transfer_items"))
+        await db.exec(text("DELETE FROM stock_transfers"))
         await db.exec(text("DELETE FROM order_fulfillment_links"))
         await db.exec(text("DELETE FROM purchase_order_items"))
         await db.exec(text("DELETE FROM cart_items"))
@@ -41,6 +43,7 @@ async def clean_collections():
 
 
 from sqlalchemy import text
+
 from src.orm.models.product import Variant
 
 

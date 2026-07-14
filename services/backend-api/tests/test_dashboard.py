@@ -1,7 +1,7 @@
 from uuid import uuid4
 
-import pytest
 from httpx import ASGITransport, AsyncClient
+import pytest
 from sqlalchemy import text
 from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -12,7 +12,6 @@ from src.orm.base import BaseModel
 from src.orm.models.order import Customer, Order
 from src.orm.models.product import Product, Variant
 
-
 TENANT_A = "00000000-0000-0000-0000-000000000001"
 TENANT_B = "00000000-0000-0000-0000-000000000002"
 
@@ -22,6 +21,8 @@ async def setup_db():
     async with async_engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.create_all)
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM stock_transfer_items"))
+        await db.exec(text("DELETE FROM stock_transfers"))
         await db.exec(text("DELETE FROM order_fulfillment_links"))
         await db.exec(text("DELETE FROM purchase_order_items"))
         await db.exec(text("DELETE FROM cart_items"))
@@ -153,7 +154,7 @@ async def test_previous_period_counts(client_a: AsyncClient):
         # MTD orders
         await _order(db, c, total=3000, subtotal=3000)
         # prev-MTD orders — created_at in previous month
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
         last_month = datetime.now(timezone.utc) - timedelta(days=35)
         await _order(db, c, total=2000, subtotal=2000, created_at=last_month)
         await db.commit()

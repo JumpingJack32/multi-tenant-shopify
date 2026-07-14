@@ -2,17 +2,19 @@ import os
 
 os.environ.setdefault("APP_ENV", "test")
 
-import pytest
 from uuid import UUID, uuid4
-from httpx import AsyncClient, ASGITransport
+
+from httpx import ASGITransport, AsyncClient
+import pytest
 from sqlalchemy import text
 from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.database import async_engine
 from src.main import app
 from src.orm.base import BaseModel
 from src.orm.models.order import Order, OrderItem
-from src.orm.models.product import Product, Variant, Inventory, Location
+from src.orm.models.product import Inventory, Location, Product, Variant
 from src.orm.models.purchase_order import (
     OrderFulfillmentLink,
     POSequence,
@@ -20,7 +22,6 @@ from src.orm.models.purchase_order import (
     PurchaseOrderItem,
     Supplier,
 )
-from src.database import async_engine
 
 TENANT_A = UUID("00000000-0000-0000-0000-000000000001")
 TENANT_B = UUID("00000000-0000-0000-0000-000000000002")
@@ -39,6 +40,8 @@ async def setup_db():
         await db.commit()
     yield
     async with AsyncSession(async_engine) as db:
+        await db.exec(text("DELETE FROM stock_transfer_items"))
+        await db.exec(text("DELETE FROM stock_transfers"))
         await db.exec(delete(OrderFulfillmentLink))
         await db.exec(delete(PurchaseOrderItem))
         await db.exec(delete(PurchaseOrder))

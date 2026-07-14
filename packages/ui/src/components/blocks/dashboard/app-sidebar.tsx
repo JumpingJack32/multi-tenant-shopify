@@ -79,7 +79,7 @@ const navManagement: NavItem[] = [
     items: [
       { title: "Collections", url: "/collections" },
       { title: "Inventory", url: "/products/inventory" },
-      { title: "Transfers", url: "/products/transfers" },
+      { title: "Transfers", url: "/transfers" },
       { title: "Gift Cards", url: "/products/gift-cards" },
     ],
   },
