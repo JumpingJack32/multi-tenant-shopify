@@ -1,6 +1,13 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
+import { useTenantContext } from "@/contexts/tenant-context";
+import {
+  useOrder,
+  useOrderLinkedPOs,
+  useUpdateOrderStatus,
+} from "@/features/orders/hooks/use-orders";
+
 import { OrderDetailContent } from "../[id]/order-detail-content";
 
 vi.mock("@/features/orders/hooks/use-orders", () => ({
@@ -16,13 +23,6 @@ vi.mock("@/contexts/tenant-context", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
-
-import {
-  useOrder,
-  useOrderLinkedPOs,
-  useUpdateOrderStatus,
-} from "@/features/orders/hooks/use-orders";
-import { useTenantContext } from "@/contexts/tenant-context";
 
 const stubOrder = {
   id: "ord-001",

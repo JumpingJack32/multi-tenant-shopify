@@ -24,7 +24,6 @@ export default [
       },
     },
     plugins: {
-      "@typescript-eslint": importPlugin,
       import: importPlugin,
       "react-hooks": reactHooksPlugin,
       "@next/next": nextPlugin,

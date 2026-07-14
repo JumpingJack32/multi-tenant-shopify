@@ -48,3 +48,20 @@ pythonpath = ["src"]
 
 [tool.ruff]
 target-version = "py314"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["I", "W291"]
+ignore = []
+fixable = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+order-by-type = false
+force-sort-within-sections = true
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
