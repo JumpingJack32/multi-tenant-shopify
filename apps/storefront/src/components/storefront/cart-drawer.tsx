@@ -44,7 +44,9 @@ export function CartDrawer() {
     if (!cartId) return;
     closeDrawer();
     checkoutMutation.mutate(
-      { cartId, customer_email: email || undefined },
+      { cartId, customer_email: email || undefined } as Parameters<
+        typeof checkoutMutation.mutate
+      >[0],
       {
         onSuccess: (order) => {
           router.push(`/${tenant}/order-confirmation/${order.id}`);
