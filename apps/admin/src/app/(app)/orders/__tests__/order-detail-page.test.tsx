@@ -70,18 +70,17 @@ function mockUseOrder(overrides: Record<string, unknown> = {}) {
     error: null,
     refetch: vi.fn(),
     ...overrides,
-  } as ReturnType<typeof useOrder>);
+  } as unknown as ReturnType<typeof useOrder>);
 }
 
 function mockUseLinkedPOs(data: unknown = stubPOs) {
-  vi.mocked(useOrderLinkedPOs).mockReturnValue({ data } as ReturnType<
-    typeof useOrderLinkedPOs
-  >);
+  vi.mocked(useOrderLinkedPOs).mockReturnValue({
+    data,
+  } as unknown as ReturnType<typeof useOrderLinkedPOs>);
 }
 
 function mockUseUpdateStatus(overrides: Record<string, unknown> = {}) {
   vi.mocked(useUpdateOrderStatus).mockReturnValue({
-    mutateAsync: vi.fn(),
     ...overrides,
   } as unknown as ReturnType<typeof useUpdateOrderStatus>);
 }
@@ -93,7 +92,7 @@ function mockTenant(overrides: Record<string, unknown> = {}) {
     networkError: false,
     retry: vi.fn(),
     ...overrides,
-  } as ReturnType<typeof useTenantContext>);
+  } as unknown as ReturnType<typeof useTenantContext>);
 }
 
 describe("OrderDetailContent", () => {
