@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,11 +21,114 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: 22
+          cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
 
-      - run: pnpm turbo run lint typecheck --continue=always
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm turbo run build --continue=always
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install Python dependencies
+        run: uv sync
+        working-directory: services/backend-api
+
+      - name: Ruff check (Python import order)
+        run: uv run ruff check src tests scripts alembic
+        working-directory: services/backend-api
+
+      - name: ESLint (admin)
+        run: pnpm --filter @repo/admin exec eslint .
+
+      - name: ESLint (storefront)
+        run: pnpm --filter @repo/storefront exec eslint .
+
+  typecheck:
+    name: TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript (admin)
+        run: pnpm --filter @repo/admin exec tsc --noEmit
+
+      - name: TypeScript (storefront)
+        run: pnpm --filter @repo/storefront exec tsc --noEmit
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Vitest
+        run: pnpm vitest run --reporter=verbose
+
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+        working-directory: services/backend-api
+
+      - name: Run tests
+        run: uv run pytest tests/ -v --tb=short -x
+        working-directory: services/backend-api
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test
+          APP_ENV: test
+          CLERK_SECRET_KEY: placeholder
+          CLERK_PUBLISHABLE_KEY: placeholder
+          CLERK_WEBHOOK_SECRET: placeholder
+          CLERK_JWKS_URL: placeholder
+          JWT_SECRET: placeholder

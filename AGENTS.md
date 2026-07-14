@@ -159,11 +159,20 @@
 - **Config:** `NEXT_PUBLIC_SENTRY_DSN` env var for frontend, `SENTRY_DSN` setting for backend. Session replays enabled (0.1 sample rate, 1.0 on error).
 - **Backend init:** Only activates when `SENTRY_DSN` is set — no-op in dev/test. All 207 tests pass unchanged.
 
-## Pending — Next Session
+## Completed 2026-07-14 — CI Pipeline (GitHub Actions)
 
-- (nothing outstanding — all backlog items completed)
+- **`.github/workflows/ci.yml`** — 4 jobs:
+  - **Lint**: Ruff (Python import order), ESLint (admin + storefront)
+  - **TypeCheck**: tsc --noEmit for admin + storefront
+  - **Frontend Tests**: vitest run across all packages
+  - **Backend Tests**: pytest with PostgreSQL service container, placeholders for required secrets
+- Triggers on push/PR to `main`, cancels in-progress runs for same branch.
 
 ## Key Decisions (All)
+
+- Backend: 207 collected, all passing
+- Tests use `jsdom` + `react()` plugin in vitest config; `cleanup()` in `afterEach` required for React tests
+- `@repo/tenant-orm/schemas` (not `./schemas/tenant`) is the correct import for tenant schemas
 
 - Backend: 169 collected, 145 passed, 12 pre-existing failures (inventory float→int, tenant middleware, tenants), 12 pre-existing errors (inventory/purchase-orders fixtures)
 - Tests use `jsdom` + `react()` plugin in vitest config; `cleanup()` in `afterEach` required for React tests
