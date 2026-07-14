@@ -99,7 +99,7 @@
 - Per-cart `try/except` in send loop — network or API errors logged, cart retries in 24h
 - `selectinload(Cart.items).selectinload(CartItem.variant).selectinload(Variant.product)` — prevents async greenlet lazy-load crashes
 
-**Resend config:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL` set in Doppler (`dev` config). Domain `multi-tenant-shopify.com` added in Resend (Ireland region) — DNS verification (TXT record) pending before emails send.
+**Resend config:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL` set in Doppler (`dev` config). Domain `multiDNS-tenant-shopify.com` added in Resend (Ireland region) — verification (TXT record) pending before emails send.
 
 **Ruff:** 72 auto-fixed + 13 unsafe-fixed. 2 remaining: Alembic star import (`alembic/env.py:16` — intentional) and `CustomerResponse` forward reference (`src/orm/schemas/product.py:154` — pre-existing).
 
@@ -119,9 +119,20 @@
 - Resend API calls use `httpx.AsyncClient` with 30s timeout; non-2xx responses return False (no exception thrown)
 - `selectinload` chaining required for async CartItem.variant.Variant.product access (greenlet error otherwise)
 
+## Completed 2026-07-14 — Real Email Delivery via notify.amoagou.com
+
+- **Domain verified:** `notify.amoagou.com` added and verified in Resend (eu-west-1).
+- **Doppler:** `RESEND_FROM_EMAIL` updated to `noreply@notify.amoagou.com`.
+- **Real delivery test:** HTTP 200 from `POST https://api.resend.com/emails` → email sent from `noreply@notify.amoagou.com` to `giogunn32@protonmail.com` successfully.
+- **Changes:**
+  - `src/services/email_service.py` — factory `create_email_service()` now activates `ResendEmailService` whenever `RESEND_API_KEY` is set (removed `is_production` guard); `ResendEmailService` default from_email changed to `noreply@notify.amoagou.com`.
+  - `tests/test_abandoned_cart.py` — updated factory test for new behavior.
+  - `scripts/test_resend_email.py` — updated to use `settings.resend_from_email` and send to real address.
+  - New `scripts/setup_resend_domain.py` — creates Resend domains and prints DNS records for Namecheap.
+
 ## Pending — Next Session
 
-- **Resend email test** — requires DNS TXT record for `multi-tenant-shopify.com` or a Resend test API key. Until then, `LogEmailService` is used in dev (logs payload to console). `ResendEmailService` auto-activates in production (`doppler_pr: prod` + `RESEND_API_KEY` set).
+- **End-to-end abandoned cart flow** — run the seed script + background worker to test the full recovery pipeline.
 - Seed test cart script saved at `services/backend-api/scripts/seed_test_abandoned_cart.py`
 
 ## Key Decisions (All)

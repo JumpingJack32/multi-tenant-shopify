@@ -54,11 +54,18 @@ class TestEmailService:
         )
         assert result is True
 
-    async def test_create_email_service_returns_log(self):
-        from src.services.email_service import LogEmailService, create_email_service
+    async def test_create_email_service_returns_resend_when_key_configured(self):
+        from src.services.email_service import ResendEmailService, create_email_service
 
         svc = create_email_service()
-        assert isinstance(svc, LogEmailService)
+        from src.config import settings
+
+        if settings.resend_api_key:
+            assert isinstance(svc, ResendEmailService)
+        else:
+            from src.services.email_service import LogEmailService
+
+            assert isinstance(svc, LogEmailService)
 
 
 class TestTokenUtils:

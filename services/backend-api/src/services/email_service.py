@@ -80,7 +80,7 @@ class LogEmailService(EmailService):
 class ResendEmailService(EmailService):
     """Production email service using Resend API."""
 
-    def __init__(self, api_key: str, from_email: str = "noreply@yourplatform.com"):
+    def __init__(self, api_key: str, from_email: str = "noreply@notify.amoagou.com"):
         self.api_key = api_key
         self.from_email = from_email
 
@@ -149,8 +149,8 @@ class ResendEmailService(EmailService):
 
 
 def create_email_service() -> EmailService:
-    """Factory — ResendEmailService in production when key configured, else LogEmailService."""
-    if settings.is_production and settings.resend_api_key:
+    """Factory — ResendEmailService when API key configured, else LogEmailService."""
+    if settings.resend_api_key:
         return ResendEmailService(
             api_key=settings.resend_api_key,
             from_email=settings.resend_from_email,
