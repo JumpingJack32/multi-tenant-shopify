@@ -34,12 +34,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install Python dependencies
-        run: uv sync
-        working-directory: services/backend-api
-
       - name: Ruff check (Python import order)
-        run: uv run ruff check src tests scripts alembic
+        run: uv tool run ruff check src tests scripts alembic
         working-directory: services/backend-api
 
       - name: ESLint (admin)
