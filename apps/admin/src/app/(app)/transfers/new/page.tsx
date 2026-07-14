@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   PackageIcon,
   SearchIcon,
@@ -105,6 +106,13 @@ export default function NewTransferPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
+      <button
+        onClick={() => router.push("/transfers")}
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeftIcon className="h-4 w-4" /> Stock Transfers
+      </button>
+
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">

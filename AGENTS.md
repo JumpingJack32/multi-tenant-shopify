@@ -1,5 +1,8 @@
 # Session Context — Saved 2026-07-12 (Storefront Currency Switcher — Merged)
 
+> [!IMPORTANT]
+> After generating or modifying any backend files, you must check the existing database schema. Ensure tables, fields, are populated.
+
 ## Storefront Currency Switcher — Merged to main (2026-07-12)
 
 ### PR #11 — `feat: storefront currency switcher`
