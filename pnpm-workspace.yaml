@@ -4,6 +4,7 @@ packages:
   - "services/backend-api"
 allowBuilds:
   '@clerk/shared': true
+  '@sentry/cli': true
   esbuild: true
   msw: true
   sharp: true

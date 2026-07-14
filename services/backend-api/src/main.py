@@ -1,18 +1,32 @@
 import asyncio
+from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 
 from src.config import settings
-from src.database import init_db, async_engine
 from src.core.cache import redis_client
+from src.core.exchange_rates.service import RateService
 from src.core.pricing.middleware import CurrencyExtractorMiddleware
 from src.core.tenant_isolation import reset_tenant_context, setup_tenant_isolation
-from src.core.exchange_rates.service import RateService
+from src.database import async_engine, init_db
 
 logger = logging.getLogger(__name__)
+
+# Sentry (early init to capture startup errors)
+if settings.sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.httpx import HttpxIntegration
+
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        integrations=[FastApiIntegration(), HttpxIntegration()],
+        traces_sample_rate=0.1,
+        environment=settings.app_env or "development",
+        send_default_pii=False,
+    )
 
 _exchange_rate_task: asyncio.Task | None = None
 _abandoned_cart_task: asyncio.Task | None = None
@@ -134,24 +148,24 @@ async def tenant_isolation_middleware(request: Request, call_next):
     reset_tenant_context()
     return response
 
-from src.routes.public import router as public_router  # noqa: E402
-from src.routes.tenants import router as tenants_router  # noqa: E402
-from src.routes.products import router as products_router  # noqa: E402
-from src.routes.orders import router as orders_router  # noqa: E402
-from src.routes.webhooks import router as webhooks_router  # noqa: E402
-from src.routes.auth import router as auth_router  # noqa: E402
-from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
-from src.routes.categories import router as categories_router  # noqa: E402
-from src.routes.customers import router as customers_router  # noqa: E402
-from src.routes.collections import router as collections_router  # noqa: E402
-from src.routes.media import router as media_router  # noqa: E402
+from src.core.exchange_rates.router import router as exchange_rates_router  # noqa: E402
 from src.routes.admin import router as admin_router  # noqa: E402
-from src.routes.product_images import router as product_images_router  # noqa: E402
+from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
+from src.routes.auth import router as auth_router  # noqa: E402
+from src.routes.categories import router as categories_router  # noqa: E402
+from src.routes.collections import router as collections_router  # noqa: E402
+from src.routes.customers import router as customers_router  # noqa: E402
 from src.routes.inventory import router as inventory_router  # noqa: E402
-from src.routes.suppliers import router as suppliers_router  # noqa: E402
+from src.routes.media import router as media_router  # noqa: E402
+from src.routes.orders import router as orders_router  # noqa: E402
+from src.routes.product_images import router as product_images_router  # noqa: E402
+from src.routes.products import router as products_router  # noqa: E402
+from src.routes.public import router as public_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
 from src.routes.storefront import router as storefront_router  # noqa: E402
-from src.core.exchange_rates.router import router as exchange_rates_router  # noqa: E402
+from src.routes.suppliers import router as suppliers_router  # noqa: E402
+from src.routes.tenants import router as tenants_router  # noqa: E402
+from src.routes.webhooks import router as webhooks_router  # noqa: E402
 
 app.include_router(public_router, prefix="/api/v1/public")
 app.include_router(storefront_router, prefix="/api/v1/storefront")

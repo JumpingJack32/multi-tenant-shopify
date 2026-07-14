@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -44,6 +45,9 @@ class Settings(BaseSettings):
     # Resend (optional — for production email)
     resend_api_key: str | None = None
     resend_from_email: str = "noreply@yourplatform.com"
+
+    # Sentry (optional)
+    sentry_dsn: str | None = None
 
     # App
     app_env: str = "development"

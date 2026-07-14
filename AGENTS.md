@@ -151,9 +151,17 @@
 - **6 new tests** — Factory fallback test (in-memory when disabled, Redis when enabled), Redis `is_allowed` (first request, exceeded), `remaining()`, `reset_time()` with mocked Redis client.
 - **All 207 tests passing.**
 
+## Completed 2026-07-14 — Sentry Error Tracking
+
+- **Backend** (`services/backend-api`): Added `sentry-sdk` with `FastApiIntegration` + `HttpxIntegration`, gated on `SENTRY_DSN` setting (Doppler). Initialized in `main.py` at startup (traces_sample_rate=0.1).
+- **Admin** (`apps/admin`): Added `@sentry/nextjs@10.65.0`, created `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`.
+- **Storefront** (`apps/storefront`): Same Sentry config files as admin.
+- **Config:** `NEXT_PUBLIC_SENTRY_DSN` env var for frontend, `SENTRY_DSN` setting for backend. Session replays enabled (0.1 sample rate, 1.0 on error).
+- **Backend init:** Only activates when `SENTRY_DSN` is set — no-op in dev/test. All 207 tests pass unchanged.
+
 ## Pending — Next Session
 
-- **Error tracking (Sentry)** — currently console + sendBeacon; swap for Sentry post-launch.
+- (nothing outstanding — all backlog items completed)
 
 ## Key Decisions (All)
 
