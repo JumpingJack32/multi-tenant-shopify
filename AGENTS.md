@@ -129,11 +129,13 @@
   - `tests/test_abandoned_cart.py` — updated factory test for new behavior.
   - `scripts/test_resend_email.py` — updated to use `settings.resend_from_email` and send to real address.
   - New `scripts/setup_resend_domain.py` — creates Resend domains and prints DNS records for Namecheap.
+- New `scripts/e2e_test_abandoned_cart.py` — seeds a cart + immediately processes it to verify full recovery pipeline (seed → query → stamp → commit → Resend API → email delivered).
 
 ## Pending — Next Session
 
-- **End-to-end abandoned cart flow** — run the seed script + background worker to test the full recovery pipeline.
-- Seed test cart script saved at `services/backend-api/scripts/seed_test_abandoned_cart.py`
+- **Fix pre-existing test failures** — 24 failures/errors in backend tests (inventory float→int, tenant middleware, tenants, inventory/purchase-orders fixtures).
+- **Rate limiter (Redis swap)** — in-memory rate limiter won't work across multiple instances in production.
+- **Error tracking (Sentry)** — currently console + sendBeacon; swap for Sentry post-launch.
 
 ## Key Decisions (All)
 
