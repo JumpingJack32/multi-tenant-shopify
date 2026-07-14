@@ -9,10 +9,10 @@ import {
   Instrument_Serif,
 } from "next/font/google";
 import type { ReactNode } from "react";
-
-import { Providers } from "@/components/providers";
 import "@repo/ui/globals.css";
 import { cn } from "@repo/shared-utils/cn";
+
+import { Providers } from "@/components/providers";
 
 const InstrumentTitleHeading: NextFontWithVariable = Instrument_Serif({
   weight: ["400"],

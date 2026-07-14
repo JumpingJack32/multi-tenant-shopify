@@ -1,5 +1,5 @@
-import type { CustomerDetail } from "@repo/tenant-orm/types";
 import { useQuery } from "@tanstack/react-query";
+import type { CustomerDetail } from "@repo/tenant-orm/types";
 
 import { fetchCustomers, fetchCustomer } from "../api/customers-service";
 

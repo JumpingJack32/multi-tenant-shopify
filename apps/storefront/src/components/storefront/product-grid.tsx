@@ -1,5 +1,5 @@
-import type { Product } from "@repo/tenant-orm/types";
 import Link from "next/link";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { fetchProducts } from "@/lib/api";
 

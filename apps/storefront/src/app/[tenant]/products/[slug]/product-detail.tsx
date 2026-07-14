@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { StorefrontProductResponse } from "@repo/codegen/client/types.gen";
 import { formatCents } from "@repo/shared-utils/currency";
-import { useState } from "react";
 
 import { AddToCartVariantButton } from "@/components/storefront/add-to-cart-button";
 import { StorefrontImage } from "@/components/storefront/storefront-image";

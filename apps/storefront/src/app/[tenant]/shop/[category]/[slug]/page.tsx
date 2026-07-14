@@ -1,6 +1,6 @@
-import type { Product } from "@repo/tenant-orm/types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { MobileStickyCta } from "@/components/storefront/mobile-sticky-cta";
 import { ProductGallery } from "@/components/storefront/product-gallery";

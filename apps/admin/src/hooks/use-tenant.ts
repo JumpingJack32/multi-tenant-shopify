@@ -1,5 +1,5 @@
-import { createTenantClient } from "@repo/tenant-orm/client";
 import { useQuery } from "@tanstack/react-query";
+import { createTenantClient } from "@repo/tenant-orm/client";
 
 export function useTenant(tenantId: string) {
   return useQuery({

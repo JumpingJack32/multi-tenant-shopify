@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
@@ -12,8 +14,6 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 import { ChevronLeftIcon, ChevronRightIcon } from "@repo/ui/icons";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useCustomers } from "@/features/customers/hooks/use-customers";

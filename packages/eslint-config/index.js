@@ -43,7 +43,12 @@ export default [
             "index",
           ],
           "newlines-between": "always",
-          alphabetize: { order: "asc" },
+          alphabetize: { order: "asc", caseInsensitive: true },
+          pathGroups: [
+            { pattern: "@repo/**", group: "external", position: "after" },
+          ],
+          pathGroupsExcludedImportTypes: ["builtin"],
+          distinctGroup: false,
         },
       ],
       "import/no-unresolved": "error",

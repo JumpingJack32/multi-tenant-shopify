@@ -1,9 +1,9 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   Product,
   ProductCreate,
   ProductUpdate,
 } from "@repo/tenant-orm/types";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   fetchProducts,

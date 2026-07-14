@@ -1,7 +1,7 @@
 "use client";
 
-import type { Product } from "@repo/tenant-orm/types";
 import { useState } from "react";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { useAddToCart, useCart } from "@/hooks/use-cart";
 import { useCartStore } from "@/hooks/use-cart-store";

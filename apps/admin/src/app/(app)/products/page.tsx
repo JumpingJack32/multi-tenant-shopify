@@ -1,7 +1,7 @@
 "use client";
 
-import type { Product } from "@repo/tenant-orm/types";
 import { useState } from "react";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { ProductDeleteDialog } from "@/components/products/product-delete-dialog";
 import { ProductDrawer } from "@/components/products/product-drawer";

@@ -1,10 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type { StorefrontProductResponse } from "@repo/codegen/client/types.gen";
 import { formatCents } from "@repo/shared-utils/currency";
 import { motion, AnimatePresence } from "@repo/ui/components/motion";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 import { useTenantStore } from "@/hooks/use-tenant-store";

@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
@@ -18,8 +20,6 @@ import {
   PlusIcon,
   SearchIcon,
 } from "@repo/ui/icons";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useSuppliers } from "@/features/suppliers/hooks/use-suppliers";

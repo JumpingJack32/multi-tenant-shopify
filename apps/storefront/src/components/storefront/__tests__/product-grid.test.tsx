@@ -1,6 +1,6 @@
-import type { Product } from "@repo/tenant-orm/types";
 import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { ProductGrid } from "../product-grid";
 

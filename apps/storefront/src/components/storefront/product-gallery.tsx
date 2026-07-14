@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "@repo/ui/components/motion";
 import { useState } from "react";
+import { motion, AnimatePresence } from "@repo/ui/components/motion";
 
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 

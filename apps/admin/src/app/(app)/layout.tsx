@@ -1,13 +1,13 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { AppSidebarUser } from "@repo/ui/components/blocks/dashboard/app-sidebar";
 import { AppSidebar } from "@repo/ui/components/blocks/dashboard/app-sidebar";
 import { SiteHeader } from "@repo/ui/components/blocks/dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "@repo/ui/components/ui/sidebar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { RbacProvider } from "@/contexts/rbac-context";

@@ -1,5 +1,5 @@
-import type { DashboardSummary } from "@repo/tenant-orm/types";
 import { useQuery } from "@tanstack/react-query";
+import type { DashboardSummary } from "@repo/tenant-orm/types";
 
 import { api } from "@/lib/api/client";
 

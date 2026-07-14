@@ -1,8 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Product } from "@repo/tenant-orm/types";
 import { motion } from "@repo/ui/components/motion";
-import { useEffect, useState } from "react";
 
 import { AddToCartButton } from "./add-to-cart-button";
 

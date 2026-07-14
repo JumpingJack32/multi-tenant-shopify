@@ -1,9 +1,9 @@
 "use client";
 
-import type { OrderResponse } from "@repo/codegen/client/types.gen";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import type { OrderResponse } from "@repo/codegen/client/types.gen";
 
 import { fetchOrder } from "@/lib/storefront-api";
 

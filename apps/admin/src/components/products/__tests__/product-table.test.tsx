@@ -1,6 +1,6 @@
-import type { Product } from "@repo/tenant-orm/types";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
+import type { Product } from "@repo/tenant-orm/types";
 
 import { ProductTable } from "../product-table";
 

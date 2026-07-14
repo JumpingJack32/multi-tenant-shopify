@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
@@ -11,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
-import { useRouter } from "next/navigation";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useCustomer } from "@/features/customers/hooks/use-customers";

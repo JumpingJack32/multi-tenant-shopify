@@ -4,14 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { create } from "zustand";
+import type { CheckoutRequest } from "@repo/codegen/client/types.gen";
 
 import {
   getCartId,
   removeCartId,
   setCartId as setCartCookie,
 } from "@/lib/cart-cookie";
-import type { CheckoutRequest } from "@repo/codegen/client/types.gen";
-
 import {
   addCartItem,
   checkoutCart,

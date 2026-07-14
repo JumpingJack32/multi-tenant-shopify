@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-
 import { formatCents } from "@repo/shared-utils/currency";
 import {
   Sheet,
@@ -10,8 +11,6 @@ import {
   SheetTitle,
 } from "@repo/ui/components/ui/sheet";
 import { Loader2Icon, MinusIcon, PlusIcon, Trash2Icon } from "@repo/ui/icons";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 
 import {
   useCartQuery,

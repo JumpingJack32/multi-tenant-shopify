@@ -1,9 +1,9 @@
 "use client";
 
-import type { InventoryItem } from "@repo/tenant-orm/types";
-import { Button } from "@repo/ui/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import type { InventoryItem } from "@repo/tenant-orm/types";
+import { Button } from "@repo/ui/components/ui/button";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useRbac } from "@/contexts/rbac-context";

@@ -1,9 +1,9 @@
 "use client";
 
-import type { Product } from "@repo/tenant-orm/types";
-import { motion, AnimatePresence } from "@repo/ui/components/motion";
 import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
+import type { Product } from "@repo/tenant-orm/types";
+import { motion, AnimatePresence } from "@repo/ui/components/motion";
 
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 

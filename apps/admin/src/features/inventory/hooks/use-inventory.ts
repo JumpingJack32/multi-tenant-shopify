@@ -1,5 +1,5 @@
-import type { InventoryItem } from "@repo/tenant-orm/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { InventoryItem } from "@repo/tenant-orm/types";
 
 import {
   fetchInventoryItems,

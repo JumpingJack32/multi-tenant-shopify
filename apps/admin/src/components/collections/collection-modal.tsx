@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Alert, AlertDescription } from "@repo/ui/components/ui/alert";
 import { Button } from "@repo/ui/components/ui/button";
 import {
@@ -12,7 +13,6 @@ import {
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { AlertCircle } from "@repo/ui/icons";
-import { useState } from "react";
 
 interface CollectionModalProps {
   collection: {

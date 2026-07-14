@@ -1,8 +1,8 @@
 "use client";
-import { Button } from "@repo/ui/base-ui";
-import { Card, CardContent } from "@repo/ui/components/ui/card";
 import Link from "next/link";
 import * as React from "react";
+import { Button } from "@repo/ui/base-ui";
+import { Card, CardContent } from "@repo/ui/components/ui/card";
 
 export default function CatsAndDogsLanding() {
   return (

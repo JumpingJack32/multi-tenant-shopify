@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,6 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 import { Plus, Edit2, Trash2 } from "@repo/ui/icons";
-import { useState, useEffect } from "react";
 
 import { CategoryModal } from "./category-modal";
 

@@ -1,7 +1,7 @@
 "use client";
+import { useState, useMemo, type ChangeEvent } from "react";
 import { cn } from "@repo/shared-utils/cn";
 import type { Product } from "@repo/tenant-orm/types";
-import { useState, useMemo, type ChangeEvent } from "react";
 
 interface DataTableProps {
   data: Product[];
@@ -39,7 +39,7 @@ export function DataTable({
       columns.some((col) => {
         const value = item[col.accessor];
         return value != null && String(value).toLowerCase().includes(lower);
-      })
+      }),
     );
   }, [data, search, columns]);
 
@@ -50,7 +50,6 @@ export function DataTable({
     setSearch(value);
     onSearchChange?.(value);
   };
-
 
   return (
     <div className="space-y-4">
@@ -84,7 +83,8 @@ export function DataTable({
         </div>
         {totalItems != null && (
           <span className="text-sm text-muted-foreground">
-            {filteredData.length} of {totalItems} result{totalItems !== 1 ? "s" : ""}
+            {filteredData.length} of {totalItems} result
+            {totalItems !== 1 ? "s" : ""}
           </span>
         )}
       </div>
@@ -121,7 +121,9 @@ export function DataTable({
                 >
                   <div className="flex flex-col items-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    <span className="text-sm text-muted-foreground">Loading...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Loading...
+                    </span>
                   </div>
                 </td>
               </tr>
@@ -145,8 +147,13 @@ export function DataTable({
                   onClick={() => onRowClick?.(item)}
                 >
                   {columns.map((col) => (
-                    <td key={col.accessor} className={cn("px-4 py-3", col.cellClassName)}>
-                      {col.cell ? col.cell(item[col.accessor], item) : String(item[col.accessor] ?? "")}
+                    <td
+                      key={col.accessor}
+                      className={cn("px-4 py-3", col.cellClassName)}
+                    >
+                      {col.cell
+                        ? col.cell(item[col.accessor], item)
+                        : String(item[col.accessor] ?? "")}
                     </td>
                   ))}
                   {rowActions && (
@@ -172,7 +179,9 @@ export function DataTable({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+              onClick={() =>
+                pagination.onPageChange(pagination.currentPage - 1)
+              }
               disabled={pagination.currentPage <= 1}
               className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm disabled:opacity-50 disabled:pointer-events-none hover:bg-accent"
             >
@@ -180,7 +189,9 @@ export function DataTable({
             </button>
             <button
               type="button"
-              onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+              onClick={() =>
+                pagination.onPageChange(pagination.currentPage + 1)
+              }
               disabled={pagination.currentPage >= pagination.totalPages}
               className="inline-flex items-center rounded-md border px-3 py-1.5 text-sm disabled:opacity-50 disabled:pointer-events-none hover:bg-accent"
             >

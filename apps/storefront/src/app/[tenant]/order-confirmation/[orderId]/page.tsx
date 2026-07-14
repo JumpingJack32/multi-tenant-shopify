@@ -1,6 +1,6 @@
-import { formatCents } from "@repo/shared-utils/currency";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { formatCents } from "@repo/shared-utils/currency";
 
 import { fetchOrder } from "@/lib/storefront-api";
 

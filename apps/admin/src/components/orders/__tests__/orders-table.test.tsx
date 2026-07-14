@@ -1,6 +1,6 @@
-import type { Order } from "@repo/tenant-orm/types";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
+import type { Order } from "@repo/tenant-orm/types";
 
 vi.mock("@repo/tenant-orm/utils", () => ({
   formatCurrency: (n: number) => `$${(n / 100).toFixed(2)}`,

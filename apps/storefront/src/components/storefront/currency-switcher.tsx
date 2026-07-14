@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -7,7 +8,6 @@ import {
   SelectTrigger,
   SelectItem,
 } from "@repo/ui/components/ui/select";
-import { useCallback, useEffect, useState } from "react";
 
 // Just creating a loose type for Base UI's specific event details argument to make TS happy
 type SelectRootChangeEventDetails = any;
