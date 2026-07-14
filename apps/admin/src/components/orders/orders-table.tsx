@@ -27,7 +27,7 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders, onRowClick }: OrdersTableProps) {
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         No orders found

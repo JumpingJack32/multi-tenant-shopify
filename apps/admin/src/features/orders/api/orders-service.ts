@@ -29,16 +29,7 @@ export async function fetchOrders(
       data: [],
       pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 },
     };
-  const result = await api.orders.list(params, { tenantId: tid });
-  return {
-    data: result,
-    pagination: {
-      page: 1,
-      page_size: result.length,
-      total: result.length,
-      total_pages: 1,
-    },
-  };
+  return api.orders.list(params, { tenantId: tid });
 }
 
 export async function fetchOrder(

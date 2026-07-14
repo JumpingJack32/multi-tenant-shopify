@@ -52,13 +52,16 @@ describe("orders-service", () => {
   });
 
   it("fetchOrders returns OrderListResponse", async () => {
-    mockList.mockResolvedValue([MOCK_ORDER]);
+    mockList.mockResolvedValue({
+      data: [MOCK_ORDER],
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
+    });
 
     const { fetchOrders } = await import("../orders-service");
     const result = await fetchOrders({ status: "pending" });
     expect(result).toEqual({
       data: [MOCK_ORDER],
-      pagination: { page: 1, page_size: 1, total: 1, total_pages: 1 },
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
     });
     expect(mockList).toHaveBeenCalledWith(
       { status: "pending" },
