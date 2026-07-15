@@ -1,7 +1,7 @@
 """Tests for abandoned cart recovery."""
 
-import uuid
 from unittest.mock import AsyncMock, MagicMock
+import uuid
 
 import pytest
 
@@ -55,7 +55,7 @@ class TestEmailService:
         assert result is True
 
     async def test_create_email_service_returns_resend_when_key_configured(self):
-        from src.services.email_service import ResendEmailService, create_email_service
+        from src.services.email_service import create_email_service, ResendEmailService
 
         svc = create_email_service()
         from src.config import settings

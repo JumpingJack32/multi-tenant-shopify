@@ -15,9 +15,9 @@ from src.orm.models.purchase_order import (
 )
 from src.orm.schemas.purchase_order import (
     PaginationMeta,
+    PurchaseOrderItemResponse,
     PurchaseOrderListResponse,
     PurchaseOrderPatchInput,
-    PurchaseOrderItemResponse,
     PurchaseOrderResponse,
 )
 from src.services.po_state_machine import validate_transition
@@ -221,13 +221,13 @@ async def update_purchase_order(
         validate_transition(po.status, update_data["status"], po.fulfillment_strategy)
         po.status = update_data["status"]
         if update_data["status"] == "sent":
-            from datetime import UTC, datetime
+            from datetime import datetime, UTC
             po.sent_at = datetime.now(UTC)
         elif update_data["status"] == "confirmed":
-            from datetime import UTC, datetime
+            from datetime import datetime, UTC
             po.confirmed_at = datetime.now(UTC)
         elif update_data["status"] == "closed":
-            from datetime import UTC, datetime
+            from datetime import datetime, UTC
             po.closed_at = datetime.now(UTC)
 
     for key in {"tracking_number", "carrier", "notes"} & update_data.keys():
@@ -254,7 +254,7 @@ async def approve_purchase_order(
 
     validate_transition(po.status, "sent", po.fulfillment_strategy)
     po.status = "sent"
-    from datetime import UTC, datetime
+    from datetime import datetime, UTC
     po.sent_at = datetime.now(UTC)
     await db.flush()
     return await _build_po_response(db, po)

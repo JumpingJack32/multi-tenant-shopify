@@ -1,14 +1,14 @@
-from uuid import uuid4
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from src.orm.schemas.inventory import (
     InventoryItemCreateInput,
     InventoryItemPatchInput,
     InventoryItemResponse,
-    InventoryVariantResponse,
-    InventoryStatsResponse,
-    PaginationMeta,
     InventoryListResponse,
+    InventoryStatsResponse,
+    InventoryVariantResponse,
+    PaginationMeta,
 )
 
 

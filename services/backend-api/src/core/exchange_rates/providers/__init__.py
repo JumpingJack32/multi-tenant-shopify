@@ -1,5 +1,5 @@
-from src.core.exchange_rates.interface import ExchangeRateProvider
 from src.config import settings
+from src.core.exchange_rates.interface import ExchangeRateProvider
 
 _providers: dict[str, type[ExchangeRateProvider]] = {}
 

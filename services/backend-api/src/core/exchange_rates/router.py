@@ -1,9 +1,10 @@
 from decimal import Decimal
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.core.exchange_rates.service import get_minor_unit, RateService
 from src.dependencies import get_db
-from src.core.exchange_rates.service import RateService, get_minor_unit
 
 router = APIRouter(prefix="/api/v1/exchange-rates", tags=["exchange-rates"])
 

@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import JSON, Index, Text
+from sqlalchemy import Index, JSON, Text
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel

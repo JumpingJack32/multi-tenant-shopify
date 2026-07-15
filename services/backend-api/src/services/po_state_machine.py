@@ -8,7 +8,6 @@ Warehouse path (Phase 2): in_transit → partially_received → received → clo
 
 from dataclasses import dataclass
 
-
 VALID_TRANSITIONS: dict[str, set[str]] = {
     "draft": {"pending_review", "cancelled"},
     "pending_review": {"sent", "cancelled"},

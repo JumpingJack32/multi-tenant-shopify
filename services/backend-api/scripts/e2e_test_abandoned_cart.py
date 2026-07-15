@@ -7,9 +7,9 @@ Run: doppler run -- uv run python scripts/e2e_test_abandoned_cart.py
 """
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from sqlmodel import select

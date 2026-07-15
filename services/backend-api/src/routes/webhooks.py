@@ -5,8 +5,7 @@ import json
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
-from svix.webhooks import Webhook as SvixWebhook
-from svix.webhooks import WebhookVerificationError
+from svix.webhooks import Webhook as SvixWebhook, WebhookVerificationError
 
 from src.config import settings
 from src.dependencies import get_db

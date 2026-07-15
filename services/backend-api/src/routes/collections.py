@@ -1,10 +1,12 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select, func
-from src.dependencies import get_db, get_current_tenant_id
+from sqlmodel import func, select
+
+from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.collection import Collection, ProductCollection
 from src.orm.models.product import Product
-from src.orm.schemas.collection import CollectionCreate, CollectionUpdate, CollectionResponse
+from src.orm.schemas.collection import CollectionCreate, CollectionResponse, CollectionUpdate
 
 router = APIRouter(tags=["collections"])
 

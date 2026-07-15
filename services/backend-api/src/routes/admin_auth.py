@@ -1,9 +1,9 @@
 from uuid import UUID, uuid4
 
+import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, Field
-import bcrypt
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 

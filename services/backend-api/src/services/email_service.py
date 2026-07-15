@@ -1,7 +1,7 @@
 """Email notification service for abandoned cart recovery."""
 
-import logging
 from abc import ABC, abstractmethod
+import logging
 
 import httpx
 

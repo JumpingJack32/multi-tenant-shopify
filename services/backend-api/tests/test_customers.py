@@ -1,7 +1,7 @@
 from uuid import uuid4
 
-import pytest
 from httpx import ASGITransport, AsyncClient
+import pytest
 from sqlmodel import delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 

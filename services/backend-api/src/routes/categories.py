@@ -1,10 +1,12 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select, func
+from sqlmodel import func, select
+
+from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.category import Category
 from src.orm.models.product import Product
-from src.orm.schemas.category import CategoryCreate, CategoryUpdate, CategoryResponse
-from src.dependencies import get_db, get_current_tenant_id
+from src.orm.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate
 
 router = APIRouter(tags=["categories"])
 

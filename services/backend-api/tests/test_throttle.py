@@ -1,16 +1,15 @@
 """Tests for in-memory and Redis rate limiters."""
 
 import asyncio
-import sys
 from pathlib import Path
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import pytest  # noqa: E402
 
-from src.core.throttle import InMemoryRateLimiter, RedisRateLimiter, _create_limiter  # noqa: E402
-
+from src.core.throttle import _create_limiter, InMemoryRateLimiter, RedisRateLimiter  # noqa: E402
 
 # ── InMemoryRateLimiter ────────────────────────────────────────────────
 
