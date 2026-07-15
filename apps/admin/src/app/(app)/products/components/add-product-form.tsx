@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+
 import { TenantEditor } from "@repo/editor";
+import type { Product } from "@repo/tenant-orm/types";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
+
 import {
   MediaDropzone,
   type MediaItem,
 } from "@/components/products/media-dropzone";
 import { uploadToCloudinary } from "@/lib/cloudinary-upload";
-import type { Product } from "@repo/tenant-orm/types";
 
 interface AddProductFormProps {
   onSubmit: (data: Record<string, unknown>) => void;
@@ -172,7 +174,6 @@ export default function AddProductForm({
       hasVariants,
       variants,
       isEditing,
-      editingProduct,
       onSubmit,
     ],
   );

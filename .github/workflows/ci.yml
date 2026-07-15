@@ -117,13 +117,6 @@ jobs:
         run: uv sync
         working-directory: services/backend-api
 
-      - name: Run database migrations
-        run: uv run alembic upgrade head
-        working-directory: services/backend-api
-        env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test
-          APP_ENV: test
-
       - name: Run tests
         run: uv run pytest tests/ -v --tb=short -x
         working-directory: services/backend-api
