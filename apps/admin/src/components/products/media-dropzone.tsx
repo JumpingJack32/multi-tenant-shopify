@@ -105,14 +105,17 @@ export function MediaDropzone({
   maxSizeMB = 100,
 }: MediaDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const objectUrlsRef = useRef<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const maxBytes = maxSizeMB * 1024 * 1024;
   const [rejectReason, setRejectReason] = useState<string | null>(null);
 
+  objectUrlsRef.current = value.map((m) => m.preview);
   useEffect(() => {
     return () => {
-      value.forEach((m) => URL.revokeObjectURL(m.preview));
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addFiles = useCallback(

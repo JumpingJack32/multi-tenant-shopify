@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-
 import { TenantEditor } from "@repo/editor";
 import type { Product } from "@repo/tenant-orm/types";
 import { Input } from "@repo/ui/components/ui/input";
