@@ -156,6 +156,9 @@ importers:
       '@repo/codegen':
         specifier: workspace:*
         version: link:../../packages/codegen
+      '@repo/editor':
+        specifier: workspace:*
+        version: link:../../packages/editor
       '@repo/shared-utils':
         specifier: workspace:*
         version: link:../../packages/shared-utils
@@ -323,8 +326,14 @@ importers:
         specifier: ^2.11.2
         version: 2.27.2
       lucide-react:
-        specifier: ^0.200.0
-        version: 0.200.0(react@19.2.7)
+        specifier: ^1.16.0
+        version: 1.20.0(react@19.2.7)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
     devDependencies:
       '@repo/shared-utils':
         specifier: workspace:*
@@ -338,12 +347,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.17)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.7
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.7(react@19.2.7)
 
   packages/eslint-config:
     dependencies:
@@ -4251,11 +4254,6 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
-
-  lucide-react@0.200.0:
-    resolution: {integrity: sha512-GzElAorSJV1ITVlKiKa1F9QIYCFHAaiClmypBCCUFXddPVItjda4UqNsZo6z6wtdgf8ZhstTUyfZ8SwSg6jVNw==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0
 
   lucide-react@1.20.0:
     resolution: {integrity: sha512-jhXLeC/7m0/tjL1nzMdKk6x256zWA6AtbhTVreHOiKPoeX2d6MK4FbyIQPpVq0E6iPWBisyy1TW+pEge/uMEuQ==}
@@ -9326,10 +9324,6 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
-
-  lucide-react@0.200.0(react@19.2.7):
-    dependencies:
-      react: 19.2.7
 
   lucide-react@1.20.0(react@19.2.7):
     dependencies:

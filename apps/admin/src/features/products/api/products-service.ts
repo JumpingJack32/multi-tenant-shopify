@@ -11,6 +11,15 @@ export interface ProductsResponse {
   total: number;
 }
 
+export async function fetchProduct(
+  id: string,
+  tenantId?: string | null,
+): Promise<Product> {
+  const tid = tenantId ?? getStorageTenantId();
+  if (!tid) throw new Error("No tenant selected");
+  return api.products.get(id, { tenantId: tid });
+}
+
 export async function fetchProducts(
   params?: {
     search?: string;

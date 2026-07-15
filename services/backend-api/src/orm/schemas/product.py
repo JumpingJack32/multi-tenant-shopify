@@ -4,7 +4,6 @@ from uuid import UUID
 
 from pydantic import BaseModel as PydanticBaseModel, Field
 
-
 # ── Product ──────────────────────────────────────────────────────────────
 
 
@@ -17,6 +16,7 @@ class ProductCreate(PydanticBaseModel):
     weight: Optional[float] = None
     weight_unit: str = "kg"
     is_active: bool = True
+    images: list[str] = []
 
 
 class ProductUpdate(PydanticBaseModel):

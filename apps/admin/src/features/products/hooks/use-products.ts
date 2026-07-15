@@ -6,6 +6,7 @@ import type {
 } from "@repo/tenant-orm/types";
 
 import {
+  fetchProduct,
   fetchProducts,
   createProduct,
   updateProduct,
@@ -28,6 +29,15 @@ export function useProducts(
     queryKey: ["products", params, tid],
     queryFn: () => fetchProducts(params, tid),
     enabled: !!tid,
+  });
+}
+
+export function useProduct(id: string | null, tenantId?: string | null) {
+  const tid = tenantId ?? getStorageTenantId();
+  return useQuery({
+    queryKey: ["product", id, tid],
+    queryFn: () => fetchProduct(id!, tid),
+    enabled: !!id && !!tid,
   });
 }
 

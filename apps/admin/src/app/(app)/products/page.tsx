@@ -6,7 +6,6 @@ import type { Product } from "@repo/tenant-orm/types";
 import { ArrowLeftIcon, PackageIcon, PlusIcon } from "@repo/ui/icons";
 
 import { ProductDeleteDialog } from "@/components/products/product-delete-dialog";
-import { ProductDrawer } from "@/components/products/product-drawer";
 import { ProductTable } from "@/components/products/product-table";
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
@@ -14,6 +13,7 @@ import { useRbac } from "@/contexts/rbac-context";
 import { useTenantContext } from "@/contexts/tenant-context";
 import {
   useProducts,
+  useProduct,
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
@@ -25,16 +25,20 @@ export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "overview";
+  const editId = searchParams.get("id");
 
   const { can } = useRbac();
   const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
+
+  const { data: editProduct, isLoading: editLoading } = useProduct(
+    editId,
+    currentTenantId,
+  );
 
   const {
     data: productsData,
@@ -54,8 +58,7 @@ export default function ProductsPage() {
   const deleteMutation = useDeleteProduct(currentTenantId);
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setDrawerOpen(true);
+    router.push(`/products?view=edit&id=${product.id}`);
   };
 
   const handleDelete = (product: Product) => {
@@ -75,14 +78,11 @@ export default function ProductsPage() {
   };
 
   const handleSubmit = (data: Record<string, unknown>) => {
-    if (editingProduct) {
+    if (editId) {
       updateMutation.mutate(
-        { id: editingProduct.id, data },
+        { id: editId, data: data as any },
         {
-          onSuccess: () => {
-            setDrawerOpen(false);
-            setEditingProduct(null);
-          },
+          onSuccess: () => router.push("/products"),
         },
       );
     } else {
@@ -96,7 +96,10 @@ export default function ProductsPage() {
   const canDelete = can("delete");
 
   return (
-    <main className="flex-1 overflow-y-auto p-6">
+    <main
+      className="flex-1 overflow-y-auto p-6"
+      style={{ backgroundImage: "url('/drew-beamer.jpg')" }}
+    >
       {view === "overview" && (
         <div>
           {products.length === 0 ? (
@@ -165,13 +168,6 @@ export default function ProductsPage() {
                 onDelete={handleDelete}
               />
 
-              <ProductDrawer
-                open={drawerOpen}
-                onOpenChange={setDrawerOpen}
-                product={editingProduct}
-                onSubmit={handleSubmit}
-              />
-
               <ProductDeleteDialog
                 product={deletingProduct}
                 open={deleteDialogOpen}
@@ -198,6 +194,43 @@ export default function ProductsPage() {
             onSubmit={handleSubmit}
             onCancel={() => router.push("/products")}
           />
+        </div>
+      )}
+
+      {view === "edit" && editProduct && (
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6 flex items-center gap-3">
+            <button
+              onClick={() => router.push("/products")}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeftIcon className="h-4 w-4" /> Products
+            </button>
+          </div>
+          <AddProductForm
+            key={editProduct.id}
+            editingProduct={editProduct}
+            onSubmit={handleSubmit}
+            onCancel={() => router.push("/products")}
+          />
+        </div>
+      )}
+
+      {view === "edit" && !editProduct && !editLoading && (
+        <div className="mx-auto max-w-lg pt-16 text-center">
+          <p className="text-muted-foreground">Product not found.</p>
+          <button
+            onClick={() => router.push("/products")}
+            className="mt-4 text-sm font-semibold text-primary hover:underline"
+          >
+            Back to Products
+          </button>
+        </div>
+      )}
+
+      {view === "edit" && editLoading && (
+        <div className="mx-auto max-w-lg pt-16 text-center">
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       )}
 
