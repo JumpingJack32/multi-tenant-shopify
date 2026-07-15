@@ -1,0 +1,407 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import { TenantEditor } from "@repo/editor";
+import type { Product } from "@repo/tenant-orm/types";
+import { Input } from "@repo/ui/components/ui/input";
+import { Label } from "@repo/ui/components/ui/label";
+import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
+
+import {
+  MediaDropzone,
+  type MediaItem,
+} from "@/components/products/media-dropzone";
+import { uploadToCloudinary } from "@/lib/cloudinary-upload";
+
+interface AddProductFormProps {
+  onSubmit: (data: Record<string, unknown>) => void;
+  onCancel: () => void;
+  editingProduct?: Product | null;
+}
+
+interface VariantRow {
+  id: string;
+  optionType: string;
+  optionValue: string;
+  price: number;
+  sku: string;
+  stock: number;
+}
+
+const OPTION_TYPES = [
+  "Size",
+  "Color",
+  "Material",
+  "Style",
+  "Format",
+  "Capacity",
+];
+
+/** Upload a batch of files to Cloudinary, returns public_ids in order. */
+async function uploadMedia(
+  items: MediaItem[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<string[]> {
+  const ids: string[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!;
+    const publicId = await uploadToCloudinary(item.file);
+    ids.push(publicId);
+    onProgress?.(i + 1, items.length);
+  }
+  return ids;
+}
+
+export default function AddProductForm({
+  onSubmit,
+  onCancel,
+  editingProduct,
+}: AddProductFormProps) {
+  const isEditing = !!editingProduct;
+  const [name, setName] = useState(editingProduct?.name ?? "");
+  const [description, setDescription] = useState(
+    editingProduct?.description ?? "",
+  );
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [price, setPrice] = useState(0);
+  const [comparePrice, setComparePrice] = useState(0);
+  const [costPrice, setCostPrice] = useState(0);
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<VariantRow[]>([
+    {
+      id: "1",
+      optionType: "Size",
+      optionValue: "",
+      price: 0,
+      sku: "",
+      stock: 0,
+    },
+  ]);
+  const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
+  const submitRef = useRef(false);
+
+  const addVariant = () => {
+    setVariants((prev) => [
+      ...prev,
+      {
+        id: String(prev.length + 1),
+        optionType: "Size",
+        optionValue: "",
+        price: 0,
+        sku: "",
+        stock: 0,
+      },
+    ]);
+  };
+
+  const updateVariant = (
+    id: string,
+    key: keyof VariantRow,
+    value: string | number,
+  ) => {
+    setVariants((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, [key]: value } : v)),
+    );
+  };
+
+  const removeVariant = (id: string) => {
+    setVariants((prev) => prev.filter((v) => v.id !== id));
+  };
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (submitRef.current) return;
+      submitRef.current = true;
+
+      setSubmitting(true);
+      setProgress(null);
+
+      try {
+        let imageIds: string[] = [];
+
+        if (!isEditing && mediaItems.length > 0) {
+          setProgress({ done: 0, total: mediaItems.length });
+          imageIds = await uploadMedia(mediaItems, (done, total) =>
+            setProgress({ done, total }),
+          );
+        }
+
+        const payload: Record<string, unknown> = {
+          name,
+          description,
+          price: Math.round(price * 100),
+          has_variants: hasVariants,
+          variants: hasVariants
+            ? variants.map((v) => ({
+                options: v.optionValue ? { [v.optionType]: v.optionValue } : {},
+                price: Math.round(v.price * 100),
+                sku: v.sku,
+                inventory_quantity: v.stock,
+              }))
+            : [],
+        };
+
+        if (!isEditing) {
+          payload.compare_at_price = comparePrice
+            ? Math.round(comparePrice * 100)
+            : undefined;
+          payload.cost_price = costPrice
+            ? Math.round(costPrice * 100)
+            : undefined;
+          payload.images = imageIds;
+        }
+
+        onSubmit(payload);
+      } finally {
+        setSubmitting(false);
+        setProgress(null);
+        submitRef.current = false;
+      }
+    },
+    [
+      name,
+      description,
+      mediaItems,
+      price,
+      comparePrice,
+      costPrice,
+      hasVariants,
+      variants,
+      isEditing,
+      onSubmit,
+    ],
+  );
+
+  return (
+    <div className="relative rounded-xl bg-cover bg-center bg-no-repeat p-6 pb-32">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Product Details */}
+        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-6 space-y-4 shadow-sm">
+          <h3 className="text-base font-semibold">
+            {isEditing ? "Edit Product" : "Product Details"}
+          </h3>
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Short sleeve linen shirt"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <TenantEditor
+              initialContent={description}
+              onChange={setDescription}
+            />
+          </div>
+        </div>
+
+        {/* Media */}
+        <div className="rounded-xl border bg-card p-6 space-y-4 shadow-sm">
+          <h3 className="text-base font-semibold">Media</h3>
+          <MediaDropzone
+            value={mediaItems}
+            onChange={setMediaItems}
+            disabled={submitting}
+          />
+        </div>
+
+        {/* Pricing */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <h3 className="mb-4 text-base font-semibold">Pricing</h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Price</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={price || ""}
+                onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Compare-at Price</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={comparePrice || ""}
+                onChange={(e) =>
+                  setComparePrice(parseFloat(e.target.value) || 0)
+                }
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cost per Item</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={costPrice || ""}
+                onChange={(e) => setCostPrice(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Variants */}
+        <div className="rounded-xl border bg-card p-6 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold">Variants</h3>
+              <p className="text-sm text-muted-foreground">
+                Enable for products with multiple options like size or color.
+              </p>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={hasVariants}
+                onChange={(e) => setHasVariants(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              Has Variants
+            </label>
+          </div>
+
+          {hasVariants && (
+            <div className="space-y-3 pt-4 border-t">
+              {variants.map((v) => (
+                <div
+                  key={v.id}
+                  className="flex items-end gap-3 rounded-lg bg-muted/50 p-3"
+                >
+                  <div className="shrink-0 space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Type
+                    </Label>
+                    <select
+                      value={v.optionType}
+                      onChange={(e) =>
+                        updateVariant(v.id, "optionType", e.target.value)
+                      }
+                      className="h-8 rounded-md border bg-background px-2 text-xs"
+                    >
+                      {OPTION_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Value
+                    </Label>
+                    <Input
+                      value={v.optionValue}
+                      onChange={(e) =>
+                        updateVariant(v.id, "optionValue", e.target.value)
+                      }
+                      className="h-8 text-xs"
+                      placeholder="e.g. M"
+                    />
+                  </div>
+                  <div className="w-24 shrink-0 space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Price
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={v.price || ""}
+                      onChange={(e) =>
+                        updateVariant(
+                          v.id,
+                          "price",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div className="w-28 shrink-0 space-y-1">
+                    <Label className="text-xs text-muted-foreground">SKU</Label>
+                    <Input
+                      value={v.sku}
+                      onChange={(e) =>
+                        updateVariant(v.id, "sku", e.target.value)
+                      }
+                      className="h-8 text-xs font-mono"
+                      placeholder="W-SHIRT-M"
+                    />
+                  </div>
+                  <div className="w-20 shrink-0 space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      Stock
+                    </Label>
+                    <Input
+                      type="number"
+                      value={v.stock || ""}
+                      onChange={(e) =>
+                        updateVariant(
+                          v.id,
+                          "stock",
+                          parseInt(e.target.value) || 0,
+                        )
+                      }
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(v.id)}
+                    className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2Icon className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addVariant}
+                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                <PlusIcon className="h-4 w-4" /> Add variant
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Sticky footer */}
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-card py-4 px-8 flex justify-end gap-3 z-10 shadow-lg">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={submitting}
+            className="rounded-lg border bg-background px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            Discard
+          </button>
+          <button
+            type="submit"
+            disabled={submitting || !name.trim()}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {submitting && progress
+              ? `Uploading ${progress.done}/${progress.total}...`
+              : submitting
+                ? "Saving..."
+                : isEditing
+                  ? "Update Product"
+                  : "Save Product"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

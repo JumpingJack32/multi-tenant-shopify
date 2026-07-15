@@ -2,8 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, EmailStr, Field
 from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr, Field
 
 from src.core.cache import blacklist_jwt
 from src.core.security import create_access_token, create_refresh_token, decode_token

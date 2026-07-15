@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, UTC
 from typing import Optional
 from uuid import UUID, uuid4
 

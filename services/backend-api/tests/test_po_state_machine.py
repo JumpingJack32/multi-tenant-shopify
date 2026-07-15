@@ -4,8 +4,8 @@ import pytest
 
 from src.services.po_state_machine import (
     POStateError,
-    validate_transition,
     status_label,
+    validate_transition,
 )
 
 

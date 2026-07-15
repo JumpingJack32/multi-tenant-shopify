@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, Column, DateTime
+from sqlalchemy import Column, DateTime, JSON
 from sqlmodel import Field, Relationship
 
 from src.orm.base import BaseModel

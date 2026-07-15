@@ -15,6 +15,7 @@
     "@clerk/nextjs": "^7.5.7",
     "@hookform/resolvers": "^4.0.0",
     "@repo/codegen": "workspace:*",
+    "@repo/editor": "workspace:*",
     "@repo/shared-utils": "workspace:*",
     "@repo/tenant-orm": "workspace:*",
     "@repo/ui": "workspace:*",

@@ -1,6 +1,5 @@
-from uuid import UUID
-
 import asyncio
+from uuid import UUID
 
 import cloudinary.uploader
 from fastapi import APIRouter, Depends, HTTPException, status

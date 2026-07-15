@@ -4,10 +4,12 @@ Optional module docstring goes here.
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Optional, List
-from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
+from enum import Enum
+from typing import List, Optional
+
+from sqlmodel import Field, Relationship, SQLModel
+
 # from sqlmodel import SQLModel, Field
 # from sqlalchemy import Column, String, Boolean
 

@@ -13,8 +13,9 @@ async def process_order_payment(
 ) -> None:
     """Process order payment and update status."""
     if db is None:
-        from src.database import create_async_db_engine
         from sqlmodel.ext.asyncio.session import AsyncSession
+
+        from src.database import create_async_db_engine
 
         async with AsyncSession(create_async_db_engine(), expire_on_commit=False) as session:
             await _process_order_payment_impl(order_id, payment_intent_id, session)

@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, DateTime, Enum as SAEnum, Index, UniqueConstraint
+from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON, UniqueConstraint
 from sqlmodel import Column, Field, SQLModel
 
 from src.orm.base import BaseModel
@@ -29,7 +29,7 @@ class Tenant(SQLModel, table=True):
     domain: Optional[str] = Field(default=None, max_length=255)
     plan: str = Field(default="starter", max_length=50)
     status: TenantStatus = Field(
-    default=TenantStatus.PENDING, 
+    default=TenantStatus.PENDING,
     sa_column=Column(SAEnum(TenantStatus))
 )
     settings: dict = Field(
@@ -41,7 +41,7 @@ class Tenant(SQLModel, table=True):
         sa_column=Column(JSON, nullable=False, default=dict, comment="Tenant options JSON"),
     )
     trial_ends_at: Optional[datetime] = Field(
-        default=None, 
+        default=None,
         sa_column=Column(DateTime(timezone=True))
     )
     subscription_id: Optional[str] = Field(default=None, max_length=255)

@@ -1,5 +1,5 @@
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Optional
+from datetime import datetime, UTC
+from typing import Optional, TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, Index, UniqueConstraint

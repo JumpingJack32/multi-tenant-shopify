@@ -1,9 +1,9 @@
 """Script to seed an eligible abandoned cart for end-to-end testing."""
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from sqlmodel import select

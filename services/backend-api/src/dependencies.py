@@ -7,7 +7,6 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 current_tenant_id: ContextVar[UUID] = ContextVar("current_tenant_id", default=UUID("00000000-0000-0000-0000-000000000000"))
 

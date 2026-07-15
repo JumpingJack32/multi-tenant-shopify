@@ -4,12 +4,12 @@ import base64
 import time
 from typing import Any
 
+from cryptography.hazmat.primitives.asymmetric.ec import (
+    EllipticCurvePublicKey,
+    SECP256R1,
+)
 import httpx
 import jwt
-from cryptography.hazmat.primitives.asymmetric.ec import (
-    SECP256R1,
-    EllipticCurvePublicKey,
-)
 
 from src.config import settings
 

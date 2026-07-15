@@ -77,10 +77,12 @@ const navManagement: NavItem[] = [
     title: "Products",
     icon: <PackageIcon />,
     items: [
+      { title: "All Products", url: "/products" },
+      { title: "Find Products to Sell", url: "/products?view=find" },
+      { title: "Add Product", url: "/products?view=add" },
       { title: "Collections", url: "/collections" },
       { title: "Inventory", url: "/products/inventory" },
       { title: "Transfers", url: "/transfers" },
-      { title: "Gift Cards", url: "/products/gift-cards" },
     ],
   },
   {

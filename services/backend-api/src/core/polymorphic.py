@@ -1,6 +1,7 @@
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, UniqueConstraint
+
 from .base import TimestampMixin
 
 

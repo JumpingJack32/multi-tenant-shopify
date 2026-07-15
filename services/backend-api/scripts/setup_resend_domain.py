@@ -127,7 +127,7 @@ async def main():
             logger.info()
 
     logger.info(f"{'='*60}")
-    logger.info(f"AFTER ADDING RECORDS:") 
+    logger.info(f"AFTER ADDING RECORDS:")
     logger.info(f"  1. Wait up to 15 min for DNS propagation")
     logger.info(f"  2. Click 'Verify DNS Records' in Resend dashboard")
     logger.info(f"  3. Then update RESEND_FROM_EMAIL in Doppler to noreply@{DOMAIN}")

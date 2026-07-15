@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import Index, UniqueConstraint
 from sqlmodel import Field, Relationship

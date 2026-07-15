@@ -1,12 +1,11 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Any
 from uuid import uuid4
 
 # import jwt
-from jose import JWTError, jwt as pyjwt
+from jose import jwt as pyjwt, JWTError
 
 from src.config import settings
-
 
 ALGORITHM = "HS256"
 

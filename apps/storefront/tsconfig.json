@@ -9,7 +9,8 @@
       "@repo/codegen/*": ["../../packages/codegen/src/*"],
       "@repo/tenant-orm/*": ["../../packages/tenant-orm/src/*"],
       "@repo/ui/*": ["../../packages/ui/src/*"],
-      "@repo/shared-utils/*": ["../../packages/shared-utils/src/*"]
+      "@repo/shared-utils/*": ["../../packages/shared-utils/src/*"],
+      "@repo/editor/*": ["../../packages/editor/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

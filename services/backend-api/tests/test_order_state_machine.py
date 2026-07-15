@@ -4,8 +4,8 @@ import pytest
 
 from src.services.order_state_machine import (
     OrderStateError,
-    validate_transition,
     VALID_TRANSITIONS,
+    validate_transition,
 )
 
 

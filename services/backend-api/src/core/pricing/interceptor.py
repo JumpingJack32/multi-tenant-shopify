@@ -1,6 +1,6 @@
+from decimal import Decimal, ROUND_HALF_UP
 import json
 import logging
-from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Callable
 
 from fastapi import Request, Response

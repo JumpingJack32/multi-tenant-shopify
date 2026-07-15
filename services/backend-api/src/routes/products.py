@@ -6,7 +6,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.product import Product, Variant
+from src.orm.models.product import Product, ProductImage, Variant
 from src.orm.schemas.product import (
     ProductCreate,
     ProductResponse,
@@ -40,9 +40,22 @@ async def create_product(
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
 ):
-    product = Product(**data.model_dump(), tenant_id=tenant_id)
+    product_data = data.model_dump()
+    image_ids = product_data.pop("images", [])
+    product = Product(**product_data, tenant_id=tenant_id)
     db.add(product)
     await db.flush()
+
+    for idx, public_id in enumerate(image_ids):
+        image = ProductImage(
+            product_id=product.id,
+            tenant_id=tenant_id,
+            url=public_id,
+            sort_order=idx,
+        )
+        db.add(image)
+    await db.flush()
+
     await db.refresh(product)
     return product
 

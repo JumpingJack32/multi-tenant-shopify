@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@repo/tenant-orm",
     "@repo/ui",
     "@repo/shared-utils",
+    "@repo/editor",
   ],
   experimental: {
     optimizePackageImports: ["@repo/ui"],

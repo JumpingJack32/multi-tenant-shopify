@@ -11,7 +11,6 @@ from dataclasses import dataclass
 
 from src.orm.models.order import OrderStatus
 
-
 VALID_TRANSITIONS: dict[str, set[str]] = {
     OrderStatus.PENDING.value: {OrderStatus.CONFIRMED.value, OrderStatus.PAID.value, OrderStatus.CANCELLED.value},
     OrderStatus.CONFIRMED.value: {OrderStatus.PAID.value, OrderStatus.PROCESSING.value, OrderStatus.SHIPPED.value, OrderStatus.CANCELLED.value},

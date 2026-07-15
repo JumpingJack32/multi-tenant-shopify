@@ -51,7 +51,7 @@ def upgrade() -> None:
     """)
     op.execute("CREATE INDEX IF NOT EXISTS idx_tenant_users_tenant_clerk_id ON tenant_users(tenant_id, clerk_user_id)")
     op.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_tenant_users_tenant_clerk_id 
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_tenant_users_tenant_clerk_id
         ON tenant_users(tenant_id, clerk_user_id)
     """)
 

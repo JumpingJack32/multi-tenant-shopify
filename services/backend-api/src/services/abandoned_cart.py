@@ -1,10 +1,10 @@
 """Abandoned cart detection and email reminder service."""
 
+from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import json
 import logging
-from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from sqlalchemy import or_

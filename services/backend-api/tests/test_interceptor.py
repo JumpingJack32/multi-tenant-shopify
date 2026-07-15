@@ -1,6 +1,7 @@
 """Unit tests for PriceConverter, CurrencyAwareRoute, and utility functions."""
 
 import os
+
 os.environ.setdefault("DATABASE_URL", "sqlite:///test.db")
 os.environ.setdefault("CLERK_SECRET_KEY", "sk_test_placeholder")
 os.environ.setdefault("CLERK_PUBLISHABLE_KEY", "pk_test_placeholder")
@@ -14,12 +15,11 @@ from unittest.mock import patch
 from pydantic import BaseModel, Field
 
 from src.core.pricing.interceptor import (
-    PriceConverter,
     _apply_rate,
-    _list_child_type,
     _list_child_from_field,
+    _list_child_type,
+    PriceConverter,
 )
-
 
 # ---------------------------------------------------------------------------
 # _list_child_type
@@ -211,13 +211,15 @@ class TestPriceConverter:
 
 class TestCurrencyAwareRoute:
     def test_route_subclass(self):
-        from src.core.pricing.interceptor import CurrencyAwareRoute
         from fastapi.routing import APIRoute
+
+        from src.core.pricing.interceptor import CurrencyAwareRoute
         assert issubclass(CurrencyAwareRoute, APIRoute)
 
     def test_get_route_handler(self):
-        from src.core.pricing.interceptor import CurrencyAwareRoute
         from fastapi import APIRouter
+
+        from src.core.pricing.interceptor import CurrencyAwareRoute
         router = APIRouter(route_class=CurrencyAwareRoute)
 
         @router.get("/test")

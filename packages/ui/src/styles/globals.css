@@ -5,6 +5,7 @@
 @source "../../../../apps/**/*.{ts,tsx}";
 @source "../../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+@source "../../../packages/editor/**/*.{ts,tsx}";
 
 :root {
   --background: oklch(1 0 0);
@@ -141,6 +142,26 @@
 @utility data-closing {
   &[data-closing] {
     @apply -translate-y-2 opacity-0;
+  }
+}
+
+/* Shake animation for feedback on AI button */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
   }
 }
 

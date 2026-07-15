@@ -4,8 +4,8 @@ Phase 1: pure dropshipping — always creates a PO to the supplier.
 Phase 2 (deferred): can route to warehouse pick-list or split between warehouse + PO.
 """
 
-import enum
 from datetime import datetime
+import enum
 from typing import Optional
 from uuid import UUID
 

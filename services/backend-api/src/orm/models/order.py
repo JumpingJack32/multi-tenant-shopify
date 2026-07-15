@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, DateTime, Enum as SAEnum, Index
+from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
@@ -102,7 +102,7 @@ class Customer(BaseModel, table=True):
     refunded_total: int = Field(default=0, ge=0)
     # last_order_at: Optional[datetime] = mapped_column(DateTime(timezone=True), default=None)
     last_order_at: Optional[datetime] = Field(
-        default=None, 
+        default=None,
         sa_column=Column(DateTime(timezone=True))
     )
     orders: list[Order] = Relationship(back_populates="customer")
