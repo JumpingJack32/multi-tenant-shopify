@@ -174,9 +174,12 @@
 ## Active Branch — `feat/product-form` (not yet merged to main)
 
 - **Products page refactored** — sub-nav moved to main sidebar (Products expands with: All Products, Find Products to Sell, Add Product, Collections, Inventory, Transfers). View switching via URL params (`?view=add`, `?view=find`).
-- **Add Product form** — full-page form with 4 sections: Details (title + TipTap WYSIWYG description), Media (drag-drop upload), Pricing (price, compare-at, cost), Variants (toggle + dynamic rows with option1/option2/price/SKU/stock).
+- **Add Product form** — full-page form with 4 sections: Details, Media, Pricing, Variants. Wired to backend via `useCreateProduct`/`useUpdateProduct`.
+- **Rich text editor** (`packages/editor`) — current state uses `@tiptap/react` with `useEditor` + `EditorContent` + `BubbleMenu`. Extensions: StarterKit, Placeholder, Underline, Link. Toolbar: bold, italic, underline, strike, H1-H4, bullet list, ordered list, quote, code, link, AI button. **Not rendering in browser — likely a dev server restart issue or bundling problem from the Novel → TipTap migration. Needs debugging in the next session.**
+- **AI route** (`/api/generate`) — scaffolded with Ollama support + fallback text.
+- **`@repo/editor` package** — created at `packages/editor/src/index.tsx`. Exports `TenantEditor` component.
 - **Pending refinements** before merge to `main`:
-  - Rich text editor needs further polish (toolbar positioning, keyboard shortcuts)
+  - **Rich text editor not rendering** — top priority. Debug why `@tiptap/react` `useEditor` returns null or fails to mount in the browser.
   - Variant management needs option-type selection (dropdown for Size/Color/Material instead of free-text inputs)
   - Media upload needs Cloudinary integration
   - Edit flow still uses old drawer — needs migration to full-page form
