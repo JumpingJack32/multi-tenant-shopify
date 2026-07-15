@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.19",
+    "@tiptap/core": "^3.27.4",
     "@tiptap/extension-placeholder": "^3.27.0",
     "@tiptap/react": "^3.27.0",
     "@tiptap/starter-kit": "^3.27.0",
@@ -14,6 +15,7 @@
     "novel": "0.2.13"
   },
   "devDependencies": {
+    "@repo/shared-utils": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

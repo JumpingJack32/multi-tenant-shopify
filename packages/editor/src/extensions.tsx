@@ -10,7 +10,7 @@ import {
   AIHighlight,
 } from "novel/extensions";
 import { UploadImagesPlugin } from "novel/plugins";
-import { cn } from "./cn";
+import { cn } from "@repo/shared-utils/cn";
 
 const aiHighlight = AIHighlight;
 const placeholder = Placeholder.configure({
@@ -107,7 +107,7 @@ const starterKit = StarterKit.configure({
   gapcursor: false,
 });
 
-export const defaultExtensions = [
+export const defaultExtensions: any[] = [
   starterKit,
   placeholder,
   tiptapLink,
