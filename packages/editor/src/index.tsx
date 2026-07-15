@@ -7,14 +7,18 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import {
   BoldIcon,
+  CodeIcon,
+  Heading1Icon,
+  Heading2Icon,
+  Heading3Icon,
+  Heading4Icon,
   ItalicIcon,
+  LinkIcon,
   ListIcon,
   ListOrderedIcon,
   QuoteIcon,
-  CodeIcon,
   StrikethroughIcon,
   UnderlineIcon,
-  LinkIcon,
   WandIcon,
 } from "lucide-react";
 
@@ -134,6 +138,43 @@ export function TenantEditor({
           title="Strikethrough"
         >
           <StrikethroughIcon className="h-4 w-4" />
+        </ToolBtn>
+        <span className="mx-1 h-4 w-px bg-border" />
+        <ToolBtn
+          active={editor.isActive("heading", { level: 1 })}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+          title="Heading 1"
+        >
+          <Heading1Icon className="h-4 w-4" />
+        </ToolBtn>
+        <ToolBtn
+          active={editor.isActive("heading", { level: 2 })}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 2 }).run()
+          }
+          title="Heading 2"
+        >
+          <Heading2Icon className="h-4 w-4" />
+        </ToolBtn>
+        <ToolBtn
+          active={editor.isActive("heading", { level: 3 })}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 3 }).run()
+          }
+          title="Heading 3"
+        >
+          <Heading3Icon className="h-4 w-4" />
+        </ToolBtn>
+        <ToolBtn
+          active={editor.isActive("heading", { level: 4 })}
+          onClick={() =>
+            editor.chain().focus().toggleHeading({ level: 4 }).run()
+          }
+          title="Heading 4"
+        >
+          <Heading4Icon className="h-4 w-4" />
         </ToolBtn>
         <span className="mx-1 h-4 w-px bg-border" />
         <ToolBtn
