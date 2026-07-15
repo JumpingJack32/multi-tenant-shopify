@@ -121,7 +121,7 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { Button } from "./button";
-import { cn } from "./cn";
+import { cn } from "@repo/shared-utils/cn";
 
 type SelectorItem = {
   name: string;
