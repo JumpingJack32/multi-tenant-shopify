@@ -1,0 +1,18 @@
+{
+  "name": "@repo/editor",
+  "private": true,
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "dependencies": {
+    "@tiptap/extension-placeholder": "^3.27.0",
+    "@tiptap/react": "^3.27.0",
+    "@tiptap/starter-kit": "^3.27.0",
+    "lucide-react": "^0.200.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

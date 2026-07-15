@@ -171,6 +171,18 @@
   - **Backend Tests**: pytest with PostgreSQL service container, placeholders for required secrets
 - Triggers on push/PR to `main`, cancels in-progress runs for same branch.
 
+## Active Branch — `feat/product-form` (not yet merged to main)
+
+- **Products page refactored** — sub-nav moved to main sidebar (Products expands with: All Products, Find Products to Sell, Add Product, Collections, Inventory, Transfers). View switching via URL params (`?view=add`, `?view=find`).
+- **Add Product form** — full-page form with 4 sections: Details (title + TipTap WYSIWYG description), Media (drag-drop upload), Pricing (price, compare-at, cost), Variants (toggle + dynamic rows with option1/option2/price/SKU/stock).
+- **Pending refinements** before merge to `main`:
+  - Rich text editor needs further polish (toolbar positioning, keyboard shortcuts)
+  - Variant management needs option-type selection (dropdown for Size/Color/Material instead of free-text inputs)
+  - Media upload needs Cloudinary integration
+  - Edit flow still uses old drawer — needs migration to full-page form
+  - "Find Products to Sell" view is a placeholder
+- **Sidebar note:** All placeholder nav groups (Analytics, Content, Sales Channels, Marketing, Discounts, Finances) intentionally kept — being built page by page.
+
 ## Key Decisions (All)
 
 - Backend: 207 collected, all passing

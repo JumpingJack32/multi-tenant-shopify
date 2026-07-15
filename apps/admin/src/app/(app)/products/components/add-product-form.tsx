@@ -1,18 +1,10 @@
 "use client";
 
-import Placeholder from "@tiptap/extension-placeholder";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { useState } from "react";
+import { TenantEditor } from "@repo/editor";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
-import {
-  BoldIcon,
-  ItalicIcon,
-  ListIcon,
-  PlusIcon,
-  Trash2Icon,
-} from "@repo/ui/icons";
+import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
 
 interface AddProductFormProps {
   onSubmit: (data: Record<string, unknown>) => void;
@@ -28,57 +20,12 @@ interface VariantRow {
   stock: number;
 }
 
-function MenuBar({ editor }: { editor: any }) {
-  if (!editor) return null;
-  const btn = (
-    active: boolean,
-    onPress: () => void,
-    label: string,
-    icon: React.ReactNode,
-  ) => (
-    <button
-      type="button"
-      onClick={onPress}
-      className={`rounded p-1.5 transition-colors ${
-        active
-          ? "bg-muted text-foreground"
-          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-      }`}
-      title={label}
-    >
-      {icon}
-    </button>
-  );
-
-  return (
-    <div className="flex items-center gap-0.5 border-b px-3 py-2">
-      {btn(
-        editor.isActive("bold"),
-        () => editor.chain().focus().toggleBold().run(),
-        "Bold",
-        <BoldIcon className="h-4 w-4" />,
-      )}
-      {btn(
-        editor.isActive("italic"),
-        () => editor.chain().focus().toggleItalic().run(),
-        "Italic",
-        <ItalicIcon className="h-4 w-4" />,
-      )}
-      {btn(
-        editor.isActive("bulletList"),
-        () => editor.chain().focus().toggleBulletList().run(),
-        "Bullet List",
-        <ListIcon className="h-4 w-4" />,
-      )}
-    </div>
-  );
-}
-
 export default function AddProductForm({
   onSubmit,
   onCancel,
 }: AddProductFormProps) {
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [media, setMedia] = useState<File[]>([]);
   const [price, setPrice] = useState(0);
   const [comparePrice, setComparePrice] = useState(0);
@@ -87,21 +34,6 @@ export default function AddProductForm({
   const [variants, setVariants] = useState<VariantRow[]>([
     { id: "1", option1: "Default", option2: "", price: 0, sku: "", stock: 0 },
   ]);
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder: "Provide a detailed description of this product...",
-      }),
-    ],
-    editorProps: {
-      attributes: {
-        class:
-          "focus:outline-none min-h-[160px] px-3 py-2 text-sm leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic",
-      },
-    },
-  });
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -141,7 +73,7 @@ export default function AddProductForm({
     e.preventDefault();
     onSubmit({
       name,
-      description: editor?.getHTML() || "",
+      description,
       price: Math.round(price * 100),
       compare_at_price: comparePrice
         ? Math.round(comparePrice * 100)
@@ -177,10 +109,10 @@ export default function AddProductForm({
         </div>
         <div className="space-y-2">
           <Label>Description</Label>
-          <div className="overflow-hidden rounded-lg border">
-            <MenuBar editor={editor} />
-            <EditorContent editor={editor} />
-          </div>
+          <TenantEditor
+            initialContent={description}
+            onChange={setDescription}
+          />
         </div>
       </div>
 
@@ -204,8 +136,6 @@ export default function AddProductForm({
             <path
               d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8"
               strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
             />
           </svg>
           <p className="mt-2 text-sm text-muted-foreground">
