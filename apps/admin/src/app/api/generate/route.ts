@@ -11,12 +11,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Optional: connect to local Ollama instance for AI-powered product descriptions.
-    // To enable, install Ollama (https://ollama.ai) and pull a model:
+    // Local AI via Ollama — install https://ollama.ai and pull a model:
     //   ollama pull qwen2.5:7b
-    //
-    // Then uncomment below and set OLLAMA_URL env var:
-    /*
     const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
     const res = await fetch(`${OLLAMA_URL}/v1/chat/completions`, {
       method: "POST",
@@ -26,7 +22,8 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are an expert copywriter helping an ecommerce merchant write compelling product descriptions. Keep responses concise and ready to use.",
+            content:
+              "You are an expert copywriter helping an ecommerce merchant write compelling product descriptions. Keep responses concise and ready to use.",
           },
           { role: "user", content: prompt },
         ],
@@ -35,7 +32,10 @@ export async function POST(req: Request) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "AI generation failed" }, { status: 502 });
+      return NextResponse.json(
+        { error: "AI generation failed" },
+        { status: 502 },
+      );
     }
 
     const data = await res.json();
@@ -44,7 +44,6 @@ export async function POST(req: Request) {
     if (completion) {
       return NextResponse.json({ completion });
     }
-    */
 
     // Fallback: no AI configured
     return NextResponse.json({
