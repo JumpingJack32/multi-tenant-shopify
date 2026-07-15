@@ -1,4 +1,4 @@
-import { createImageUpload } from "novel/plugins";
+import { createImageUpload } from "novel";
 
 const onUpload = (file: File) => {
   const promise = fetch("/api/upload", {
@@ -26,9 +26,9 @@ const onUpload = (file: File) => {
   });
 };
 
-export const uploadFn = createImageUpload({
+export const uploadFn: any = createImageUpload({
   onUpload,
-  validateFn: (file) => {
+  validateFn: (file: File) => {
     if (!file.type.includes("image/")) return false;
     if (file.size / 1024 / 1024 > 20) return false;
     return true;

@@ -9,9 +9,16 @@ import {
   EditorContent,
   EditorCommandList,
   EditorBubble,
+  EditorBubbleItem,
+  useEditor,
+  type EditorInstance,
 } from "novel";
-import { ImageResizer, handleCommandNavigation } from "novel/extensions";
-import { handleImageDrop, handleImagePaste } from "novel/plugins";
+import {
+  ImageResizer,
+  handleCommandNavigation,
+  handleImageDrop,
+  handleImagePaste,
+} from "novel";
 import { defaultExtensions } from "./extensions";
 import { slashCommand, suggestionItems } from "./slash-command";
 import { uploadFn } from "./image-upload";
@@ -114,14 +121,7 @@ import {
   Trash,
   UnderlineIcon,
 } from "lucide-react";
-import { EditorBubbleItem, useEditor, type EditorInstance } from "novel";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@radix-ui/react-popover";
 import { Button } from "./button";
-import { cn } from "@repo/shared-utils/cn";
 
 type SelectorItem = {
   name: string;
@@ -250,6 +250,15 @@ function NodeSelector({
   );
 }
 
+function isValidUrl(url: string) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function LinkSelector({
   open,
   onOpenChange,
@@ -269,10 +278,11 @@ function LinkSelector({
         >
           <span className="text-base">↗</span>
           <span
-            className={cn(
-              "underline underline-offset-4",
-              editor.isActive("link") && "text-blue-500",
-            )}
+            className={
+              editor.isActive("link")
+                ? "underline underline-offset-4 text-blue-500"
+                : "underline underline-offset-4"
+            }
           >
             Link
           </span>
@@ -290,7 +300,8 @@ function LinkSelector({
               e.currentTarget as HTMLFormElement
             )[0] as HTMLInputElement;
             const url = input.value;
-            if (url) editor.chain().focus().setLink({ href: url }).run();
+            if (url && isValidUrl(url))
+              editor.chain().focus().setLink({ href: url }).run();
           }}
           className="flex p-1"
         >
@@ -367,10 +378,9 @@ function TextButtons() {
             variant="ghost"
           >
             <item.icon
-              className={cn(
-                "h-4 w-4",
-                item.isActive(editor) && "text-blue-500",
-              )}
+              className={
+                item.isActive(editor) ? "h-4 w-4 text-blue-500" : "h-4 w-4"
+              }
             />
           </Button>
         </EditorBubbleItem>
@@ -380,7 +390,7 @@ function TextButtons() {
 }
 
 const TEXT_COLORS = [
-  { name: "Default", color: "var(--novel-black)" },
+  { name: "Default", color: "inherit" },
   { name: "Purple", color: "#9333EA" },
   { name: "Red", color: "#E00000" },
   { name: "Blue", color: "#2563EB" },
@@ -401,16 +411,7 @@ function ColorSelector({
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button size="sm" className="gap-2 rounded-none" variant="ghost">
-          <span
-            className="rounded-sm px-1"
-            style={{
-              color: TEXT_COLORS.find((c) =>
-                editor.isActive("textStyle", { color: c.color }),
-              )?.color,
-            }}
-          >
-            A
-          </span>
+          <span className="rounded-sm px-1 font-medium">A</span>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
@@ -445,3 +446,9 @@ function ColorSelector({
     </Popover>
   );
 }
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
