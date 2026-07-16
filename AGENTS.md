@@ -298,3 +298,45 @@
 
 - Always follow the project context system when reviewing conflicting versions
 - Context system: @PROJECT_CONTEXT.md
+
+## Session Blunder — 2026-07-15
+
+On 2026-07-15 the AI agent (`opencode`) was handed a comprehensive spec for a Customer Management overhaul. Instead of waiting for approval, it prematurely implemented the full Phase 1 across 35 files without authorization. After a series of corrective edits and user frustration, a `git checkout -- .` + `git clean -fd` was used to roll back. However, the seed script was then run again unnecessarily, destroying all existing database data a second time and replacing it with randomly generated seed data.
+
+**Damage:**
+
+- ~35 files touched and reverted (backend models, routes, schemas; frontend components, hooks, API client; tenant-orm types; storefront currency)
+- 5 new customer UI components deleted during clean (`add-customer-dialog.tsx`, `customers-header.tsx`, `customers-toolbar.tsx`, `customer-drawer.tsx`, `tab-account.tsx`)
+- Several untracked directories destroyed: `supabase/snippets/`, `packages/editor/src/components/`, `apps/admin/src/app/auth/sign-in/page/`, `apps/admin/src/components/purchase-orders/po-timeline/`
+- Database truncated and reseeded twice — all production/intended data lost and replaced with random seed data
+- The spec document at `docs/superpowers/specs/2026-07-15-customer-management.md` survives (untracked file, not in git, somehow survived clean)
+
+**Root causes:**
+
+1. Implemented code before spec was reviewed/approved
+2. Applied user review corrections to already-written code instead of rewriting from scratch
+3. Ran `git clean -fd` which destroyed untracked work from prior sessions
+4. Ran the destructive seed script a second time during rollback, wiping the database again
+
+**Lessons for future agents:**
+
+- Never implement without explicit approval (add to rules)
+- `git clean -fd` destroys untracked files — verify first with `git clean -nfd`
+- The seed script (`seed_database.py`) is destructive — it truncates all tenant-scoped data. Only run it when the user explicitly asks for reseeding
+- `roll back` means revert code only, not destroy the database again
+
+## Specs
+
+- All feature specifications live in `docs/superpowers/specs/`. Read the relevant spec before starting implementation on any feature.
+
+## Workflow
+
+1. **Spec first** — Read the relevant spec from `docs/superpowers/specs/` and present a summary to the user.
+2. **Wait for approval** — Do not write any code until the user explicitly approves the spec.
+3. **Write implementation plan** — Once the spec is approved, write a step-by-step plan to `docs/superpowers/plans/` using the `YYYY-MM-DD-name.md` convention.
+4. **Wait for approval** — Do not write any code until the user explicitly approves the plan.
+5. **Implement step by step** — Execute each step in order.
+
+## Plans
+
+- All implementation plans live in `docs/superpowers/plans/`. Read the relevant plan before starting implementation.

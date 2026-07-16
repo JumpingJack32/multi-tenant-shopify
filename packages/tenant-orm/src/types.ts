@@ -162,6 +162,12 @@ export interface Customer {
   total_orders: number;
   total_spent: number;
   last_order_at: string | null;
+  email_subscription_status: string;
+  email_subscription_type: string | null;
+  tags: Record<string, boolean>;
+  notes: string | null;
+  store_credit: number;
+  last_synced_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -190,6 +196,60 @@ export interface CustomerDetail extends Customer {
   average_order_value: number;
   addresses: CustomerAddress[];
   orders: CustomerOrder[];
+}
+
+export interface StoreCreditTransaction {
+  id: string;
+  customer_id: string;
+  amount: number;
+  balance_after: number;
+  reason: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  customer_id: string;
+  event_type: string;
+  description: string;
+  extra_data: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CustomerMetrics {
+  total_customers: number;
+  total_base: number;
+  percentage: number;
+  subscribed: number;
+  unsubscribed: number;
+  bounced: number;
+  with_store_credit: number;
+  total_store_credit: number;
+  avg_spent: number;
+}
+
+export interface CustomerListResponse {
+  data: Customer[];
+  total: number;
+  page: number;
+  per_page: number;
+}
+
+export interface StoreCreditResponse {
+  balance: number;
+  transactions: StoreCreditTransaction[];
+}
+
+export interface SavedSegment {
+  id: string;
+  tenant_id: string;
+  name: string;
+  filters: Record<string, string>;
+  customer_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DashboardLowStockItem {

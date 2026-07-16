@@ -1,7 +1,9 @@
 import base64
+from datetime import datetime, timezone
 import hashlib
 import hmac
 import json
+import logging
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -9,7 +11,9 @@ from svix.webhooks import Webhook as SvixWebhook, WebhookVerificationError
 
 from src.config import settings
 from src.dependencies import get_db
+from src.orm.models.order import Customer
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
@@ -119,6 +123,34 @@ async def shopify_webhook(
         pass
     elif topic == "orders/paid":
         pass
+
+    return {"status": "received"}
+
+
+# ── Mailchimp Webhook (Inbound) ───────────────────────────────────────
+
+
+@router.post("/mailchimp")
+async def mailchimp_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Receive inbound subscription updates from Mailchimp."""
+    if not settings.mailchimp_api_key:
+        raise HTTPException(status_code=501, detail="Mailchimp not configured")
+
+    form = await request.form()
+    email = form.get("data[email]") or form.get("email")
+    status = form.get("data[new_status]") or form.get("status")
+
+    if email and status:
+        stmt = select(Customer).where(Customer.email == email)
+        customer = (await db.exec(stmt)).one_or_none()
+        if customer:
+            customer.email_subscription_status = status
+            customer.last_synced_at = datetime.now(timezone.utc)
+            db.add(customer)
+            await db.flush()
 
     return {"status": "received"}
 

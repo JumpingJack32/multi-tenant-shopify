@@ -15,9 +15,12 @@ TENANT_ID = "00000000-0000-0000-0000-000000000001"
 
 
 def _sync_engine():
+    import os
+
     from src.config import settings
 
-    sync_url = settings.database_url.replace("+asyncpg", "+psycopg")
+    db_url = os.environ.get("TEST_DATABASE_URL") or settings.database_url
+    sync_url = db_url.replace("+asyncpg", "+psycopg")
     return create_engine(sync_url)
 
 

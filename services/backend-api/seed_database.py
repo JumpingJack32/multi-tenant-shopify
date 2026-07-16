@@ -6,6 +6,7 @@ Runs inside a single transaction; any failure triggers a full rollback.
 
 import asyncio
 from datetime import datetime, timedelta, timezone
+import json
 import os
 import random
 import uuid
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import text
 
 from src.orm.base import BaseModel
+import src.orm.models  # noqa: F401 — register all models with BaseModel.metadata
 
 random.seed(42)
 
@@ -159,6 +161,7 @@ REFUNDED_WEIGHT = 0.10
 
 async def clear_data(session: AsyncSession) -> None:
     tables = [
+        "store_credit_transactions", "customer_timeline_events",
         "order_fulfillment_links", "stock_transfer_items", "stock_transfers",
         "purchase_order_items", "purchase_orders",
         "po_sequences",
@@ -405,27 +408,73 @@ async def seed_relationships(
 
 async def seed_customers(
     session: AsyncSession, tenants_by_slug: dict[str, dict]
-) -> dict[str, list[uuid.UUID]]:
-    result: dict[str, list[uuid.UUID]] = {}
+) -> dict[str, list[dict]]:
+    """Seed customers with subscription, tags, credit fields.
+    Returns metadata dicts for each customer to be used by child relation seeding."""
+    SUB_STATUSES = ["subscribed", "subscribed", "subscribed", "unsubscribed", "bounced"]
+    SUB_TYPES = ["digital", "digital", "print+digital", "print", "marketing"]
+    TAG_SETS = [
+        {},
+        {"VIP": True, "holiday-shopper": True},
+        {"wholesale": True},
+        {"VIP": True, "loyalty": True},
+        {"seasonal": True, "clearance": True},
+        {"VIP": True},
+        {"wholesale": True, "priority": True},
+        {},
+        {"holiday-shopper": True},
+    ]
+
+    now = datetime.now(timezone.utc)
+    result: dict[str, list[dict]] = {}
     for slug, tenant in tenants_by_slug.items():
         tenant_id = uuid.UUID(tenant["tenant_id"])
+        customer_meta: list[dict] = []
         customer_ids: list[uuid.UUID] = []
-        for first, last, email in CUSTOMERS_BY_TENANT[slug]:
+        for idx, (first, last, email) in enumerate(CUSTOMERS_BY_TENANT[slug]):
             cid = uuid.uuid4()
             phone = f"+1{random.randint(200, 999)}{random.randint(100, 999)}{random.randint(1000, 9999)}"
+
+            tags = json.dumps(TAG_SETS[idx % len(TAG_SETS)])
+            sub_status = random.choice(SUB_STATUSES)
+            sub_type = random.choice(SUB_TYPES)
+            store_credit_cents = random.choice([0, 0, 0, 500, 1000, 2500, 5000])
+            last_synced = None
+            if random.random() > 0.3:
+                days_ago = random.randint(1, 60)
+                last_synced = (now - timedelta(days=days_ago))
+
+            notes_options = [
+                None,
+                "Prefers email communication. Called about Q1 delivery.",
+                "VIP customer — offer priority shipping on next order.",
+                "Reported issue with payment gateway. Followed up on 2026-06-15.",
+                None,
+                None,
+                "Requested catalog for Spring 2026 collection.",
+            ]
+            notes = random.choice(notes_options)
+
             await session.execute(
                 text("""
-                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, refunded_total, created_at, updated_at)
-                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, 0, NOW(), NOW())
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, refunded_total, last_order_at, email_subscription_status, email_subscription_type, tags, notes, store_credit, last_synced_at, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, 0, NULL, :sub_status, :sub_type, CAST(:tags AS jsonb), :notes, :store_credit, :last_synced, NOW(), NOW())
                 """),
-                {"id": cid, "tid": tenant_id, "email": email, "first": first, "last": last, "phone": phone},
+                {
+                    "id": cid, "tid": tenant_id,
+                    "email": email, "first": first, "last": last, "phone": phone,
+                    "sub_status": sub_status, "sub_type": sub_type,
+                    "tags": tags, "notes": notes,
+                    "store_credit": store_credit_cents,
+                    "last_synced": last_synced,
+                },
             )
 
             # 1-2 addresses per customer
             addr_count = random.randint(1, 2)
             for a in range(addr_count):
                 addr_id = uuid.uuid4()
-                idx = random.randint(0, len(STREETS) - 1)
+                idx_street = random.randint(0, len(STREETS) - 1)
                 city_idx = random.randint(0, len(CITIES) - 1)
                 await session.execute(
                     text("""
@@ -435,15 +484,111 @@ async def seed_customers(
                     {
                         "id": addr_id, "cid": cid, "tid": tenant_id,
                         "addr_type": "shipping" if a == 0 else "billing",
-                        "line1": STREETS[idx], "city": CITIES[city_idx],
+                        "line1": STREETS[idx_street], "city": CITIES[city_idx],
                         "province": STATES[city_idx], "zip": ZIPCODES[city_idx],
                         "country": COUNTRY, "is_default": a == 0,
                     },
                 )
 
+            customer_meta.append({
+                "id": cid,
+                "tenant_id": tenant_id,
+                "store_credit": store_credit_cents,
+                "created_days_ago": random.randint(1, 60),
+            })
             customer_ids.append(cid)
-        result[slug] = customer_ids
+        result[slug] = {"ids": customer_ids, "meta": customer_meta}
     return result
+
+
+async def seed_customer_relations(
+    session: AsyncSession,
+    tenants_by_slug: dict[str, dict],
+    customers: dict[str, dict],
+) -> None:
+    """Seed timeline events and store credit transactions for each customer."""
+    EVENT_TYPES = ["note", "email_sent", "status_change", "tag_added"]
+    EVENT_DESCRIPTIONS = [
+        "Customer called about delivery status. Resolved.",
+        "Welcome email sent successfully.",
+        "Subscription changed from 'print' to 'digital'.",
+        "Tag 'VIP' added based on purchase history.",
+        "Follow-up email sent regarding Q2 campaign.",
+        "Account status changed to verified.",
+        "Customer requested catalog for new collection.",
+    ]
+    now = datetime.now(timezone.utc)
+
+    for slug, tenant in tenants_by_slug.items():
+        for c in customers[slug]["meta"]:
+            cid = c["id"]
+            tid = c["tenant_id"]
+            base_days = c["created_days_ago"]
+
+            # 1-3 timeline events per customer
+            num_events = random.randint(1, 3)
+            for _ in range(num_events):
+                event_type = random.choice(EVENT_TYPES)
+                description = random.choice(EVENT_DESCRIPTIONS)
+                days_offset = random.randint(0, max(1, base_days))
+                ts = (now - timedelta(days=days_offset))
+
+                await session.execute(
+                    text("""
+                        INSERT INTO customer_timeline_events (id, tenant_id, customer_id, event_type, description, extra_data, created_by, created_at, updated_at)
+                        VALUES (:id, :tid, :cid, :etype, :desc, '{}'::jsonb, NULL, :ts, :ts)
+                    """),
+                    {
+                        "id": uuid.uuid4(), "tid": tid, "cid": cid,
+                        "etype": event_type, "desc": description, "ts": ts,
+                    },
+                )
+
+            # 0-2 store credit transactions for customers with credit
+            if c["store_credit"] > 0:
+                num_tx = random.randint(1, 2)
+                remaining = c["store_credit"]
+                for tx_idx in range(num_tx):
+                    if remaining <= 0:
+                        break
+                    if tx_idx == num_tx - 1:
+                        amount = remaining
+                    else:
+                        amount = random.randint(1, max(1, remaining // 2))
+                    remaining -= amount
+
+                    ts = (now - timedelta(days=random.randint(0, 30)))
+                    reason = random.choice([
+                        "Compensation for delayed delivery.",
+                        "Loyalty bonus credit applied.",
+                        "Refund for returned item.",
+                        "Promotional credit for Q3 campaign.",
+                    ])
+
+                    await session.execute(
+                        text("""
+                            INSERT INTO store_credit_transactions (id, tenant_id, customer_id, amount, balance_after, reason, created_by, created_at, updated_at)
+                            VALUES (:id, :tid, :cid, :amount, :balance, :reason, NULL, :ts, :ts)
+                        """),
+                        {
+                            "id": uuid.uuid4(), "tid": tid, "cid": cid,
+                            "amount": amount, "balance": remaining,
+                            "reason": reason, "ts": ts,
+                        },
+                    )
+
+                    # Also add a timeline event for the credit transaction
+                    await session.execute(
+                        text("""
+                            INSERT INTO customer_timeline_events (id, tenant_id, customer_id, event_type, description, extra_data, created_by, created_at, updated_at)
+                            VALUES (:id, :tid, :cid, 'credit_added', :desc, '{}'::jsonb, NULL, :ts, :ts)
+                        """),
+                        {
+                            "id": uuid.uuid4(), "tid": tid, "cid": cid,
+                            "desc": f"Credit of £{amount / 100:.2f} applied: {reason}",
+                            "ts": ts,
+                        },
+                    )
 
 
 async def seed_orders(
@@ -458,7 +603,7 @@ async def seed_orders(
     for slug, tenant in tenants_by_slug.items():
         tenant_id = uuid.UUID(tenant["tenant_id"])
         tc = catalog[slug]
-        cust_ids = customers[slug]
+        cust_ids = customers[slug]["ids"]
         products = tc["products"]
         now = datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -724,7 +869,24 @@ async def seed_purchase_orders(
 
 
 async def main() -> None:
+    env = os.environ.get("DOPPLER_ENVIRONMENT", "unknown")
+    if env != "dev":
+        print(f"\n❌ Refusing to run in environment '{env}'. This script is restricted to dev.")
+        print("   Set DOPPLER_ENVIRONMENT=dev or run via: doppler run -- uv run python seed_database.py")
+        return
+
+    print("\n⚠️  DESTRUCTIVE OPERATION — this will DELETE all tenant-scoped data.")
+    print("    Tables that will be wiped: orders, customers, products, inventory,")
+    print("    purchase orders, stock transfers, carts, and related records.")
+    print("    Tenants and tenant_users are preserved (except test tenants).\n")
+
+    confirm = input('Type "DESTROY AND RESEED" to continue: ')
+    if confirm != "DESTROY AND RESEED":
+        print("Aborted.")
+        return
+
     async with engine.begin() as conn:
+        await conn.run_sync(BaseModel.metadata.drop_all)
         await conn.run_sync(BaseModel.metadata.create_all)
     async with AsyncSession(engine) as session:
         async with session.begin():
@@ -735,6 +897,7 @@ async def main() -> None:
             catalog = await seed_catalog(session, tenants, suppliers)
             await seed_relationships(session, tenants, catalog)
             customers = await seed_customers(session, tenants)
+            await seed_customer_relations(session, tenants, customers)
             order_data = await seed_orders(session, tenants, catalog, customers)
             await seed_purchase_orders(session, tenants, catalog, order_data)
 

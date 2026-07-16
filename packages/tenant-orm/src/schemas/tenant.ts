@@ -129,6 +129,12 @@ export const CustomerSchema = z.object({
   total_orders: z.number().int(),
   total_spent: z.number().int(),
   last_order_at: z.string().nullable().optional(),
+  email_subscription_status: z.string(),
+  email_subscription_type: z.string().nullable().optional(),
+  tags: z.record(z.string(), z.boolean()),
+  notes: z.string().nullable().optional(),
+  store_credit: z.number().int(),
+  last_synced_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

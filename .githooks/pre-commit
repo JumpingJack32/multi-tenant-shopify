@@ -1,0 +1,44 @@
+#!/bin/sh
+# ============================================================
+# Pre-commit hook: flag accidental destructive SQL keywords
+# ============================================================
+# Install:  git config core.hooksPath .githooks
+# Bypass:   git commit --no-verify
+# ============================================================
+
+DESTRUCTIVE_PATTERNS='\bDROP\s+(TABLE|VIEW|SCHEMA|INDEX|DATABASE|FUNCTION|TRIGGER|COLUMN)\b'
+TRUNCATE_PATTERN='\bTRUNCATE\b'
+CASCADE_PATTERN='CASCADE'
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(sql|py)$')
+
+if [ -z "$FILES" ]; then
+  exit 0
+fi
+
+HAS_MATCH=0
+
+for file in $FILES; do
+  # Show matching lines with context
+  MATCHES=$(git diff --cached -U0 "$file" 2>/dev/null | grep -E "^\+" | grep -v "^\+\+\+" | grep -E -i "$DESTRUCTIVE_PATTERNS" || true)
+  if [ -n "$MATCHES" ]; then
+    echo "❌ DESTRUCTIVE SQL DETECTED in $file:"
+    echo "$MATCHES" | sed 's/^/    /'
+    HAS_MATCH=1
+  fi
+
+  TRUNCATES=$(git diff --cached -U0 "$file" 2>/dev/null | grep -E "^\+" | grep -v "^\+\+\+" | grep -E -i "$TRUNCATE_PATTERN" || true)
+  if [ -n "$TRUNCATES" ]; then
+    echo "⚠️  TRUNCATE detected in $file:"
+    echo "$TRUNCATES" | sed 's/^/    /'
+    HAS_MATCH=1
+  fi
+done
+
+if [ "$HAS_MATCH" -eq 1 ]; then
+  echo ""
+  echo "🚫 Commit blocked. If intentional, use: git commit --no-verify"
+  exit 1
+fi
+
+exit 0
