@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
+import type { Customer, CustomerListResponse } from "@repo/tenant-orm/types";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Checkbox } from "@repo/ui/components/ui/checkbox";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
@@ -12,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
-import type { Customer, CustomerListResponse } from "@repo/tenant-orm/types";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 

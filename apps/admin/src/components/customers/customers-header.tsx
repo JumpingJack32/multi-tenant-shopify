@@ -1,5 +1,6 @@
 "use client";
 
+import type { CustomerMetrics } from "@repo/tenant-orm/types";
 import { Button } from "@repo/ui/components/ui/button";
 import { Card } from "@repo/ui/components/ui/card";
 import {
@@ -11,7 +12,6 @@ import {
 } from "@repo/ui/components/ui/dropdown-menu";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
 import { ChevronDownIcon, PlusIcon } from "@repo/ui/icons";
-import type { CustomerMetrics } from "@repo/tenant-orm/types";
 
 interface CustomersHeaderProps {
   metrics?: CustomerMetrics | null;

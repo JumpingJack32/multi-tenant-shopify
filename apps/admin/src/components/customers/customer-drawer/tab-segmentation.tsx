@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+import type { CustomerDetail } from "@repo/tenant-orm/types";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import { Card } from "@repo/ui/components/ui/card";
@@ -15,7 +16,6 @@ import {
   SearchIcon,
   XIcon,
 } from "@repo/ui/icons";
-import type { CustomerDetail } from "@repo/tenant-orm/types";
 
 import { api } from "@/lib/api/client";
 

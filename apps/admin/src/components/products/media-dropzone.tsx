@@ -115,7 +115,6 @@ export function MediaDropzone({
     return () => {
       objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addFiles = useCallback(

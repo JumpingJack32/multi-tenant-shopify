@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CustomerDetail, TimelineEvent } from "@repo/tenant-orm/types";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import { Card } from "@repo/ui/components/ui/card";
@@ -8,7 +9,6 @@ import { Separator } from "@repo/ui/components/ui/separator";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
 import { Textarea } from "@repo/ui/components/ui/textarea";
 import { MailIcon, NotebookIcon } from "@repo/ui/icons";
-import type { CustomerDetail, TimelineEvent } from "@repo/tenant-orm/types";
 
 import {
   useAddTimelineEvent,

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Customer } from "@repo/tenant-orm/types";
 
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
@@ -12,12 +12,12 @@ import { CustomersToolbar } from "@/components/customers/customers-toolbar";
 import { FilterPopover } from "@/components/customers/filter-popover";
 import { ImportCustomerDialog } from "@/components/customers/import-customer-dialog";
 import { useTenantContext } from "@/contexts/tenant-context";
-import { api } from "@/lib/api/client";
 import {
   useCustomerMetrics,
   useCustomers,
   useExportCsv,
 } from "@/features/customers/hooks/use-customers";
+import { api } from "@/lib/api/client";
 
 function penceToDecimal(pence: string): string {
   const n = parseInt(pence, 10);
@@ -65,20 +65,22 @@ export default function CustomersPage() {
     if (idFromUrl) setDrawerCustomerId(idFromUrl);
   }, [searchParams]);
 
-  const params: Record<string, string> = { page: "20", per_page: "20" };
-  if (search) params.search = search;
-  if (sortBy !== "created_at" || sortOrder !== "desc") {
-    params.sort_by = sortBy;
-    params.sort_order = sortOrder;
-  }
-  if (filters.status && filters.status !== "all")
-    params.status = filters.status;
-  if (filters.location) params.location = filters.location;
-  if (filters.tag) params.tag = filters.tag;
-  const minSpentPence = decimalToPence(filters.min_spent);
-  const maxSpentPence = decimalToPence(filters.max_spent);
-  if (minSpentPence) params.min_spent = minSpentPence;
-  if (maxSpentPence) params.max_spent = maxSpentPence;
+  const params = useMemo(() => {
+    const p: Record<string, string> = { page: "20", per_page: "20" };
+    if (search) p.search = search;
+    if (sortBy !== "created_at" || sortOrder !== "desc") {
+      p.sort_by = sortBy;
+      p.sort_order = sortOrder;
+    }
+    if (filters.status && filters.status !== "all") p.status = filters.status;
+    if (filters.location) p.location = filters.location;
+    if (filters.tag) p.tag = filters.tag;
+    const minSpentPence = decimalToPence(filters.min_spent);
+    const maxSpentPence = decimalToPence(filters.max_spent);
+    if (minSpentPence) p.min_spent = minSpentPence;
+    if (maxSpentPence) p.max_spent = maxSpentPence;
+    return p;
+  }, [search, sortBy, sortOrder, filters]);
 
   const { data, isLoading, error, refetch } = useCustomers(
     params,
