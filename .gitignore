@@ -68,10 +68,23 @@ packages/db/migrations/*.sql
 coverage/
 .nyc_output/
 
+# package manager caches
+.uv/
+.pnpm-store/
+
+# Doppler local config
+.doppler/
+
+# database dumps
+*.dump
+
 # misc
 *.log
 .DS_Store
-docs/
+
+# docs — ignore generated docs, keep specs and safety guide
+docs/*
+!docs/superpowers/
 
 # files
 apps/admin/src/components/ui/drawer copy.tsx

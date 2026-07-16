@@ -1,9 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
+import { memo, useCallback, useMemo } from "react";
+import { Badge } from "@repo/ui/components/ui/badge";
+import { Checkbox } from "@repo/ui/components/ui/checkbox";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
 import {
   Table,
@@ -13,151 +12,206 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
-import { ChevronLeftIcon, ChevronRightIcon } from "@repo/ui/icons";
+import type { Customer, CustomerListResponse } from "@repo/tenant-orm/types";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { useCustomers } from "@/features/customers/hooks/use-customers";
 
 function formatPence(n: number): string {
-  return `£${(n / 100).toFixed(2)}`;
+  return `£ ${(n / 100).toFixed(2)}`;
 }
 
+function getSubscriptionBadge(status: string): {
+  label: string;
+  className: string;
+} {
+  switch (status) {
+    case "subscribed":
+      return { label: "Subscribed", className: "bg-green-100 text-green-800" };
+    case "unsubscribed":
+      return {
+        label: "Unsubscribed",
+        className: "bg-neutral-100 text-neutral-600",
+      };
+    case "bounced":
+      return { label: "Bounced", className: "bg-red-100 text-red-800" };
+    default:
+      return { label: status, className: "bg-neutral-100 text-neutral-600" };
+  }
+}
+
+interface CustomerRowProps {
+  customer: Customer;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onDoubleClick: (customer: Customer) => void;
+}
+
+const CustomerRow = memo(function CustomerRow({
+  customer,
+  isSelected,
+  onSelect,
+  onDoubleClick,
+}: CustomerRowProps) {
+  const badge = getSubscriptionBadge(customer.email_subscription_status);
+  const name =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") || "—";
+  const spent = formatPence(customer.total_spent);
+
+  return (
+    <TableRow
+      className="cursor-pointer"
+      onDoubleClick={() => onDoubleClick(customer)}
+    >
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onSelect(customer.id)}
+          aria-label={`Select ${customer.email}`}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="font-medium">{name}</div>
+        <div className="text-xs text-muted-foreground">{customer.email}</div>
+      </TableCell>
+      <TableCell>
+        <Badge className={badge.className}>{badge.label}</Badge>
+      </TableCell>
+      <TableCell className="text-muted-foreground">—</TableCell>
+      <TableCell>{customer.total_orders}</TableCell>
+      <TableCell className="text-right font-mono font-medium">
+        {spent}
+      </TableCell>
+    </TableRow>
+  );
+});
+
 interface CustomersTableProps {
-  tenantId?: string | null;
-  tenantLoading?: boolean;
+  data?: CustomerListResponse | null;
+  isLoading?: boolean;
+  error?: Error | null;
+  onRefetch?: () => void;
+  onRowDoubleClick?: (customer: Customer) => void;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
 }
 
 export function CustomersTable({
-  tenantId,
-  tenantLoading,
+  data,
+  isLoading,
+  error,
+  onRefetch,
+  onRowDoubleClick,
+  selectedIds = new Set(),
+  onSelectionChange,
 }: CustomersTableProps) {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const router = useRouter();
+  const allSelected = useMemo(
+    () =>
+      data?.data?.length
+        ? data.data.every((c) => selectedIds.has(c.id))
+        : false,
+    [data, selectedIds],
+  );
 
-  const params: Record<string, string> = {};
-  if (search) params.search = search;
-  params.page = String(page);
-  params.per_page = "20";
+  const handleSelectAll = useCallback(() => {
+    if (!data?.data) return;
+    if (allSelected) {
+      onSelectionChange?.(new Set());
+    } else {
+      onSelectionChange?.(new Set(data.data.map((c) => c.id)));
+    }
+  }, [data, allSelected, onSelectionChange]);
 
-  const { data, isLoading, error, refetch } = useCustomers(params, tenantId);
+  const handleSelectOne = useCallback(
+    (id: string) => {
+      const next = new Set(selectedIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      onSelectionChange?.(next);
+    },
+    [selectedIds, onSelectionChange],
+  );
 
-  const loading = isLoading || tenantLoading;
+  const handleDoubleClick = useCallback(
+    (customer: Customer) => onRowDoubleClick?.(customer),
+    [onRowDoubleClick],
+  );
 
-  if (error && !loading) {
+  if (error) {
     return (
       <ErrorBanner
         message="Failed to load customers"
-        onRetry={() => refetch()}
+        onRetry={() => onRefetch?.()}
       />
     );
   }
 
   return (
     <div>
-      <div className="mb-4">
-        <Input
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="max-w-sm"
-        />
-      </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
+              <TableHead>Customer Name</TableHead>
+              <TableHead>Email Subscription</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Orders</TableHead>
-              <TableHead className="text-right">LTV</TableHead>
+              <TableHead className="text-right">Amount Spent</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading &&
+            {isLoading &&
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-4" />
+                  </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-40" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-5 w-24" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-8" />
                   </TableCell>
                   <TableCell className="text-right">
                     <Skeleton className="h-4 w-20 ml-auto" />
                   </TableCell>
                 </TableRow>
               ))}
-            {data?.data.map((customer: any) => (
-              <TableRow
+            {data?.data.map((customer) => (
+              <CustomerRow
                 key={customer.id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/customers/${customer.id}`)}
-              >
-                <TableCell>
-                  <div className="font-medium">
-                    {[customer.first_name, customer.last_name]
-                      .filter(Boolean)
-                      .join(" ") || "—"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {customer.email}
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {customer.created_at
-                    ? new Date(customer.created_at).toLocaleDateString()
-                    : "—"}
-                </TableCell>
-                <TableCell>{customer.total_orders}</TableCell>
-                <TableCell className="text-right font-mono font-medium">
-                  {formatPence(customer.total_spent)}
-                </TableCell>
-              </TableRow>
+                customer={customer}
+                isSelected={selectedIds.has(customer.id)}
+                onSelect={handleSelectOne}
+                onDoubleClick={handleDoubleClick}
+              />
             ))}
           </TableBody>
         </Table>
-
-        {!loading && (!data || data.data.length === 0) && (
+        {!isLoading && (!data || data.data.length === 0) && (
           <div className="py-8 text-center text-sm text-muted-foreground">
             No customers yet
           </div>
         )}
       </div>
-
       {data && data.total > data.per_page && (
         <div className="mt-4 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
             Showing {(data.page - 1) * data.per_page + 1}–
             {Math.min(data.page * data.per_page, data.total)} of {data.total}
           </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={data.page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              <ChevronLeftIcon />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={data.page * data.per_page >= data.total}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-              <ChevronRightIcon />
-            </Button>
-          </div>
         </div>
       )}
     </div>

@@ -1,7 +1,10 @@
 import type {
   AssociatedPO,
   Collection,
+  Customer,
   CustomerDetail,
+  CustomerListResponse,
+  CustomerMetrics,
   DashboardSummary,
   InventoryItem,
   InventoryListResponse,
@@ -13,10 +16,14 @@ import type {
   ProductUpdate,
   PurchaseOrder,
   PurchaseOrderListResponse,
+  SavedSegment,
   StockTransfer,
   StockTransferListResponse,
+  StoreCreditResponse,
+  StoreCreditTransaction,
   Supplier,
   SupplierListResponse,
+  TimelineEvent,
 } from "@repo/tenant-orm/types";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
@@ -145,15 +152,105 @@ export const api = {
       params?: Record<string, string>,
       options?: { tenantId?: string | null },
     ) {
-      return request<{
-        data: unknown[];
-        total: number;
-        page: number;
-        per_page: number;
-      }>(`/customers${buildQuery(params)}`, options ?? {});
+      return request<CustomerListResponse>(
+        `/customers${buildQuery(params)}`,
+        options ?? {},
+      );
     },
     get(id: string, options?: { tenantId?: string | null }) {
       return request<CustomerDetail>(`/customers/${id}`, options ?? {});
+    },
+    create(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Customer>("/customers", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Customer>(`/customers/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<void>(`/customers/${id}`, {
+        method: "DELETE",
+        ...options,
+      });
+    },
+    getMetrics(options?: { tenantId?: string | null }) {
+      return request<CustomerMetrics>("/customers/metrics", options ?? {});
+    },
+    getTimeline(id: string, options?: { tenantId?: string | null }) {
+      return request<TimelineEvent[]>(
+        `/customers/${id}/timeline`,
+        options ?? {},
+      );
+    },
+    addTimelineEvent(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<TimelineEvent>(`/customers/${id}/timeline`, {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    getCredit(id: string, options?: { tenantId?: string | null }) {
+      return request<StoreCreditResponse>(
+        `/customers/${id}/credit`,
+        options ?? {},
+      );
+    },
+    addCredit(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<StoreCreditTransaction>(`/customers/${id}/credit`, {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    exportCsv(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Blob>(`/customers/export${buildQuery(params)}`, {
+        ...options,
+      });
+    },
+    importCsv(file: File, options?: { tenantId?: string | null }) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const tid = options?.tenantId;
+      return request<{
+        total: number;
+        imported: number;
+        errors: Array<Record<string, unknown>>;
+      }>("/customers/import", {
+        method: "POST",
+        body: formData,
+        ...(tid ? { tenantId: tid } : {}),
+      });
+    },
+    syncMailchimp(id: string, options?: { tenantId?: string | null }) {
+      return request<{ status: string; email: string }>(
+        `/customers/${id}/sync-mailchimp`,
+        { method: "POST", ...options },
+      );
     },
   },
 
@@ -261,6 +358,36 @@ export const api = {
         method: "DELETE",
         ...options,
       });
+    },
+  },
+
+  segments: {
+    list(options?: { tenantId?: string | null }) {
+      return request<SavedSegment[]>("/segments", options ?? {});
+    },
+    create(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<SavedSegment>("/segments", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    update(
+      id: string,
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<SavedSegment>("/segments/" + id, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    delete(id: string, options?: { tenantId?: string | null }) {
+      return request<void>("/segments/" + id, { method: "DELETE", ...options });
     },
   },
 

@@ -10,6 +10,10 @@ class CustomerCreate(PydanticBaseModel):
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=50)
+    email_subscription_status: Optional[str] = Field(None, max_length=20)
+    email_subscription_type: Optional[str] = Field(None, max_length=20)
+    tags: dict = Field(default_factory=dict)
+    notes: Optional[str] = Field(None)
 
 
 class CustomerUpdate(PydanticBaseModel):
@@ -17,6 +21,10 @@ class CustomerUpdate(PydanticBaseModel):
     last_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=50)
     is_verified: Optional[bool] = None
+    email_subscription_status: Optional[str] = Field(None, max_length=20)
+    email_subscription_type: Optional[str] = Field(None, max_length=20)
+    tags: Optional[dict] = None
+    notes: Optional[str] = None
 
 
 class CustomerResponse(PydanticBaseModel):
@@ -30,6 +38,12 @@ class CustomerResponse(PydanticBaseModel):
     total_orders: int
     total_spent: int
     last_order_at: Optional[datetime] = None
+    email_subscription_status: str = "subscribed"
+    email_subscription_type: str = "digital"
+    tags: dict = {}
+    notes: Optional[str] = None
+    store_credit: int = 0
+    last_synced_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
@@ -62,3 +76,50 @@ class CustomerDetailResponse(CustomerResponse):
     average_order_value: int = 0
     addresses: list[CustomerAddressResponse] = []
     orders: list[CustomerOrderResponse] = []
+
+
+class StoreCreditTransactionResponse(PydanticBaseModel):
+    id: UUID
+    customer_id: UUID
+    amount: int
+    balance_after: int
+    reason: str
+    created_by: Optional[UUID] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class StoreCreditAddRequest(PydanticBaseModel):
+    amount: int = Field(..., description="Amount in pence. Positive to add, negative to deduct.")
+    reason: str = Field(..., max_length=500)
+
+
+class TimelineEventResponse(PydanticBaseModel):
+    id: UUID
+    customer_id: UUID
+    event_type: str
+    description: str
+    extra_data: dict = {}
+    created_by: Optional[UUID] = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TimelineEventCreate(PydanticBaseModel):
+    event_type: str = Field(..., max_length=50)
+    description: str = Field(..., max_length=1000)
+    extra_data: dict = Field(default_factory=dict)
+
+
+class CustomerMetricsResponse(PydanticBaseModel):
+    total_customers: int
+    total_base: int = 0
+    percentage: float = 0.0
+    subscribed: int
+    unsubscribed: int
+    bounced: int
+    with_store_credit: int
+    total_store_credit: int
+    avg_spent: int

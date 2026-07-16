@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     resend_from_email: str = "noreply@yourplatform.com"
 
+    # Mailchimp (optional)
+    mailchimp_api_key: str | None = None
+    mailchimp_list_id: str | None = None
+
     # Sentry (optional)
     sentry_dsn: str | None = None
 

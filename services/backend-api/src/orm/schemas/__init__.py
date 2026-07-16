@@ -8,8 +8,13 @@ from src.orm.schemas.common import PaginatedResponse, PaginationMeta  # noqa: F4
 from src.orm.schemas.customer import (  # noqa: F401
     CustomerCreate,
     CustomerDetailResponse,
+    CustomerMetricsResponse,
     CustomerResponse,
     CustomerUpdate,
+    StoreCreditAddRequest,
+    StoreCreditTransactionResponse,
+    TimelineEventCreate,
+    TimelineEventResponse,
 )
 from src.orm.schemas.inventory import (  # noqa: F401
     InventoryItemCreateInput,
@@ -34,6 +39,7 @@ from src.orm.schemas.product import (  # noqa: F401
     VariantResponse,
     VariantUpdate,
 )
+from src.orm.schemas.segment import SegmentCreate, SegmentResponse, SegmentUpdate  # noqa: F401
 from src.orm.schemas.storefront import (  # noqa: F401
     StorefrontImageResponse,
     StorefrontProductResponse,

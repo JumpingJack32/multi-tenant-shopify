@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON
+from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON, Text, UniqueConstraint
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
@@ -90,6 +90,7 @@ class Customer(BaseModel, table=True):
     __tablename__ = "customers" # type: ignore
     __table_args__ = (
         Index("ix_customers_tenant_email", "tenant_id", "email"),
+        UniqueConstraint("tenant_id", "email", name="uq_customers_tenant_email"),
     )
 
     email: str = Field(max_length=255)
@@ -105,8 +106,19 @@ class Customer(BaseModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True))
     )
+    email_subscription_status: str = Field(default="subscribed", max_length=20)
+    email_subscription_type: str = Field(default="digital", max_length=20)
+    tags: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False, default=dict))
+    notes: Optional[str] = Field(default=None, sa_column=Column(Text, nullable=True))
+    store_credit: int = Field(default=0, ge=0)
+    last_synced_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
     orders: list[Order] = Relationship(back_populates="customer")
     addresses: list["CustomerAddress"] = Relationship(back_populates="customer")
+    credit_transactions: list["StoreCreditTransaction"] = Relationship(back_populates="customer")
+    timeline_events: list["CustomerTimelineEvent"] = Relationship(back_populates="customer")
 
 
 class CustomerAddress(BaseModel, table=True):
@@ -122,3 +134,27 @@ class CustomerAddress(BaseModel, table=True):
     postal_code: str = Field(max_length=20)
     country: str = Field(max_length=100)
     is_default: bool = Field(default=False)
+
+
+class StoreCreditTransaction(BaseModel, table=True):
+    __tablename__ = "store_credit_transactions" # type: ignore
+
+    customer_id: UUID = Field(foreign_key="customers.id", ondelete="CASCADE")
+    amount: int = Field()  # positive = credit, negative = debit (in pence)
+    balance_after: int = Field()
+    reason: str = Field(max_length=500)
+    created_by: Optional[UUID] = Field(default=None)
+
+    customer: Customer = Relationship(back_populates="credit_transactions")
+
+
+class CustomerTimelineEvent(BaseModel, table=True):
+    __tablename__ = "customer_timeline_events" # type: ignore
+
+    customer_id: UUID = Field(foreign_key="customers.id", ondelete="CASCADE")
+    event_type: str = Field(max_length=50)
+    description: str = Field(max_length=1000)
+    extra_data: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False, default=dict))
+    created_by: Optional[UUID] = Field(default=None)
+
+    customer: Customer = Relationship(back_populates="timeline_events")
