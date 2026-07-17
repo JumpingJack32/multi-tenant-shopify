@@ -96,6 +96,11 @@ async def lifespan(app: FastAPI):
         if not connected:
             settings.redis_enabled = False
 
+    # Initialize task refs as locals (prevents UnboundLocalError when conditions skip assignment)
+    _exchange_rate_task = None
+    _abandoned_cart_task = None
+    _campaign_runner_task = None
+
     # Start exchange rate background refresh
     if settings.redis_enabled:
         _exchange_rate_task = asyncio.create_task(_exchange_rate_refresh_worker())
