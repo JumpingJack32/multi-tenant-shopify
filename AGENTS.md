@@ -1,3 +1,25 @@
+# 🔴 CRITICAL RULE — READ BEFORE ANY ACTION
+
+# "Proceed", "Go ahead", "Approved" WITHOUT explicitly naming the deliverable
+
+# (SPEC or PLAN) does NOT authorize implementation.
+
+#
+
+# You MUST follow this sequence for every feature:
+
+# 1. Present spec → wait for "spec approved"
+
+# 2. Write plan → wait for "plan approved"
+
+# 3. ONLY THEN write code
+
+#
+
+# Breaking this rule will cause permanent data loss and destroy untracked work.
+
+# This rule is not optional.
+
 # Session Context — Saved 2026-07-12 (Storefront Currency Switcher — Merged)
 
 > [!IMPORTANT]
@@ -254,7 +276,8 @@
 - Coverage: v8 provider (root vitest.config.ts with workspace projects), 30% threshold
 - Secrets via Doppler only (never .env directly)
 - Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
-- Price in cents, display as `£{(n / 100).toFixed(2)}`
+- Price in cents, display as `£ ${(n / 100).toFixed(2)}` (space between symbol and amount)
+- All monetary defaults changed from `"USD"` to `"GBP"` across backend models, schemas, frontend utilities, and seed data (2026-07-16)
 - Server components for data fetching; client components for interactivity
 - `@repo/ui/components/motion` re-exports `motion` + `AnimatePresence` from `motion/react`
 - `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts project)

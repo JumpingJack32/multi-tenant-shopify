@@ -61,6 +61,7 @@ class Order(BaseModel, table=True):
         default_factory=dict,
         sa_column=Column(JSON, nullable=True, default=dict, comment="Order options JSON"),
     )
+    inventory_deducted: bool = Field(default=False)
 
     items: list["OrderItem"] = Relationship(back_populates="order", cascade_delete=True)
     customer: Optional["Customer"] = Relationship(back_populates="orders")
@@ -115,6 +116,11 @@ class Customer(BaseModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True))
     )
+    language: str = Field(default="en", max_length=10)
+    email_marketing_consent: bool = Field(default=False)
+    sms_marketing_consent: bool = Field(default=False)
+    tax_exempt: bool = Field(default=False)
+    tax_exempt_reason: Optional[str] = Field(default=None, max_length=255)
     orders: list[Order] = Relationship(back_populates="customer")
     addresses: list["CustomerAddress"] = Relationship(back_populates="customer")
     credit_transactions: list["StoreCreditTransaction"] = Relationship(back_populates="customer")
@@ -133,6 +139,8 @@ class CustomerAddress(BaseModel, table=True):
     province: Optional[str] = Field(default=None, max_length=100)
     postal_code: str = Field(max_length=20)
     country: str = Field(max_length=100)
+    company: Optional[str] = Field(default=None, max_length=255)
+    phone: Optional[str] = Field(default=None, max_length=50)
     is_default: bool = Field(default=False)
 
 

@@ -319,3 +319,120 @@ async def patch_order(
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
     return await update_order(order_id, order_data, tenant_id, db)
+
+
+# ── Lifecycle Transitions ────────────────────────────────────────────
+
+
+@router.post("/{order_id}/confirm", response_model=OrderResponse)
+async def confirm_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.confirm(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/pay", response_model=OrderResponse)
+async def pay_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.mark_paid(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/ship", response_model=OrderResponse)
+async def ship_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.ship(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/deliver", response_model=OrderResponse)
+async def deliver_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.deliver(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/cancel", response_model=OrderResponse)
+async def cancel_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.cancel(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/refund", response_model=OrderResponse)
+async def refund_order(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    svc = OrderLifecycleService(db)
+    try:
+        order = await svc.refund(order_id, tenant_id)
+        await db.flush()
+        await db.refresh(order)
+        return order
+    except Exception as e:
+        from fastapi import status
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))

@@ -3,9 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Customer } from "@repo/tenant-orm/types";
+import { ArrowLeftIcon } from "@repo/ui/icons";
 
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
 import { CustomerDrawer } from "@/components/customers/customer-drawer";
+import { CustomerForm } from "@/components/customers/customer-form";
 import { CustomersHeader } from "@/components/customers/customers-header";
 import { CustomersTable } from "@/components/customers/customers-table";
 import { CustomersToolbar } from "@/components/customers/customers-toolbar";
@@ -13,6 +15,7 @@ import { FilterPopover } from "@/components/customers/filter-popover";
 import { ImportCustomerDialog } from "@/components/customers/import-customer-dialog";
 import { useTenantContext } from "@/contexts/tenant-context";
 import {
+  useCreateCustomer,
   useCustomerMetrics,
   useCustomers,
   useExportCsv,
@@ -51,6 +54,9 @@ export default function CustomersPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const exportMutation = useExportCsv(currentTenantId);
+  const createMutation = useCreateCustomer(currentTenantId);
+
+  const view = searchParams.get("view") || "overview";
 
   const [filters, setFilters] = useState<FilterState>({
     status: searchParams.get("status") ?? "",
@@ -136,15 +142,47 @@ export default function CustomersPage() {
     [currentTenantId],
   );
 
+  const handleCreate = useCallback(
+    (data: Record<string, unknown>) => {
+      createMutation.mutate(data, {
+        onSuccess: () => router.push("/customers"),
+      });
+    },
+    [createMutation, router],
+  );
+
   const handleExport = useCallback(async () => {
-    const result = await exportMutation.mutateAsync(params);
-    const url = window.URL.createObjectURL(result);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `customers-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    try {
+      const result = await exportMutation.mutateAsync(params);
+      const url = window.URL.createObjectURL(result);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `customers-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Export failed:", e);
+    }
   }, [exportMutation, params]);
+
+  if (view === "add") {
+    return (
+      <div className="p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <button
+            onClick={() => router.push("/customers")}
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeftIcon className="h-4 w-4" /> Customers
+          </button>
+        </div>
+        <CustomerForm
+          onSubmit={handleCreate}
+          onCancel={() => router.push("/customers")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

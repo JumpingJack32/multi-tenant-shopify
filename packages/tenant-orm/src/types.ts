@@ -168,6 +168,11 @@ export interface Customer {
   notes: string | null;
   store_credit: number;
   last_synced_at: string | null;
+  language: string;
+  email_marketing_consent: boolean;
+  sms_marketing_consent: boolean;
+  tax_exempt: boolean;
+  tax_exempt_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -181,6 +186,8 @@ export interface CustomerAddress {
   province: string | null;
   postal_code: string;
   country: string;
+  company: string | null;
+  phone: string | null;
   is_default: boolean;
 }
 

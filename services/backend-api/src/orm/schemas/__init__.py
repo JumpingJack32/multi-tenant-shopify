@@ -39,7 +39,7 @@ from src.orm.schemas.product import (  # noqa: F401
     VariantResponse,
     VariantUpdate,
 )
-from src.orm.schemas.segment import SegmentCreate, SegmentResponse, SegmentUpdate  # noqa: F401
+from src.orm.schemas.segment import SegmentCreate, SegmentResponse, SegmentToggleAutomation, SegmentUpdate  # noqa: F401
 from src.orm.schemas.storefront import (  # noqa: F401
     StorefrontImageResponse,
     StorefrontProductResponse,
