@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import text
+from sqlalchemy import func as sa_func, text
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
+from src.orm.models.order import Customer, Order
+from src.orm.models.product import Product, Variant
+from src.orm.models.purchase_order import PurchaseOrder
 from src.orm.schemas.dashboard import (
     DashboardSummaryResponse,
     FulfillmentCounts,
@@ -107,56 +111,91 @@ async def _timeline_query(db: AsyncSession, tenant_id, start_date, days: int) ->
 
 
 async def _fulfillment_query(db: AsyncSession, tenant_id):
-    query = text("""
-        SELECT
-            COALESCE(SUM(CASE WHEN LOWER(status::text) IN ('pending','confirmed','paid') THEN 1 ELSE 0 END), 0)::BIGINT AS unfulfilled,
-            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'processing' THEN 1 ELSE 0 END), 0)::BIGINT AS processing,
-            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'shipped' THEN 1 ELSE 0 END), 0)::BIGINT AS shipped,
-            COALESCE(SUM(CASE WHEN LOWER(status::text) = 'delivered' THEN 1 ELSE 0 END), 0)::BIGINT AS delivered
-        FROM orders WHERE tenant_id = :tenant_id
-    """)
-    result = await db.exec(query, params={"tenant_id": tenant_id})
-    return FulfillmentCounts(**dict(result.mappings().one()))
+    stmt = select(Order).where(Order.tenant_id == tenant_id)
+    orders = (await db.exec(stmt)).all()
+
+    unfulfilled = sum(1 for o in orders if o.status.value in ("pending", "confirmed", "paid"))
+    processing = sum(1 for o in orders if o.status.value == "processing")
+    shipped = sum(1 for o in orders if o.status.value == "shipped")
+    delivered = sum(1 for o in orders if o.status.value == "delivered")
+
+    return FulfillmentCounts(
+        unfulfilled=unfulfilled,
+        processing=processing,
+        shipped=shipped,
+        delivered=delivered,
+    )
 
 
 async def _low_stock_query(db: AsyncSession, tenant_id):
-    query = text("""
-        SELECT
-            v.id AS variant_id, p.name AS product_name, v.sku,
-            v.inventory_quantity AS quantity, 5 AS threshold
-        FROM variants v
-        JOIN products p ON v.product_id = p.id
-        WHERE v.tenant_id = :tenant_id AND v.inventory_quantity <= 5
-        ORDER BY v.inventory_quantity ASC LIMIT 20
-    """)
-    result = await db.exec(query, params={"tenant_id": tenant_id})
-    return [LowStockItem(**row) for row in result.mappings().all()]
+    from sqlalchemy import asc
+
+    stmt = (
+        select(Variant)
+        .where(Variant.tenant_id == tenant_id, Variant.inventory_quantity <= 5)
+        .order_by(asc(Variant.inventory_quantity))
+        .limit(20)
+    )
+    variants = (await db.exec(stmt)).all()
+
+    # Batch-load product names
+    product_ids = {v.product_id for v in variants if v.product_id}
+    products = {}
+    if product_ids:
+        p_stmt = select(Product).where(Product.id.in_(product_ids))
+        for p in (await db.exec(p_stmt)).all():
+            products[p.id] = p.name
+
+    return [
+        LowStockItem(
+            variant_id=v.id,
+            product_name=products.get(v.product_id, "Unknown"),
+            sku=v.sku,
+            quantity=v.inventory_quantity,
+            threshold=5,
+        )
+        for v in variants
+    ]
 
 
 async def _recent_orders_query(db: AsyncSession, tenant_id):
-    query = text("""
-        SELECT
-            o.id, o.order_number,
-            CASE WHEN c.first_name IS NOT NULL OR c.last_name IS NOT NULL
-                THEN TRIM(COALESCE(c.first_name,'') || ' ' || COALESCE(c.last_name,''))
-                ELSE NULL
-            END AS customer_name,
-            o.total::BIGINT AS total, LOWER(o.status::text) AS status,
-            o.created_at::text AS created_at
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        WHERE o.tenant_id = :tenant_id
-        ORDER BY o.created_at DESC LIMIT 5
-    """)
-    result = await db.exec(query, params={"tenant_id": tenant_id})
-    return [RecentOrderItem(**row) for row in result.mappings().all()]
+    from sqlalchemy import desc
+
+    stmt = (
+        select(Order)
+        .where(Order.tenant_id == tenant_id)
+        .order_by(desc(Order.created_at))
+        .limit(5)
+    )
+    orders = (await db.exec(stmt)).all()
+
+    # Batch-load customer names
+    customer_ids = {o.customer_id for o in orders if o.customer_id}
+    customers = {}
+    if customer_ids:
+        c_stmt = select(Customer).where(Customer.id.in_(customer_ids))
+        for c in (await db.exec(c_stmt)).all():
+            customers[c.id] = f"{c.first_name or ''} {c.last_name or ''}".strip() or None
+
+    return [
+        RecentOrderItem(
+            id=o.id,
+            order_number=o.order_number,
+            customer_name=customers.get(o.customer_id) if o.customer_id else None,
+            total=int(o.total),
+            status=o.status.value if hasattr(o.status, "value") else o.status,
+            created_at=o.created_at.isoformat() if hasattr(o.created_at, "isoformat") else str(o.created_at),
+        )
+        for o in orders
+    ]
 
 
 @router.get("/admin/dashboard/summary", response_model=DashboardSummaryResponse)
 async def dashboard_summary(
     db: AsyncSession = Depends(get_db),
     tenant_id=Depends(get_current_tenant_id),
-    period: str = Query("30d", regex="^(7d|30d|90d|12m)$"),
+    period: str = Query("30d", pattern="^(7d|30d|90d|12m)$"),
+    # period: str = Query("30d", regex="^(7d|30d|90d|12m)$"), 👈 regex Deprecated
 ):
     now = datetime.now(timezone.utc)
     days = _period_days(period)
@@ -171,14 +210,15 @@ async def dashboard_summary(
     low_stock = await _low_stock_query(db, tenant_id)
     recent_orders = await _recent_orders_query(db, tenant_id)
 
-    po_query = text("""
-        SELECT COUNT(*)::BIGINT AS count, COALESCE(SUM(total),0)::BIGINT AS total
-        FROM purchase_orders
-        WHERE tenant_id = :tenant_id AND status IN ('draft','pending_review')
-    """)
-    po_result = await db.exec(po_query, params={"tenant_id": tenant_id})
-    po_row = po_result.mappings().first()
-    pending_pos = PendingPOStats(count=po_row["count"], total=po_row["total"])
+    po_stmt = select(PurchaseOrder).where(
+        PurchaseOrder.tenant_id == tenant_id,
+        PurchaseOrder.status.in_(["draft", "pending_review"]),
+    )
+    po_orders = (await db.exec(po_stmt)).all()
+    pending_pos = PendingPOStats(
+        count=len(po_orders),
+        total=sum(o.total for o in po_orders),
+    )
 
     aov = kpi["revenue_mtd"] // kpi["orders_mtd"] if kpi["orders_mtd"] > 0 else 0
 
