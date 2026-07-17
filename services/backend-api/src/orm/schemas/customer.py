@@ -6,7 +6,7 @@ from pydantic import BaseModel as PydanticBaseModel, Field
 
 
 class CustomerCreate(PydanticBaseModel):
-    email: str = Field(..., max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=50)
@@ -14,6 +14,20 @@ class CustomerCreate(PydanticBaseModel):
     email_subscription_type: Optional[str] = Field(None, max_length=20)
     tags: dict = Field(default_factory=dict)
     notes: Optional[str] = Field(None)
+    language: str = "en"
+    email_marketing_consent: bool = False
+    sms_marketing_consent: bool = False
+    tax_exempt: bool = False
+    tax_exempt_reason: Optional[str] = Field(None, max_length=255)
+    # Address sub-fields — create CustomerAddress row when present
+    address_line1: Optional[str] = Field(None, max_length=255)
+    address_line2: Optional[str] = Field(None, max_length=255)
+    address_city: Optional[str] = Field(None, max_length=100)
+    address_province: Optional[str] = Field(None, max_length=100)
+    address_postal_code: Optional[str] = Field(None, max_length=20)
+    address_country: Optional[str] = Field(None, max_length=100)
+    address_company: Optional[str] = Field(None, max_length=255)
+    address_phone: Optional[str] = Field(None, max_length=50)
 
 
 class CustomerUpdate(PydanticBaseModel):
@@ -44,6 +58,11 @@ class CustomerResponse(PydanticBaseModel):
     notes: Optional[str] = None
     store_credit: int = 0
     last_synced_at: Optional[datetime] = None
+    language: str = "en"
+    email_marketing_consent: bool = False
+    sms_marketing_consent: bool = False
+    tax_exempt: bool = False
+    tax_exempt_reason: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

@@ -457,8 +457,8 @@ async def seed_customers(
 
             await session.execute(
                 text("""
-                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, refunded_total, last_order_at, email_subscription_status, email_subscription_type, tags, notes, store_credit, last_synced_at, created_at, updated_at)
-                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, 0, NULL, :sub_status, :sub_type, CAST(:tags AS jsonb), :notes, :store_credit, :last_synced, NOW(), NOW())
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, is_verified, total_orders, total_spent, refunded_total, last_order_at, email_subscription_status, email_subscription_type, tags, notes, store_credit, last_synced_at, language, email_marketing_consent, sms_marketing_consent, tax_exempt, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :first, :last, :phone, true, 0, 0, 0, NULL, :sub_status, :sub_type, CAST(:tags AS jsonb), :notes, :store_credit, :last_synced, 'en', false, false, false, NOW(), NOW())
                 """),
                 {
                     "id": cid, "tid": tenant_id,
@@ -643,8 +643,8 @@ async def seed_orders(
 
             await session.execute(
                 text("""
-                    INSERT INTO orders (id, tenant_id, order_number, customer_id, status, payment_status, subtotal, tax, shipping, discount, total, currency, shipping_address, billing_address, notes, created_at, updated_at)
-                    VALUES (:id, :tid, :ord_num, :cid, :status, :payment_status, :subtotal, :tax, :shipping, 0, :total, 'USD', '{}'::jsonb, '{}'::jsonb, '', :ts, :ts)
+                    INSERT INTO orders (id, tenant_id, order_number, customer_id, status, payment_status, subtotal, tax, shipping, discount, total, currency, shipping_address, billing_address, notes, inventory_deducted, created_at, updated_at)
+                    VALUES (:id, :tid, :ord_num, :cid, :status, :payment_status, :subtotal, :tax, :shipping, 0, :total, 'USD', '{}'::jsonb, '{}'::jsonb, '', false, :ts, :ts)
                 """),
                 {
                     "id": oid, "tid": tenant_id,

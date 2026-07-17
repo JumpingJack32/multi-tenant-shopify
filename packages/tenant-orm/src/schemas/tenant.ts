@@ -135,6 +135,11 @@ export const CustomerSchema = z.object({
   notes: z.string().nullable().optional(),
   store_credit: z.number().int(),
   last_synced_at: z.string().nullable().optional(),
+  language: z.string(),
+  email_marketing_consent: z.boolean(),
+  sms_marketing_consent: z.boolean(),
+  tax_exempt: z.boolean(),
+  tax_exempt_reason: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

@@ -107,6 +107,9 @@ async def create_customer(
     db=Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    if not body.email and not body.phone:
+        raise HTTPException(status_code=422, detail="Either email or phone is required")
+
     customer = Customer(
         tenant_id=tenant_id,
         email=body.email,
@@ -117,8 +120,35 @@ async def create_customer(
         email_subscription_type=body.email_subscription_type or "digital",
         tags=body.tags or {},
         notes=body.notes,
+        language=body.language,
+        email_marketing_consent=body.email_marketing_consent,
+        sms_marketing_consent=body.sms_marketing_consent,
+        tax_exempt=body.tax_exempt,
+        tax_exempt_reason=body.tax_exempt_reason if body.tax_exempt else None,
     )
     db.add(customer)
+    await db.flush()
+
+    has_address = any([body.address_line1, body.address_city, body.address_postal_code, body.address_country])
+    if has_address:
+        from src.orm.models.order import CustomerAddress
+
+        address = CustomerAddress(
+            customer_id=customer.id,
+            tenant_id=tenant_id,
+            address_type="shipping",
+            line1=body.address_line1 or "",
+            line2=body.address_line2 or "",
+            city=body.address_city or "",
+            province=body.address_province or "",
+            postal_code=body.address_postal_code or "",
+            country=body.address_country or "",
+            company=body.address_company or "",
+            phone=body.address_phone or None,
+            is_default=True,
+        )
+        db.add(address)
+
     await db.flush()
     await db.refresh(customer)
     return customer

@@ -30,6 +30,7 @@ if settings.sentry_dsn:
 
 _exchange_rate_task: asyncio.Task | None = None
 _abandoned_cart_task: asyncio.Task | None = None
+_campaign_runner_task: asyncio.Task | None = None
 
 
 async def _exchange_rate_refresh_worker():
@@ -95,12 +96,25 @@ async def lifespan(app: FastAPI):
         if not connected:
             settings.redis_enabled = False
 
+    # Initialize task refs as locals (prevents UnboundLocalError when conditions skip assignment)
+    _exchange_rate_task = None
+    _abandoned_cart_task = None
+    _campaign_runner_task = None
+
     # Start exchange rate background refresh
     if settings.redis_enabled:
         _exchange_rate_task = asyncio.create_task(_exchange_rate_refresh_worker())
 
     # Start abandoned cart background worker
     _abandoned_cart_task = asyncio.create_task(_abandoned_cart_worker())
+
+    # Start campaign runner (only if Mailchimp API key + list ID are configured)
+    if settings.mailchimp_api_key and settings.mailchimp_list_id:
+        from src.services.campaign_runner import CampaignRunner
+
+        _campaign_runner_task = asyncio.create_task(
+            CampaignRunner(async_engine).start()
+        )
 
     yield
 
@@ -115,6 +129,12 @@ async def lifespan(app: FastAPI):
         _abandoned_cart_task.cancel()
         try:
             await _abandoned_cart_task
+        except asyncio.CancelledError:
+            pass
+    if _campaign_runner_task:
+        _campaign_runner_task.cancel()
+        try:
+            await _campaign_runner_task
         except asyncio.CancelledError:
             pass
     await redis_client.close()

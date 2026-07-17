@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel as PydanticBaseModel, Field
+from pydantic import BaseModel as PydanticBaseModel, Field, field_validator
 
 
 class OrderItemCreate(PydanticBaseModel):
@@ -57,9 +57,21 @@ class OrderResponse(PydanticBaseModel):
     notes: Optional[str] = None
     customer_email: Optional[str] = None
     options: Optional[dict] = None
+    transitions: list[str] = []
     items: list["OrderItemResponse"]
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("transitions", mode="before")
+    @classmethod
+    def compute_transitions(cls, v, info):
+        if v:
+            return v
+        status = info.data.get("status")
+        if not status:
+            return []
+        from src.services.order_state_machine import VALID_TRANSITIONS
+        return sorted(VALID_TRANSITIONS.get(status, set()))
 
 
 class OrderItemResponse(PydanticBaseModel):

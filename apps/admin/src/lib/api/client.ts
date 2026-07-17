@@ -49,6 +49,7 @@ async function getAuthToken(): Promise<string | null> {
 
 interface RequestOptions {
   tenantId?: string | null;
+  parseAsBlob?: boolean;
   [key: string]: unknown;
 }
 
@@ -56,7 +57,7 @@ export async function request<T>(
   endpoint: string,
   options: RequestInit & RequestOptions = {},
 ): Promise<T> {
-  const { tenantId, ...rest } = options;
+  const { tenantId, parseAsBlob, ...rest } = options;
   const token = await getAuthToken();
 
   const headers: Record<string, string> = {
@@ -94,6 +95,10 @@ export async function request<T>(
 
   if (response.status === 204) {
     return null as T;
+  }
+
+  if (parseAsBlob) {
+    return response.blob() as T;
   }
 
   return response.json() as T;
@@ -230,6 +235,7 @@ export const api = {
     ) {
       return request<Blob>(`/customers/export${buildQuery(params)}`, {
         ...options,
+        parseAsBlob: true,
       });
     },
     importCsv(file: File, options?: { tenantId?: string | null }) {
