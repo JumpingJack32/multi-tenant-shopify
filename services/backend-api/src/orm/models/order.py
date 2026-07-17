@@ -65,6 +65,7 @@ class Order(BaseModel, table=True):
 
     items: list["OrderItem"] = Relationship(back_populates="order", cascade_delete=True)
     customer: Optional["Customer"] = Relationship(back_populates="orders")
+    fulfillments: list["Fulfillment"] = Relationship(back_populates="order", cascade_delete=True)
 
 
 class OrderItem(BaseModel, table=True):

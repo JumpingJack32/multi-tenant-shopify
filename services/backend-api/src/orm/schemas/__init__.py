@@ -19,6 +19,7 @@ from src.orm.schemas.customer import (  # noqa: F401
     TimelineEventCreate,
     TimelineEventResponse,
 )
+from src.orm.schemas.fulfillment import FulfillmentCreate, FulfillmentResponse, TrackingUpdate  # noqa: F401
 from src.orm.schemas.inventory import (  # noqa: F401
     InventoryItemCreateInput,
     InventoryItemPatchInput,

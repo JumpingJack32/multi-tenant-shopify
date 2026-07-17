@@ -58,6 +58,7 @@ class OrderResponse(PydanticBaseModel):
     customer_email: Optional[str] = None
     options: Optional[dict] = None
     transitions: list[str] = []
+    fulfillment_status: str = "unfulfilled"
     items: list["OrderItemResponse"]
     created_at: datetime
     updated_at: datetime
