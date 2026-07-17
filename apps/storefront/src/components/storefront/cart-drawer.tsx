@@ -39,6 +39,7 @@ export function CartDrawer() {
   const items = cart?.items ?? [];
   const itemCount = cart?.item_count ?? 0;
   const total = cart?.total ?? 0;
+  const taxTotal = (cart as any)?.tax_total ?? 0;
 
   const handleCheckout = () => {
     if (!cartId) return;
@@ -164,12 +165,22 @@ export function CartDrawer() {
                   {isFetching ? (
                     <Loader2Icon className="h-4 w-4 animate-spin inline" />
                   ) : (
-                    formatCents(total, currency)
+                    formatCents(total - taxTotal, currency)
                   )}
                 </span>
               </div>
+              {taxTotal > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span className="font-mono text-base">
+                    {formatCents(taxTotal, currency)}
+                  </span>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground">
-                Shipping & taxes calculated at checkout.
+                {taxTotal > 0
+                  ? "Shipping calculated at checkout"
+                  : "Shipping & taxes calculated at checkout"}
               </p>
               <div>
                 <label

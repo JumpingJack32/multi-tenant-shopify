@@ -247,14 +247,31 @@ async def _get_cart(cart_id: UUID, tenant_id: UUID, db: AsyncSession) -> Cart:
     return cart
 
 
-def _build_cart_response(cart: Cart) -> CartResponse:
+async def _build_cart_response(cart: Cart, db=None, tenant_id=None) -> CartResponse:
+    from src.orm.models.tenant import TenantTaxConfig
+    from src.services.tax_service import calculate_tax
+
+    tax_config = None
+    if db and tenant_id:
+        tax_stmt = select(TenantTaxConfig).where(TenantTaxConfig.tenant_id == tenant_id)
+        tax_config = (await db.exec(tax_stmt)).one_or_none()
+
     items = []
-    total = 0
+    subtotal = 0
+    tax_total = 0
+
     for ci in cart.items:
         v = ci.variant
         price = v.price if v else 0
-        item_total = price * ci.quantity
-        total += item_total
+        item_subtotal = price * ci.quantity
+        subtotal += item_subtotal
+
+        if tax_config and tax_config.enabled:
+            item_tax, _ = calculate_tax(item_subtotal, tax_config.default_rate, tax_config.tax_inclusive)
+        else:
+            item_tax = 0
+        tax_total += item_tax
+
         items.append(CartItemResponse(
             id=ci.id,
             variant_id=ci.variant_id,
@@ -266,11 +283,15 @@ def _build_cart_response(cart: Cart) -> CartResponse:
             image_url=None,
         ))
 
+    grand_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
+
     return CartResponse(
         id=cart.id,
         items=items,
         item_count=sum(i.quantity for i in cart.items),
-        total=total,
+        subtotal=subtotal,
+        tax_total=tax_total,
+        total=grand_total,
         status=cart.status.value if hasattr(cart.status, "value") else cart.status,
         created_at=cart.created_at,
         updated_at=cart.updated_at,
@@ -304,7 +325,7 @@ async def create_cart(
     await db.flush()
 
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return _build_cart_response(cart)
+    return await _build_cart_response(cart, db, tenant.tenant_id)
 
 
 @router.get("/{tenant_slug}/carts/{cart_id}", response_model=CartResponse)
@@ -314,11 +335,12 @@ async def get_cart(
     cart_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get cart contents."""
+    """Get cart contents with tax breakdown."""
     tenant = await _resolve_tenant(db, tenant_slug)
     request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
-    return _build_cart_response(cart)
+
+    return await _build_cart_response(cart, db, tenant.tenant_id)
 
 
 @router.post("/{tenant_slug}/carts/{cart_id}/items", response_model=CartResponse)
@@ -351,7 +373,7 @@ async def add_cart_item(
 
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return _build_cart_response(cart)
+    return await _build_cart_response(cart, db, tenant.tenant_id)
 
 
 @router.patch("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
@@ -379,7 +401,7 @@ async def update_cart_item(
 
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return _build_cart_response(cart)
+    return await _build_cart_response(cart, db, tenant.tenant_id)
 
 
 @router.delete("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
@@ -402,7 +424,7 @@ async def remove_cart_item(
     await db.delete(item)
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return _build_cart_response(cart)
+    return await _build_cart_response(cart, db, tenant.tenant_id)
 
 
 @router.delete("/{tenant_slug}/carts/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -462,12 +484,33 @@ async def checkout(
     if preferred:
         body.currency = preferred
 
-    # Calculate totals
+    # Calculate totals with per-item tax
+    from src.orm.models.tenant import TenantTaxConfig
+    from src.services.tax_service import calculate_tax
+
+    tax_stmt = select(TenantTaxConfig).where(TenantTaxConfig.tenant_id == tenant.tenant_id)
+    tax_config = (await db.exec(tax_stmt)).one_or_none()
+
     subtotal = 0
+    tax_total = 0
+    item_tax_data: list[dict] = []
     for ci in cart.items:
-        subtotal += ci.variant.price * ci.quantity
+        item_subtotal = ci.variant.price * ci.quantity
+        subtotal += item_subtotal
+        if tax_config and tax_config.enabled:
+            item_tax, _ = calculate_tax(item_subtotal, tax_config.default_rate, tax_config.tax_inclusive)
+        else:
+            item_tax = 0
+        tax_total += item_tax
+        item_tax_data.append({
+            "variant_id": ci.variant_id,
+            "tax_rate": tax_config.default_rate if tax_config else 0,
+            "tax_amount": item_tax,
+        })
 
     order_number = f"SF-{uuid4().hex[:12].upper()}"
+
+    grand_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
 
     order = Order(
         tenant_id=tenant.tenant_id,
@@ -475,7 +518,8 @@ async def checkout(
         status="pending",
         payment_status="pending",
         subtotal=subtotal,
-        total=subtotal,
+        tax=tax_total,
+        total=grand_total,
         currency=body.currency or "USD",
         shipping_address=body.shipping_address or {},
         billing_address=body.billing_address or {},
@@ -485,8 +529,10 @@ async def checkout(
     await db.flush()
 
     # Create order items + decrement inventory
+    tax_lookup = {d["variant_id"]: d for d in item_tax_data}
     for ci in cart.items:
         v = ci.variant
+        tx = tax_lookup.get(ci.variant_id, {})
         oi = OrderItemModel(
             order_id=order.id,
             tenant_id=tenant.tenant_id,
@@ -497,6 +543,8 @@ async def checkout(
             quantity=ci.quantity,
             unit_price=v.price,
             total_price=v.price * ci.quantity,
+            tax_rate=tx.get("tax_rate", 0),
+            tax_amount=tx.get("tax_amount", 0),
         )
         db.add(oi)
         v.inventory_quantity -= ci.quantity

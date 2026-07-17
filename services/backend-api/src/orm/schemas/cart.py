@@ -20,6 +20,8 @@ class CartResponse(BaseModel):
     id: UUID
     items: list[CartItemResponse] = []
     item_count: int = 0
+    subtotal: int = Field(ge=0, json_schema_extra={"is_price": True})
+    tax_total: int = Field(default=0, ge=0, json_schema_extra={"is_price": True})
     total: int = Field(ge=0, json_schema_extra={"is_price": True})
     status: str = "active"
     created_at: datetime

@@ -28,6 +28,7 @@ class Cart(BaseModel, table=True):
     last_reminded_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     unsubscribed: bool = Field(default=False, sa_column=Column(Boolean, default=False))
     completed_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    tax_total: int = Field(default=0, ge=0)
 
     items: list["CartItem"] = Relationship(back_populates="cart", cascade_delete=True)
 
