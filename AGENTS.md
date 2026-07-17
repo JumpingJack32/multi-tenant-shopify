@@ -363,3 +363,47 @@ On 2026-07-15 the AI agent (`opencode`) was handed a comprehensive spec for a Cu
 ## Plans
 
 - All implementation plans live in `docs/superpowers/plans/`. Read the relevant plan before starting implementation.
+
+## Key Decisions (All)
+
+- Backend: 207 collected, all passing
+- Tests use `jsdom` + `react()` plugin in vitest config; `cleanup()` in `afterEach` required for React tests
+- `@repo/tenant-orm/schemas` (not `./schemas/tenant`) is the correct import for tenant schemas
+- Coverage: v8 provider (root vitest.config.ts with workspace projects), 30% threshold
+- Secrets via Doppler only (never .env directly)
+- Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
+- Price in cents, display as `£ ${(n / 100).toFixed(2)}` (space between symbol and amount)
+- All monetary defaults changed from `"USD"` to `"GBP"` across backend models, schemas, frontend utilities, and seed data (2026-07-16)
+- Server components for data fetching; client components for interactivity
+- `@repo/ui/components/motion` re-exports `motion` + `AnimatePresence` from `motion/react`
+- `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts project)
+- ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`
+- `proxy.ts` (not `middleware.ts`) is the correct middleware filename for Next.js 16.2.9
+- `e.stopPropagation()` required in toggle click handler when placed inside Base UI/Radix menu popovers
+- `MobileStickyCta` uses `document.getElementById` (not ref forwarding)
+- Safe area padding: `pb-[env(safe-area-inset-bottom)]` via Tailwind v4 arbitrary value
+- Atomic UI components live in `packages/ui/src/components/ui/`
+- Hook files use `.ts` extension (not `.tsx`) unless they contain JSX
+- Rate limiter is in-memory (no Redis dependency) — swap for Redis in production if needed
+- Error tracking: console + sendBeacon to `/api/v1/public/errors` — swap for Sentry post-launch
+- Cart cookie `Secure` flag determined by `location.protocol` at runtime (not build-time env)
+- Order state machine follows `po_state_machine.py` pattern with `VALID_TRANSITIONS` dict and `validate_transition()` function
+- Order status transitions: `pending→{confirmed,paid,cancelled}`, `confirmed→{paid,processing,shipped,cancelled}`, `paid→{processing,shipped,cancelled,refunded}`, `processing→{shipped,cancelled}`, `shipped→{delivered,cancelled,refunded}`, `delivered→{refunded}`, `cancelled/refunded` terminal
+- `tests/conftest.py` inserts parent of `tests/` into sys.path (not `src/`) for `from src.xxx import` to work
+- `CurrencyAwareRoute` extends `APIRoute` (not `Route` from Starlette) for FastAPI compatibility
+- `CurrencyExtractorMiddleware` sets `request.state.target_currency` from X-Currency header or preferred_currency cookie
+- Tenant `base_currency` is set per-route from `tenant.settings.get("currency", "GBP")` after `_resolve_tenant`
+- Exchange rates cached in Redis by the `RateService` — no DB in the conversion path
+- `_apply_rate` uses `ROUND_HALF_UP` quantize to nearest integer cent
+- 24 interceptor unit tests run in <0.1s without Doppler (env vars via pytest inline overrides)
+- Editor packages must be in `transpilePackages` in `next.config.ts`, `@source` in Tailwind, and `paths` in `tsconfig.json` to render in browser
+- MediaDropzone uses `URL.createObjectURL` for previews, revokes on remove; videos canvas-capture first frame as thumbnail
+- Cloudinary upload uses unsigned preset `ml_default` via `XMLHttpRequest` with progress tracking
+- Add/edit form uses same component — `editingProduct` prop switches between create/edit mode
+- Edit flow navigates to `?view=edit&id={id}` URL pattern (no drawer)
+- ESLint `import/order` groups: builtin → external (`@repo/*` after other external) → internal → parent → sibling → index, with `newlines-between: "always"`
+- Tests use isolated `TEST_DATABASE_URL` — dev database is never touched by pytest
+- Background workers use `asyncio.create_task()` pattern (no Celery/Redis queue)
+- Tax stored as int (pence), rates as int (×10000) — never float/Decimal
+- Reporting queries with CTEs use raw `text()`; simple filtered queries use SQLModel `select()`
+- SQLModel type checker quirks: use `asc()`/`desc()` module functions from `sqlalchemy`, not method chains; use `|` instead of `.in_()` for lists; use batch queries instead of `joinedload` on relationships
