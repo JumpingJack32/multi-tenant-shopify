@@ -217,6 +217,19 @@ async def seed_users(session: AsyncSession, tenants_by_slug: dict[str, dict]) ->
         )
 
 
+async def seed_tax_configs(session: AsyncSession, tenants_by_slug: dict[str, dict]) -> None:
+    for slug, tenant in tenants_by_slug.items():
+        tenant_id = uuid.UUID(tenant["tenant_id"])
+        await session.execute(
+            text("""
+                INSERT INTO tenant_tax_configs (id, tenant_id, default_rate, tax_inclusive, enabled, created_at, updated_at)
+                VALUES (:id, :tid, 2000, false, true, NOW(), NOW())
+                ON CONFLICT DO NOTHING
+            """),
+            {"id": uuid.uuid4(), "tid": tenant_id},
+        )
+
+
 async def seed_suppliers(
     session: AsyncSession, tenants_by_slug: dict[str, dict]
 ) -> dict[str, list[dict]]:
@@ -478,8 +491,8 @@ async def seed_customers(
                 city_idx = random.randint(0, len(CITIES) - 1)
                 await session.execute(
                     text("""
-                        INSERT INTO customer_addresses (id, customer_id, tenant_id, address_type, line1, city, province, postal_code, country, is_default, created_at, updated_at)
-                        VALUES (:id, :cid, :tid, :addr_type, :line1, :city, :province, :zip, :country, :is_default, NOW(), NOW())
+                        INSERT INTO customer_addresses (id, customer_id, tenant_id, address_type, line1, city, province, postal_code, country, company, label, is_default, is_default_shipping, is_default_billing, created_at, updated_at)
+                        VALUES (:id, :cid, :tid, :addr_type, :line1, :city, :province, :zip, :country, NULL, 'Home', :is_default, :is_default, false, NOW(), NOW())
                     """),
                     {
                         "id": addr_id, "cid": cid, "tid": tenant_id,
@@ -665,8 +678,8 @@ async def seed_orders(
                 oiid = uuid.uuid4()
                 await session.execute(
                     text("""
-                        INSERT INTO order_items (id, tenant_id, order_id, variant_id, product_id, product_name, variant_name, sku, quantity, unit_price, total_price, discount, created_at, updated_at)
-                        VALUES (:id, :tid, :oid, :vid, :pid, :pname, :vname, :sku, :qty, :unit_price, :total_price, 0, :ts, :ts)
+                        INSERT INTO order_items (id, tenant_id, order_id, variant_id, product_id, product_name, variant_name, sku, quantity, unit_price, total_price, discount, tax_rate, tax_amount, created_at, updated_at)
+                        VALUES (:id, :tid, :oid, :vid, :pid, :pname, :vname, :sku, :qty, :unit_price, :total_price, 0, 0, 0, :ts, :ts)
                     """),
                     {
                         "id": oiid, "tid": tenant_id, "oid": oid,
@@ -893,6 +906,7 @@ async def main() -> None:
             await clear_data(session)
             tenants = await seed_tenants(session)
             await seed_users(session, tenants)
+            await seed_tax_configs(session, tenants)
             suppliers = await seed_suppliers(session, tenants)
             catalog = await seed_catalog(session, tenants, suppliers)
             await seed_relationships(session, tenants, catalog)

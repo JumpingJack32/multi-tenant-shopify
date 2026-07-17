@@ -4,6 +4,12 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class TimeSeriesPoint(BaseModel):
+    date: str
+    revenue: int = 0
+    orders: int = 0
+
+
 class FulfillmentCounts(BaseModel):
     unfulfilled: int = 0
     processing: int = 0
@@ -37,6 +43,8 @@ class DashboardSummaryResponse(BaseModel):
     revenue_mtd: int = 0
     revenue_total: int = 0
     revenue_prev_mtd: int = 0
+    net_revenue_mtd: int = 0
+    net_revenue_prev_mtd: int = 0
     orders_mtd: int = 0
     orders_total: int = 0
     orders_prev_mtd: int = 0
@@ -47,3 +55,4 @@ class DashboardSummaryResponse(BaseModel):
     low_stock: list[LowStockItem] = []
     recent_orders: list[RecentOrderItem] = []
     pending_pos: PendingPOStats = PendingPOStats()
+    timeline: list[TimeSeriesPoint] = []

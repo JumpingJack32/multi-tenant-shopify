@@ -68,6 +68,14 @@ class TenantUser(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now())
 
 
+class TenantTaxConfig(BaseModel, table=True):
+    __tablename__ = "tenant_tax_configs"  # type: ignore
+
+    default_rate: int = Field(default=0)   # × 10000, e.g. 825 = 8.25%
+    tax_inclusive: bool = Field(default=False)
+    enabled: bool = Field(default=True)
+
+
 class ClerkWebhookEvent(BaseModel, table=True):
     __tablename__ = "clerk_webhook_events" # type: ignore
 

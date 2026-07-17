@@ -10,9 +10,11 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select, text
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.order import Customer, CustomerTimelineEvent, StoreCreditTransaction
+from src.orm.models.order import Customer, CustomerAddress, CustomerTimelineEvent, StoreCreditTransaction
 from src.orm.schemas.customer import (
+    CustomerAddressCreate,
     CustomerAddressResponse,
+    CustomerAddressUpdate,
     CustomerCreate,
     CustomerDetailResponse,
     CustomerMetricsResponse,
@@ -552,3 +554,75 @@ async def import_customers_csv(
         "imported": result.created,
         "errors": result.errors,
     }
+
+
+# ── Address CRUD ─────────────────────────────────────────────────────
+
+
+@router.post("/customers/{customer_id}/addresses", response_model=CustomerAddressResponse, status_code=201)
+async def create_customer_address(
+    customer_id: UUID,
+    body: CustomerAddressCreate,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    stmt = select(Customer).where(Customer.id == customer_id, Customer.tenant_id == tenant_id)
+    customer = (await db.exec(stmt)).one_or_none()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    address = CustomerAddress(
+        customer_id=customer_id,
+        tenant_id=tenant_id,
+        **body.model_dump(exclude_unset=True),
+    )
+    db.add(address)
+    await db.flush()
+    await db.refresh(address)
+    return address
+
+
+@router.put("/customers/{customer_id}/addresses/{address_id}", response_model=CustomerAddressResponse)
+async def update_customer_address(
+    customer_id: UUID,
+    address_id: UUID,
+    body: CustomerAddressUpdate,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    stmt = select(CustomerAddress).where(
+        CustomerAddress.id == address_id,
+        CustomerAddress.customer_id == customer_id,
+        CustomerAddress.tenant_id == tenant_id,
+    )
+    address = (await db.exec(stmt)).one_or_none()
+    if not address:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+    update_data = body.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(address, key, value)
+
+    db.add(address)
+    await db.flush()
+    await db.refresh(address)
+    return address
+
+
+@router.delete("/customers/{customer_id}/addresses/{address_id}", status_code=204)
+async def delete_customer_address(
+    customer_id: UUID,
+    address_id: UUID,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    stmt = select(CustomerAddress).where(
+        CustomerAddress.id == address_id,
+        CustomerAddress.customer_id == customer_id,
+        CustomerAddress.tenant_id == tenant_id,
+    )
+    address = (await db.exec(stmt)).one_or_none()
+    if not address:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+    await db.delete(address)

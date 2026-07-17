@@ -317,10 +317,12 @@ export const api = {
   },
 
   dashboard: {
-    summary(options?: { tenantId?: string | null }) {
+    summary(options?: { tenantId?: string | null; period?: string }) {
+      const { period, ...rest } = options ?? {};
+      const query = period ? `?period=${period}` : "";
       return request<DashboardSummary>(
-        "/admin/dashboard/summary",
-        options ?? {},
+        `/admin/dashboard/summary${query}`,
+        rest,
       );
     },
   },

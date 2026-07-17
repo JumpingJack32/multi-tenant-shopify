@@ -67,6 +67,36 @@ class CustomerResponse(PydanticBaseModel):
     model_config = {"from_attributes": True}
 
 
+class CustomerAddressCreate(PydanticBaseModel):
+    address_type: str = "shipping"
+    line1: str = Field(..., max_length=255)
+    line2: Optional[str] = Field(None, max_length=255)
+    city: str = Field(..., max_length=100)
+    province: Optional[str] = Field(None, max_length=100)
+    postal_code: str = Field(..., max_length=20)
+    country: str = Field(..., max_length=100)
+    company: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    label: str = "Home"
+    is_default_shipping: bool = False
+    is_default_billing: bool = False
+
+
+class CustomerAddressUpdate(PydanticBaseModel):
+    address_type: Optional[str] = Field(None, max_length=20)
+    line1: Optional[str] = Field(None, max_length=255)
+    line2: Optional[str] = Field(None, max_length=255)
+    city: Optional[str] = Field(None, max_length=100)
+    province: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=20)
+    country: Optional[str] = Field(None, max_length=100)
+    company: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    label: Optional[str] = Field(None, max_length=50)
+    is_default_shipping: Optional[bool] = None
+    is_default_billing: Optional[bool] = None
+
+
 class CustomerAddressResponse(PydanticBaseModel):
     id: UUID
     address_type: str

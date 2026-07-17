@@ -6,6 +6,9 @@ from src.orm.schemas.collection import (  # noqa: F401
 )
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta  # noqa: F401
 from src.orm.schemas.customer import (  # noqa: F401
+    CustomerAddressCreate,
+    CustomerAddressResponse,
+    CustomerAddressUpdate,
     CustomerCreate,
     CustomerDetailResponse,
     CustomerMetricsResponse,
@@ -45,3 +48,4 @@ from src.orm.schemas.storefront import (  # noqa: F401
     StorefrontProductResponse,
     StorefrontVariantResponse,
 )
+from src.orm.schemas.tax import TaxConfigResponse, TaxConfigUpdate  # noqa: F401

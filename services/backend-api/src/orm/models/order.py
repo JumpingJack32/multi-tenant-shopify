@@ -83,6 +83,8 @@ class OrderItem(BaseModel, table=True):
     unit_price: int = Field(ge=0)
     total_price: int = Field(ge=0)
     discount: int = Field(default=0, ge=0)
+    tax_rate: int = Field(default=0)
+    tax_amount: int = Field(default=0)
 
     order: Order = Relationship(back_populates="items")
 
@@ -141,7 +143,10 @@ class CustomerAddress(BaseModel, table=True):
     country: str = Field(max_length=100)
     company: Optional[str] = Field(default=None, max_length=255)
     phone: Optional[str] = Field(default=None, max_length=50)
+    label: str = Field(default="Home", max_length=50)
     is_default: bool = Field(default=False)
+    is_default_shipping: bool = Field(default=False)
+    is_default_billing: bool = Field(default=False)
 
 
 class StoreCreditTransaction(BaseModel, table=True):

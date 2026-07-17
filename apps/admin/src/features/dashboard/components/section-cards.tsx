@@ -70,6 +70,8 @@ function StatCardSkeleton() {
 interface SectionCardsProps {
   revenue_mtd: number;
   revenue_prev_mtd: number;
+  net_revenue_mtd: number;
+  net_revenue_prev_mtd: number;
   orders_mtd: number;
   orders_prev_mtd: number;
   aov: number;
@@ -87,6 +89,14 @@ export function SectionCards(props: SectionCardsProps) {
       format: formatPence,
       trendLabel: "Trending up this month",
       trendDesc: "Revenue vs previous period",
+    },
+    {
+      label: "Net Revenue (MTD)",
+      value: props.net_revenue_mtd,
+      prev: props.net_revenue_prev_mtd,
+      format: formatPence,
+      trendLabel: "Revenue after tax",
+      trendDesc: "Net vs previous period",
     },
     {
       label: "Orders (MTD)",
@@ -132,7 +142,7 @@ export function SectionCards(props: SectionCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-5 dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 dark:*:data-[slot=card]:bg-card">
       {cards.map((def) => (
         <StatCardInner key={def.label} def={def} />
       ))}
@@ -142,8 +152,8 @@ export function SectionCards(props: SectionCardsProps) {
 
 export function SectionCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-      {[1, 2, 3, 4, 5].map((i) => (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
         <StatCardSkeleton key={i} />
       ))}
     </div>

@@ -436,3 +436,37 @@ async def refund_order(
     except Exception as e:
         from fastapi import status
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+
+
+@router.post("/{order_id}/recalculate-tax", response_model=OrderResponse)
+async def recalculate_order_tax(
+    order_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.orm.models.order import OrderItem
+    from src.orm.models.tenant import TenantTaxConfig
+    from src.services.tax_service import calculate_tax
+
+    stmt = select(Order).where(Order.id == order_id, Order.tenant_id == tenant_id)
+    order = (await db.exec(stmt)).one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    tax_stmt = select(TenantTaxConfig).where(TenantTaxConfig.tenant_id == tenant_id)
+    tax_config = (await db.exec(tax_stmt)).one_or_none()
+    if not tax_config or not tax_config.enabled:
+        raise HTTPException(status_code=422, detail="Tax not configured for this tenant")
+
+    items_stmt = select(OrderItem).where(OrderItem.order_id == order_id)
+    items = (await db.exec(items_stmt)).all()
+
+    for item in items:
+        tax, _ = calculate_tax(item.total_price, tax_config.default_rate, tax_config.tax_inclusive)
+        item.tax_rate = tax_config.default_rate
+        item.tax_amount = tax
+        db.add(item)
+
+    await db.flush()
+    await db.refresh(order)
+    return order

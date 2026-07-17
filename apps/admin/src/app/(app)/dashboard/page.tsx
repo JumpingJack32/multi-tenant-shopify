@@ -1,5 +1,7 @@
 "use client";
 
+import { useSearchParams, useRouter } from "next/navigation";
+import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
@@ -7,6 +9,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@repo/ui/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/ui/select";
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useTenantContext } from "@/contexts/tenant-context";
@@ -17,7 +31,7 @@ import {
 import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
 
 function formatPence(n: number): string {
-  return `\u00A3${(n / 100).toFixed(2)}`;
+  return `\u00A3 ${(n / 100).toFixed(2)}`;
 }
 
 const statusColors: Record<string, string> = {
@@ -28,9 +42,19 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800",
 };
 
+const PERIODS = [
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "90d", label: "Last 90 days" },
+  { value: "12m", label: "Last 12 months" },
+];
+
 export default function DashboardPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const period = searchParams.get("period") || "30d";
   const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
-  const dashboardQuery = useDashboard(currentTenantId);
+  const dashboardQuery = useDashboard(currentTenantId, period);
 
   if (tenantLoading || dashboardQuery.isPending) {
     return (
@@ -53,20 +77,30 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header + Refresh */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <button
-          onClick={() => dashboardQuery.refetch()}
-          className="text-sm text-primary hover:underline"
+        <Select
+          value={period}
+          onValueChange={(v) => router.push(`/dashboard?period=${v}`)}
         >
-          Refresh
-        </button>
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PERIODS.map((p) => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <SectionCards
         revenue_mtd={data.revenue_mtd}
         revenue_prev_mtd={data.revenue_prev_mtd}
+        net_revenue_mtd={data.net_revenue_mtd}
+        net_revenue_prev_mtd={data.net_revenue_prev_mtd}
         orders_mtd={data.orders_mtd}
         orders_prev_mtd={data.orders_prev_mtd}
         aov={data.aov}
@@ -74,6 +108,42 @@ export default function DashboardPage() {
         active_customers_prev={data.active_customers_prev}
         pending_pos={data.pending_pos}
       />
+
+      {/* Revenue Chart */}
+      {data.timeline && data.timeline.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Revenue Trend</CardTitle>
+            <CardDescription>
+              Daily revenue over the selected period
+            </CardDescription>
+          </CardHeader>
+          <div className="px-4 pb-4">
+            <ChartContainer
+              config={{
+                revenue: { label: "Revenue", color: "hsl(var(--primary))" },
+              }}
+              className="h-64 w-full"
+            >
+              <AreaChart data={data.timeline}>
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis
+                  tickFormatter={(v) => `£${(Number(v) / 100).toFixed(0)}`}
+                  tick={{ fontSize: 12 }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--primary) / 0.15)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ChartContainer>
+          </div>
+        </Card>
+      )}
 
       {/* Fulfillment Pipeline */}
       <Card>
@@ -89,40 +159,61 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      {/* Low Stock Alerts */}
-      {data.low_stock.length > 0 && (
+      {/* Action Center */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Low Stock Alerts</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <span className="text-amber-500">⚠️</span> Low Stock (
+              {data.low_stock.length})
+            </CardTitle>
+          </CardHeader>
+          {data.low_stock.length > 0 ? (
+            <div className="px-6 pb-4 space-y-1">
+              {data.low_stock.slice(0, 5).map((item) => (
+                <div
+                  key={item.variant_id}
+                  className="flex justify-between text-sm py-1 border-b last:border-0"
+                >
+                  <span className="truncate">{item.product_name}</span>
+                  <span
+                    className={`font-mono ml-2 ${item.quantity <= 0 ? "text-red-600 font-bold" : ""}`}
+                  >
+                    {item.quantity} left
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <CardDescription className="px-6 pb-4">
+              No low stock alerts
+            </CardDescription>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <span className="text-blue-500">📋</span> Pending Purchase Orders
+            </CardTitle>
           </CardHeader>
           <div className="px-6 pb-4">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-muted-foreground">
-                  <th className="pb-2">Product</th>
-                  <th className="pb-2">SKU</th>
-                  <th className="pb-2 text-right">Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.low_stock.map((item) => (
-                  <tr key={item.variant_id} className="border-t">
-                    <td className="py-1.5">{item.product_name}</td>
-                    <td className="py-1.5 font-mono text-muted-foreground">
-                      {item.sku}
-                    </td>
-                    <td
-                      className={`py-1.5 text-right font-mono ${item.quantity <= 0 ? "text-red-600 font-bold" : ""}`}
-                    >
-                      {item.quantity}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {data.pending_pos.count > 0 ? (
+              <div className="text-sm space-y-1">
+                <p className="font-medium">
+                  {data.pending_pos.count} PO
+                  {data.pending_pos.count > 1 ? "s" : ""} awaiting approval
+                </p>
+                <p className="text-muted-foreground">
+                  Total value: {formatPence(data.pending_pos.total)}
+                </p>
+              </div>
+            ) : (
+              <CardDescription>No pending purchase orders</CardDescription>
+            )}
           </div>
         </Card>
-      )}
+      </div>
 
       {/* Recent Orders */}
       <Card>

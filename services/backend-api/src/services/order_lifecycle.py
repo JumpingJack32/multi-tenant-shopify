@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.orm.models.order import Order, OrderStatus
+from src.orm.models.order import Customer, Order, OrderStatus
 from src.orm.models.product import Inventory
 from src.services.order_state_machine import validate_transition
 
@@ -71,12 +71,37 @@ class OrderLifecycleService:
         self.db.add(order)
         return order
 
-    async def refund(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def refund(self, order_id: UUID, tenant_id: UUID, issue_credit: bool = True) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.REFUNDED.value)
+
+        # Guard: re-check status under lock to prevent double-credit from concurrent calls
+        current = await self._get_order(order_id, tenant_id)
+        if current.status == OrderStatus.REFUNDED:
+            return order
+
         if order.inventory_deducted:
             await self._replenish_inventory(order, tenant_id)
             order.inventory_deducted = False
+
+        if issue_credit and order.total > 0 and order.customer_id:
+            stmt = select(Customer).where(Customer.id == order.customer_id, Customer.tenant_id == tenant_id)
+            customer = (await self.db.exec(stmt)).one_or_none()
+            if customer:
+                customer.store_credit += order.total
+                self.db.add(customer)
+
+                from src.orm.models.order import StoreCreditTransaction
+
+                tx = StoreCreditTransaction(
+                    customer_id=customer.id,
+                    tenant_id=tenant_id,
+                    amount=order.total,
+                    balance_after=customer.store_credit,
+                    reason=f"Refund for Order #{order.order_number}",
+                )
+                self.db.add(tx)
+
         order.status = OrderStatus.REFUNDED
         self.db.add(order)
         return order

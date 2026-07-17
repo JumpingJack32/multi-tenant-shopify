@@ -13,11 +13,11 @@ function getTenantId(): string | null {
   }
 }
 
-export function useDashboard(tenantId?: string | null) {
+export function useDashboard(tenantId?: string | null, period: string = "30d") {
   const tid = tenantId ?? getTenantId();
   return useQuery<DashboardSummary>({
-    queryKey: ["dashboard", "summary", tid],
-    queryFn: () => api.dashboard.summary({ tenantId: tid }),
+    queryKey: ["dashboard", "summary", period, tid],
+    queryFn: () => api.dashboard.summary({ tenantId: tid, period }),
     enabled: !!tid,
   });
 }

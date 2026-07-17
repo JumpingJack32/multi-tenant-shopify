@@ -281,10 +281,18 @@ export interface PendingPOStats {
   total: number;
 }
 
+export interface TimeSeriesPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
 export interface DashboardSummary {
   revenue_mtd: number;
   revenue_total: number;
   revenue_prev_mtd: number;
+  net_revenue_mtd: number;
+  net_revenue_prev_mtd: number;
   orders_mtd: number;
   orders_total: number;
   orders_prev_mtd: number;
@@ -300,6 +308,7 @@ export interface DashboardSummary {
   low_stock: DashboardLowStockItem[];
   recent_orders: DashboardRecentOrder[];
   pending_pos: PendingPOStats;
+  timeline: TimeSeriesPoint[];
 }
 
 export type StockStatus =
