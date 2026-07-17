@@ -13,6 +13,8 @@ class StorefrontVariantResponse(BaseModel):
     is_active: bool
     in_stock: bool
     options: dict
+    display_price: Optional[int] = Field(None, ge=0, json_schema_extra={"is_price": True})
+    display_currency: Optional[str] = None
 
 
 class StorefrontProductResponse(BaseModel):
@@ -23,6 +25,9 @@ class StorefrontProductResponse(BaseModel):
     status: str
     min_price: int = Field(ge=0, json_schema_extra={"is_price": True})
     max_price: int = Field(ge=0, json_schema_extra={"is_price": True})
+    display_min_price: Optional[int] = Field(None, ge=0, json_schema_extra={"is_price": True})
+    display_max_price: Optional[int] = Field(None, ge=0, json_schema_extra={"is_price": True})
+    display_currency: Optional[str] = None
     images: list["StorefrontImageResponse"] = []
     variants: list[StorefrontVariantResponse] = []
     category_slug: Optional[str] = None

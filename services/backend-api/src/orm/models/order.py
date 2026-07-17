@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON, Text, UniqueConstraint
+from sqlalchemy import DateTime, Enum as SAEnum, Index, JSON, Numeric, Text, UniqueConstraint
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
@@ -48,6 +49,9 @@ class Order(BaseModel, table=True):
     discount: int = Field(default=0, ge=0)
     total: int = Field(ge=0)
     currency: str = Field(default="USD", max_length=3)
+    base_currency: str = Field(default="GBP", max_length=3)
+    exchange_rate: Decimal = Field(default=Decimal("1.0"), sa_column=Column(Numeric(12, 6), nullable=False, default=1.0))
+    total_base: Optional[int] = Field(default=None, ge=0, sa_column_kwargs={"nullable": True})
     shipping_address: dict = Field(
         default_factory=dict,
         sa_column=Column(JSON, nullable=False, default=dict, comment="Shipping address JSON"),

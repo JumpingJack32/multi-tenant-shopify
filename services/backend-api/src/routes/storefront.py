@@ -1,6 +1,7 @@
 """Storefront-facing endpoints — aggregated read-optimized responses for Next.js."""
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -45,9 +46,23 @@ async def _resolve_tenant(db: AsyncSession, tenant_slug: str) -> Tenant:
     return tenant
 
 
-def _build_storefront_product(product: Product) -> StorefrontProductResponse:
+def _build_storefront_product(
+    product: Product,
+    display_currency: str | None = None,
+    display_prices: dict[UUID, int] | None = None,
+) -> StorefrontProductResponse:
     active_variants = [v for v in product.variants if v.is_active]
     prices = [v.price for v in active_variants]
+
+    # Compute display prices if conversion data is provided
+    if display_prices:
+        disp_prices_list = [display_prices.get(v.id, v.price) for v in active_variants]
+        display_min = min(disp_prices_list, default=0)
+        display_max = max(disp_prices_list, default=0)
+    else:
+        disp_prices_list = None
+        display_min = None
+        display_max = None
 
     images = [
         StorefrontImageResponse(
@@ -59,6 +74,21 @@ def _build_storefront_product(product: Product) -> StorefrontProductResponse:
         for img in sorted(product.images or [], key=lambda x: x.sort_order)
     ]
 
+    variants_response = []
+    for v in active_variants:
+        v_display_price = display_prices.get(v.id) if display_prices else None
+        variants_response.append(StorefrontVariantResponse(
+            id=v.id,
+            sku=v.sku,
+            price=v.price,
+            compare_at_price=v.compare_at_price,
+            is_active=v.is_active,
+            in_stock=v.inventory_quantity > 0,
+            options=v.options,
+            display_price=v_display_price,
+            display_currency=display_currency,
+        ))
+
     return StorefrontProductResponse(
         id=product.id,
         slug=product.slug,
@@ -67,19 +97,11 @@ def _build_storefront_product(product: Product) -> StorefrontProductResponse:
         status=product.status.value if hasattr(product.status, "value") else str(product.status),
         min_price=min(prices, default=0),
         max_price=max(prices, default=0),
+        display_min_price=display_min,
+        display_max_price=display_max,
+        display_currency=display_currency,
         images=images,
-        variants=[
-            StorefrontVariantResponse(
-                id=v.id,
-                sku=v.sku,
-                price=v.price,
-                compare_at_price=v.compare_at_price,
-                is_active=v.is_active,
-                in_stock=v.inventory_quantity > 0,
-                options=v.options,
-            )
-            for v in active_variants
-        ],
+        variants=variants_response,
         category_slug=product.category.slug if product.category else None,
         collection_slugs=[c.slug for c in (product.collections or [])],
         created_at=product.created_at,
@@ -163,8 +185,23 @@ async def list_storefront_products(
 
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
+    # Apply currency conversion if shopper prefers a different currency
+    preferred = getattr(request.state, "target_currency", None)
+    base_currency = getattr(request.state, "base_currency", None)
+    if preferred and base_currency and preferred != base_currency:
+        from src.services.conversion_service import convert_price
+
+        product_responses = []
+        for p in products:
+            display_prices = {}
+            for v in (pv for pv in p.variants if pv.is_active):
+                display_prices[v.id] = await convert_price(v.price, base_currency, preferred, db)
+            product_responses.append(_build_storefront_product(p, preferred, display_prices))
+    else:
+        product_responses = [_build_storefront_product(p) for p in products]
+
     return PaginatedResponse(
-        data=[_build_storefront_product(p) for p in products],
+        data=product_responses,
         pagination=PaginationMeta(
             page=page,
             page_size=page_size,
@@ -205,6 +242,16 @@ async def get_storefront_product(
 
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+
+    preferred = getattr(request.state, "target_currency", None)
+    base_currency = getattr(request.state, "base_currency", None)
+    if preferred and base_currency and preferred != base_currency:
+        from src.services.conversion_service import convert_price
+
+        display_prices = {}
+        for v in (pv for pv in product.variants if pv.is_active):
+            display_prices[v.id] = await convert_price(v.price, base_currency, preferred, db)
+        return _build_storefront_product(product, preferred, display_prices)
 
     return _build_storefront_product(product)
 
@@ -247,8 +294,13 @@ async def _get_cart(cart_id: UUID, tenant_id: UUID, db: AsyncSession) -> Cart:
     return cart
 
 
-async def _build_cart_response(cart: Cart, db=None, tenant_id=None) -> CartResponse:
+async def _build_cart_response(
+    cart: Cart, db=None, tenant_id=None,
+    target_currency: str | None = None,
+    base_currency: str | None = None,
+) -> CartResponse:
     from src.orm.models.tenant import TenantTaxConfig
+    from src.services.conversion_service import convert_price
     from src.services.tax_service import calculate_tax
 
     tax_config = None
@@ -284,6 +336,12 @@ async def _build_cart_response(cart: Cart, db=None, tenant_id=None) -> CartRespo
         ))
 
     grand_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
+
+    # Convert to shopper's preferred currency if different from base
+    if target_currency and base_currency and target_currency != base_currency:
+        subtotal = await convert_price(subtotal, base_currency, target_currency, db)
+        tax_total = await convert_price(tax_total, base_currency, target_currency, db)
+        grand_total = await convert_price(grand_total, base_currency, target_currency, db)
 
     return CartResponse(
         id=cart.id,
@@ -325,7 +383,9 @@ async def create_cart(
     await db.flush()
 
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return await _build_cart_response(cart, db, tenant.tenant_id)
+    return await _build_cart_response(cart, db, tenant.tenant_id,
+        target_currency=getattr(request.state, "target_currency", None),
+        base_currency=getattr(request.state, "base_currency", None))
 
 
 @router.get("/{tenant_slug}/carts/{cart_id}", response_model=CartResponse)
@@ -340,7 +400,9 @@ async def get_cart(
     request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
     cart = await _get_cart(cart_id, tenant.tenant_id, db)
 
-    return await _build_cart_response(cart, db, tenant.tenant_id)
+    return await _build_cart_response(cart, db, tenant.tenant_id,
+        target_currency=getattr(request.state, "target_currency", None),
+        base_currency=getattr(request.state, "base_currency", None))
 
 
 @router.post("/{tenant_slug}/carts/{cart_id}/items", response_model=CartResponse)
@@ -373,7 +435,9 @@ async def add_cart_item(
 
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return await _build_cart_response(cart, db, tenant.tenant_id)
+    return await _build_cart_response(cart, db, tenant.tenant_id,
+        target_currency=getattr(request.state, "target_currency", None),
+        base_currency=getattr(request.state, "base_currency", None))
 
 
 @router.patch("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
@@ -401,7 +465,9 @@ async def update_cart_item(
 
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return await _build_cart_response(cart, db, tenant.tenant_id)
+    return await _build_cart_response(cart, db, tenant.tenant_id,
+        target_currency=getattr(request.state, "target_currency", None),
+        base_currency=getattr(request.state, "base_currency", None))
 
 
 @router.delete("/{tenant_slug}/carts/{cart_id}/items/{item_id}", response_model=CartResponse)
@@ -424,7 +490,9 @@ async def remove_cart_item(
     await db.delete(item)
     await db.flush()
     cart = await _get_cart(cart.id, tenant.tenant_id, db)
-    return await _build_cart_response(cart, db, tenant.tenant_id)
+    return await _build_cart_response(cart, db, tenant.tenant_id,
+        target_currency=getattr(request.state, "target_currency", None),
+        base_currency=getattr(request.state, "base_currency", None))
 
 
 @router.delete("/{tenant_slug}/carts/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -512,7 +580,21 @@ async def checkout(
 
     grand_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
 
+    # Capture exchange rate for ledger integrity
+    base_currency = getattr(request.state, "base_currency", "GBP")
+    exchange_rate = Decimal("1.0")
+    total_base = grand_total
+    if preferred and base_currency and preferred != base_currency:
+        from src.core.exchange_rates.service import RateService
+
+        rate_svc = RateService()
+        exchange_rate = await rate_svc.get_rate(base_currency, preferred)
+        total_base = round(Decimal(grand_total) / exchange_rate)
+
     order = Order(
+        base_currency=base_currency,
+        exchange_rate=exchange_rate,
+        total_base=total_base,
         tenant_id=tenant.tenant_id,
         order_number=order_number,
         status="pending",

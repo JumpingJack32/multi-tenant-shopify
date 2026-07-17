@@ -37,14 +37,14 @@ async def _kpi_query(db: AsyncSession, tenant_id, start_date, prev_start, prev_e
         WITH
         mtd AS (
             SELECT
-                COALESCE(SUM(total), 0)::BIGINT AS revenue_mtd,
+                COALESCE(SUM(COALESCE(total_base, total)), 0)::BIGINT AS revenue_mtd,
                 COUNT(*)::BIGINT AS orders_mtd,
                 COUNT(DISTINCT customer_id)::BIGINT AS active_customers
             FROM orders
             WHERE tenant_id = :tenant_id AND created_at >= :start_date
         ),
         net_mtd AS (
-            SELECT COALESCE(SUM(o.total - COALESCE(oi.tax_total, 0)), 0)::BIGINT AS net_revenue_mtd
+            SELECT COALESCE(SUM(COALESCE(o.total_base, o.total) - COALESCE(oi.tax_total, 0)), 0)::BIGINT AS net_revenue_mtd
             FROM orders o
             LEFT JOIN (
                 SELECT order_id, SUM(tax_amount) AS tax_total
@@ -55,20 +55,20 @@ async def _kpi_query(db: AsyncSession, tenant_id, start_date, prev_start, prev_e
         ),
         prev_mtd AS (
             SELECT
-                COALESCE(SUM(total), 0)::BIGINT AS revenue_prev_mtd,
+                COALESCE(SUM(COALESCE(total_base, total)), 0)::BIGINT AS revenue_prev_mtd,
                 COUNT(*)::BIGINT AS orders_prev_mtd,
                 COUNT(DISTINCT customer_id)::BIGINT AS active_customers_prev,
-                COALESCE(SUM(total - COALESCE((
+                COALESCE(SUM(COALESCE(o2.total_base, o2.total) - COALESCE((
                     SELECT SUM(tax_amount) FROM order_items oi2
-                    WHERE oi2.order_id = orders.id AND oi2.tenant_id = :tenant_id
+                    WHERE oi2.order_id = o2.id AND oi2.tenant_id = :tenant_id
                 ), 0)), 0)::BIGINT AS net_revenue_prev_mtd
-            FROM orders
-            WHERE tenant_id = :tenant_id
-              AND created_at >= :prev_start AND created_at < :prev_end
+            FROM orders o2
+            WHERE o2.tenant_id = :tenant_id
+              AND o2.created_at >= :prev_start AND o2.created_at < :prev_end
         ),
         totals AS (
             SELECT
-                COALESCE(SUM(total), 0)::BIGINT AS revenue_total,
+                COALESCE(SUM(COALESCE(total_base, total)), 0)::BIGINT AS revenue_total,
                 COUNT(*)::BIGINT AS orders_total
             FROM orders
             WHERE tenant_id = :tenant_id
@@ -88,7 +88,7 @@ async def _timeline_query(db: AsyncSession, tenant_id, start_date, days: int) ->
     query = text("""
         SELECT
             DATE(created_at)::text AS date,
-            COALESCE(SUM(total), 0)::BIGINT AS revenue,
+            COALESCE(SUM(COALESCE(total_base, total)), 0)::BIGINT AS revenue,
             COUNT(*)::BIGINT AS orders
         FROM orders
         WHERE tenant_id = :tenant_id AND created_at >= :start_date
