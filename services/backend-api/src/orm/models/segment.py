@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import JSON
+from sqlalchemy import DateTime, JSON
 from sqlmodel import Column, Field, Relationship
 
 from src.orm.base import BaseModel
@@ -27,6 +27,9 @@ class CustomerSegmentMembership(BaseModel, table=True):
 
     customer_id: UUID = Field(foreign_key="customers.id", primary_key=True)
     segment_id: UUID = Field(foreign_key="saved_segments.id", primary_key=True)
-    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    joined_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True)),
+    )
 
     segment: SavedSegment = Relationship(back_populates="memberships")

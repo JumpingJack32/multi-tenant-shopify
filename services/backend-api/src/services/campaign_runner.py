@@ -4,8 +4,8 @@ import asyncio
 import logging
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.orm.models.order import Customer
 from src.orm.models.segment import CustomerSegmentMembership, SavedSegment
@@ -38,24 +38,25 @@ class CampaignRunner:
             await asyncio.sleep(self.interval)
 
     async def _run_cycle(self):
-        async with AsyncSession(self.engine) as db:
-            segments = await self._get_automated_segments(db)
-            if not segments:
-                return
-            for segment in segments:
-                try:
+        segments = await self._get_automated_segments()
+        if not segments:
+            return
+        for segment in segments:
+            try:
+                async with AsyncSession(self.engine) as db:
                     await self._process_segment(db, segment)
-                except Exception:
-                    logger.exception("Failed processing segment %s", segment.id)
-            await db.commit()
+                    await db.commit()
+            except Exception:
+                logger.exception("Failed processing segment %s", segment.id)
 
-    async def _get_automated_segments(self, db):
-        stmt = select(SavedSegment).where(
-            SavedSegment.is_automated == True,  # noqa: E712
-            SavedSegment.mailchimp_tag is not None,
-        )
-        result = await db.exec(stmt)
-        return result.all()
+    async def _get_automated_segments(self):
+        async with AsyncSession(self.engine) as db:
+            stmt = select(SavedSegment).where(
+                SavedSegment.is_automated == True,  # noqa: E712
+                SavedSegment.mailchimp_tag != None,  # noqa: E711
+            )
+            result = await db.exec(stmt)
+            return result.all()
 
     async def _process_segment(self, db, segment):
         from src.config import settings
@@ -82,12 +83,10 @@ class CampaignRunner:
             list_id=settings.mailchimp_list_id,
         )
 
-        tasks = []
         for cid in to_add:
-            tasks.append(self._add_customer_tag(db, config, cid, segment))
+            await self._add_customer_tag(db, config, cid, segment)
         for cid in to_remove:
-            tasks.append(self._remove_customer_tag(db, config, cid, segment))
-        await asyncio.gather(*tasks)
+            await self._remove_customer_tag(db, config, cid, segment)
 
     async def _get_previous_members(self, db, segment_id: UUID, tenant_id: UUID) -> set[UUID]:
         stmt = select(CustomerSegmentMembership.customer_id).where(

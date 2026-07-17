@@ -656,8 +656,8 @@ async def seed_orders(
 
             await session.execute(
                 text("""
-                    INSERT INTO orders (id, tenant_id, order_number, customer_id, status, payment_status, subtotal, tax, shipping, discount, total, currency, shipping_address, billing_address, notes, inventory_deducted, created_at, updated_at)
-                    VALUES (:id, :tid, :ord_num, :cid, :status, :payment_status, :subtotal, :tax, :shipping, 0, :total, 'USD', '{}'::jsonb, '{}'::jsonb, '', false, :ts, :ts)
+                    INSERT INTO orders (id, tenant_id, order_number, customer_id, status, payment_status, subtotal, tax, shipping, discount, total, currency, base_currency, exchange_rate, total_base, shipping_address, billing_address, notes, inventory_deducted, created_at, updated_at)
+                    VALUES (:id, :tid, :ord_num, :cid, :status, :payment_status, :subtotal, :tax, :shipping, 0, :total, 'USD', 'GBP', 1.0, :total, '{}'::jsonb, '{}'::jsonb, '', false, :ts, :ts)
                 """),
                 {
                     "id": oid, "tid": tenant_id,
