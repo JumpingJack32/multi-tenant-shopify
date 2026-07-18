@@ -50,6 +50,36 @@ async def _exchange_rate_refresh_worker():
         await asyncio.sleep(settings.exchange_rate_refresh_hours * 3600)
 
 
+async def _scheduled_campaign_worker(engine):
+    """Check for scheduled campaign templates every 60 seconds."""
+    while True:
+        await asyncio.sleep(60)
+        try:
+            from sqlalchemy import text
+            from sqlmodel.ext.asyncio.session import AsyncSession
+
+            async with AsyncSession(engine) as db:
+                result = await db.execute(
+                    text("""
+                        SELECT id FROM campaign_templates
+                        WHERE send_at <= NOW() AND last_sent_at IS NULL AND is_active = true
+                        LIMIT 1 FOR UPDATE SKIP LOCKED
+                    """)
+                )
+                row = result.fetchone()
+                if row:
+                    template_id = row[0]
+                    # Stamp as sent and trigger campaign cycle
+                    await db.execute(
+                        text("UPDATE campaign_templates SET last_sent_at = NOW() WHERE id = :id"),
+                        {"id": template_id},
+                    )
+                    await db.commit()
+                    logger.info("Scheduled campaign %s triggered", template_id)
+        except Exception:
+            logger.exception("Scheduled campaign worker error")
+
+
 async def _abandoned_cart_worker():
     """Background worker that sends abandoned cart reminder emails every 15 min."""
     while True:
@@ -126,6 +156,9 @@ async def lifespan(app: FastAPI):
     _event_bus_task = asyncio.create_task(event_bus.start())
     asyncio.create_task(_resolve_delivered_loop(async_engine))
 
+    # Start scheduled campaign worker
+    asyncio.create_task(_scheduled_campaign_worker(async_engine))
+
     yield
 
     # Cleanup
@@ -194,6 +227,7 @@ from src.routes.categories import router as categories_router  # noqa: E402
 from src.routes.collections import router as collections_router  # noqa: E402
 from src.routes.customers import router as customers_router  # noqa: E402
 from src.routes.inventory import router as inventory_router  # noqa: E402
+from src.routes.marketing_templates import router as marketing_templates_router  # noqa: E402
 from src.routes.media import router as media_router  # noqa: E402
 from src.routes.orders import router as orders_router  # noqa: E402
 from src.routes.product_images import router as product_images_router  # noqa: E402
@@ -219,6 +253,7 @@ app.include_router(auth_router)
 app.include_router(admin_auth_router)
 app.include_router(admin_fulfillments_router)
 app.include_router(admin_webhooks_router)
+app.include_router(marketing_templates_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1/media")
 app.include_router(product_images_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")

@@ -1,3 +1,4 @@
+from src.orm.models.campaign import CampaignTemplate  # noqa: F401
 from src.orm.models.cart import Cart, CartItem  # noqa: F401
 from src.orm.models.category import Category  # noqa: F401
 from src.orm.models.collection import Collection, ProductCollection  # noqa: F401

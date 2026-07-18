@@ -50,6 +50,13 @@ def _get_jinja_env() -> Environment:
     return _jinja_env
 
 
+def render_jinja_string(template_str: str, **context) -> str:
+    """Render a Jinja2 string (e.g. a subject line) with context."""
+    from jinja2 import Environment
+    env = Environment(autoescape=False)
+    return env.from_string(template_str).render(**context)
+
+
 def render_email_template(name: str, **context) -> str:
     """Render a Jinja2 email template with auto-escaping.
 

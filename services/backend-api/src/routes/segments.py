@@ -85,6 +85,7 @@ async def toggle_segment_automation(
 
     segment.is_automated = body.is_automated
     segment.mailchimp_tag = body.mailchimp_tag
+    segment.campaign_template_id = body.campaign_template_id
     db.add(segment)
     await db.flush()
     await db.refresh(segment)

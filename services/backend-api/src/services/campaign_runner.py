@@ -7,9 +7,10 @@ from uuid import UUID
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.orm.models.campaign import CampaignTemplate
 from src.orm.models.order import Customer
 from src.orm.models.segment import CustomerSegmentMembership, SavedSegment
-from src.services.email_service import create_email_service, render_email_template
+from src.services.email_service import create_email_service, render_email_template, render_jinja_string
 from src.services.mailchimp_service import MailchimpConfig, sync_contact
 from src.services.segment_service import get_customer_ids_for_filters
 
@@ -113,14 +114,20 @@ class CampaignRunner:
                     tenant_id=segment.tenant_id,
                 ))
 
-                # Fire-and-forget promotional email after successful tag add
-                html = render_email_template("campaign-promo", customer_name=customer.first_name or "Customer")
+                # Send promotional email after successful tag add
                 svc = create_email_service()
-                asyncio.ensure_future(svc.send_raw(
-                    customer.email,
-                    f"Welcome to {segment.name}",
-                    html,
-                ))
+                if segment.campaign_template_id:
+                    tmpl = await db.get(CampaignTemplate, segment.campaign_template_id)
+                    if tmpl:
+                        subject = render_jinja_string(tmpl.subject, customer_name=customer.first_name or "Customer")
+                        html = render_email_template("campaign-promo", customer_name=customer.first_name or "Customer")
+                        asyncio.ensure_future(svc.send_raw(customer.email, subject, html))
+                    else:
+                        html = render_email_template("campaign-promo", customer_name=customer.first_name or "Customer")
+                        asyncio.ensure_future(svc.send_raw(customer.email, f"Welcome to {segment.name}", html))
+                else:
+                    html = render_email_template("campaign-promo", customer_name=customer.first_name or "Customer")
+                    asyncio.ensure_future(svc.send_raw(customer.email, f"Welcome to {segment.name}", html))
             except Exception:
                 logger.exception("Failed to process customer %s for segment %s", customer_id, segment.id)
 

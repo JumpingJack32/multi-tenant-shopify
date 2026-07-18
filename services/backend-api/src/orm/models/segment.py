@@ -15,6 +15,7 @@ class SavedSegment(BaseModel, table=True):
     customer_count: int = Field(default=0)
     mailchimp_tag: str | None = Field(default=None, max_length=100)
     is_automated: bool = Field(default=False)
+    campaign_template_id: UUID | None = Field(default=None, foreign_key="campaign_templates.id")
 
     memberships: list["CustomerSegmentMembership"] = Relationship(
         back_populates="segment",

@@ -20,6 +20,7 @@ class SegmentUpdate(PydanticBaseModel):
 class SegmentToggleAutomation(PydanticBaseModel):
     is_automated: bool
     mailchimp_tag: Optional[str] = Field(None, max_length=100)
+    campaign_template_id: Optional[UUID] = None
 
     @model_validator(mode="after")
     def validate_automation(self):
