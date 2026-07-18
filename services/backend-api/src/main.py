@@ -31,6 +31,8 @@ if settings.sentry_dsn:
 _exchange_rate_task: asyncio.Task | None = None
 _abandoned_cart_task: asyncio.Task | None = None
 _campaign_runner_task: asyncio.Task | None = None
+_event_bus_task: asyncio.Task | None = None
+event_bus: "EventBus" | None = None  # type: ignore[name-defined]
 
 
 async def _exchange_rate_refresh_worker():
@@ -116,6 +118,14 @@ async def lifespan(app: FastAPI):
             CampaignRunner(async_engine).start()
         )
 
+    # Start event bus worker
+    from src.services.event_bus import _resolve_delivered_loop, EventBus
+
+    global event_bus
+    event_bus = EventBus(async_engine)
+    _event_bus_task = asyncio.create_task(event_bus.start())
+    asyncio.create_task(_resolve_delivered_loop(async_engine))
+
     yield
 
     # Cleanup
@@ -135,6 +145,12 @@ async def lifespan(app: FastAPI):
         _campaign_runner_task.cancel()
         try:
             await _campaign_runner_task
+        except asyncio.CancelledError:
+            pass
+    if _event_bus_task:
+        _event_bus_task.cancel()
+        try:
+            await _event_bus_task
         except asyncio.CancelledError:
             pass
     await redis_client.close()
@@ -172,6 +188,7 @@ from src.core.exchange_rates.router import router as exchange_rates_router  # no
 from src.routes.admin import router as admin_router  # noqa: E402
 from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
 from src.routes.admin_fulfillments import router as admin_fulfillments_router  # noqa: E402
+from src.routes.admin_webhooks import router as admin_webhooks_router  # noqa: E402
 from src.routes.auth import router as auth_router  # noqa: E402
 from src.routes.categories import router as categories_router  # noqa: E402
 from src.routes.collections import router as collections_router  # noqa: E402
@@ -201,6 +218,7 @@ app.include_router(webhooks_router)
 app.include_router(auth_router)
 app.include_router(admin_auth_router)
 app.include_router(admin_fulfillments_router)
+app.include_router(admin_webhooks_router)
 app.include_router(media_router, prefix="/api/v1/media")
 app.include_router(product_images_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")

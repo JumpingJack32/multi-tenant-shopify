@@ -63,15 +63,31 @@ class WebhookDeliveryAttempt(BaseModel, table=True):
 
 ---
 
-## 4. Event Bus + Outbox Pattern
+## 4. Event Bus & Dispatcher Core
 
 **File:** `src/services/event_bus.py` (new)
 
-Events are written to the DB inside the publisher's transaction. The in-memory queue only receives events after the DB commit succeeds — preventing ghost events on transaction rollback.
+Events are written to the DB inside the publisher's transaction. The in-memory queue only receives events after the DB commit succeeds — preventing ghost events on transaction rollback. The `EventBus` class handles all publish, flush, dispatch, and delivery logic in a single cohesive service.
 
-````python
+```python
+import asyncio
+import hashlib
+import hmac
+import json
+from datetime import datetime, timezone
+from uuid import UUID
+
+import httpx
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.orm.models.event import Event
+from src.orm.models.webhook import WebhookSubscriber, WebhookDeliveryAttempt
+
+
 class EventBus:
-    def __init__(self):
+    def __init__(self, engine):
+        self.engine = engine
         self._queue: asyncio.Queue[Event] = asyncio.Queue()
 
     async def publish(self, event_type: str, source: str, data: dict, tenant_id: UUID, db: AsyncSession, staged: list):
@@ -86,64 +102,13 @@ class EventBus:
         while staged:
             event = staged.pop(0)
             await self._queue.put(event)
-Add a delivery attempt model for race-safe concurrent logging:
-
-```python
-class WebhookDeliveryAttempt(BaseModel, table=True):
-    __tablename__ = "webhook_delivery_attempts"
-    event_id: UUID = Field(foreign_key="events.id", index=True)
-    subscriber_id: UUID = Field(foreign_key="webhook_subscribers.id", index=True)
-    status_code: int | None = None
-    success: bool = Field(default=False)
-    error_message: str | None = None
-````
-
-Each `_deliver_to_subscriber` writes its own attempt row — concurrent tasks never contend over the same DB row:
-
-```python
-async def _deliver_to_subscriber(self, event_id: UUID, subscriber_id: UUID):
-    """Deliver a single event to a single subscriber. Runs in its own task.
-    Each attempt writes its own WebhookDeliveryAttempt row — no shared-state contention."""
-    async with AsyncSession(self.engine) as db:
-        event = (await db.exec(select(Event).where(Event.id == event_id))).one()
-        sub = (await db.exec(select(WebhookSubscriber).where(WebhookSubscriber.id == subscriber_id))).one()
-
-        payload = {
-            "event_type": event.event_type,
-            "source": event.source,
-            "data": event.data,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        body = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-
-        signature = hmac.new(sub.secret.encode(), body.encode("utf-8"), hashlib.sha256).hexdigest() if sub.secret else ""
-
-        attempt = WebhookDeliveryAttempt(event_id=event_id, subscriber_id=subscriber_id)
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                response = await client.post(
-                    sub.url, content=body,
-                    headers={"X-Webhook-Signature": signature, "Content-Type": "application/json"},
-                )
-            attempt.status_code = response.status_code
-            attempt.success = response.status_code < 400
-            sub.last_status_code = response.status_code
-            sub.last_sent_at = datetime.now(timezone.utc)
-            db.add(sub)
-        except Exception as e:
-            attempt.success = False
-            attempt.error_message = str(e)
-
-        db.add(attempt)
-        await db.commit()
-```
 
     async def start(self):
         """Background worker — recovers crashed events, then consumes new ones."""
         # 1. Recovery sweep on boot — pull undelivered DB events into the queue
         async with AsyncSession(self.engine) as db:
             undelivered = (await db.exec(
-                select(Event).where(Event.delivered == False)
+                select(Event).where(Event.delivered == False)  # noqa: E712
             )).all()
             for event in undelivered:
                 await self._queue.put(event)
@@ -154,44 +119,68 @@ async def _deliver_to_subscriber(self, event_id: UUID, subscriber_id: UUID):
             asyncio.create_task(self._dispatch_event(event))
             self._queue.task_done()
 
-````
+    async def _dispatch_event(self, event: Event):
+        """Fetch matching subscribers and fan out delivery tasks concurrently."""
+        async with AsyncSession(self.engine) as db:
+            stmt = select(Event).where(Event.id == event.id)
+            event_record = (await db.exec(stmt)).one()
 
----
+            sub_stmt = select(WebhookSubscriber).where(
+                WebhookSubscriber.tenant_id == event_record.tenant_id,
+                WebhookSubscriber.is_active == True,  # noqa: E712
+            )
+            subscribers = (await db.exec(sub_stmt)).all()
+            matching = [s for s in subscribers if event_record.event_type in s.event_types]
 
-## 5. Dispatch Worker (Fan-Out Per Subscriber)
+            if not matching:
+                event_record.delivered = True
+                db.add(event_record)
+                await db.commit()
+                return
 
-**File:** `src/services/event_bus.py`
+            for subscriber in matching:
+                asyncio.create_task(self._deliver_to_subscriber(event_record.id, subscriber.id))
 
-Each subscriber dispatch runs in its own `asyncio.create_task()` — one slow endpoint cannot block the rest.
+    async def _deliver_to_subscriber(self, event_id: UUID, subscriber_id: UUID):
+        """Deliver a single event to a single subscriber. Runs in its own task.
+        Each attempt writes its own WebhookDeliveryAttempt row — no shared-state contention."""
+        async with AsyncSession(self.engine) as db:
+            event = (await db.exec(select(Event).where(Event.id == event_id))).one()
+            sub = (await db.exec(select(WebhookSubscriber).where(WebhookSubscriber.id == subscriber_id))).one()
 
-```python
-async def _dispatch_event(self, event: Event):
-    async with AsyncSession(self.engine) as db:
-        # Refresh event from DB
-        stmt = select(Event).where(Event.id == event.id)
-        event = (await db.exec(stmt)).one()
+            payload = {
+                "event_type": event.event_type,
+                "source": event.source,
+                "data": event.data,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            body = json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
-        # Fetch matching subscribers
-        sub_stmt = select(WebhookSubscriber).where(
-            WebhookSubscriber.tenant_id == event.tenant_id,
-            WebhookSubscriber.is_active == True,
-        )
-        subscribers = (await db.exec(sub_stmt)).all()
-        matching = [s for s in subscribers if event.event_type in s.event_types]
+            signature = hmac.new(sub.secret.encode(), body.encode("utf-8"), hashlib.sha256).hexdigest() if sub.secret else ""
 
-        if not matching:
-            event.delivered = True
+            attempt = WebhookDeliveryAttempt(event_id=event_id, subscriber_id=subscriber_id)
+            try:
+                async with httpx.AsyncClient(timeout=10) as client:
+                    response = await client.post(
+                        sub.url, content=body,
+                        headers={"X-Webhook-Signature": signature, "Content-Type": "application/json"},
+                    )
+                attempt.status_code = response.status_code
+                attempt.success = response.status_code < 400
+                sub.last_status_code = response.status_code
+                sub.last_sent_at = datetime.now(timezone.utc)
+                db.add(sub)
+            except Exception as e:
+                attempt.success = False
+                attempt.error_message = str(e)
+
+            db.add(attempt)
             await db.commit()
-            return
-
-        # Fan-out per subscriber — each delivery runs in its own task
-        for subscriber in matching:
-            asyncio.create_task(self._deliver_to_subscriber(event.id, subscriber.id))
-````
+```
 
 ---
 
-## 6. Publisher Integration Points
+## 5. Publisher Integration Points
 
 | Event                    | Publisher                               | When                                      |
 | ------------------------ | --------------------------------------- | ----------------------------------------- |
@@ -227,7 +216,7 @@ await event_bus.flush(staged)
 
 ---
 
-## 7. Admin API
+## 6. Admin API
 
 | Method   | Endpoint                   | Description                      |
 | -------- | -------------------------- | -------------------------------- |
@@ -240,7 +229,7 @@ await event_bus.flush(staged)
 
 ---
 
-## 8. Delivered Flag Resolution
+## 7. Delivered Flag Resolution
 
 The `Event.delivered` flag is never set to `True` by subscriber delivery tasks (since concurrent writes to a single row would race). Instead, a lightweight periodic sweep resolves it:
 
@@ -264,7 +253,7 @@ async def _resolve_delivered_flag(db: AsyncSession):
 
 Run as a background coroutine every 60 seconds.
 
-## 9. Context Manager for Staged Events
+## 8. Context Manager for Staged Events
 
 **File:** `src/services/event_bus.py`
 
@@ -298,7 +287,7 @@ async with outbox_context(db, event_bus) as publish:
 # staged events are flushed automatically here
 ```
 
-## 10. Startup
+## 9. Startup
 
 **File:** `src/main.py`
 
@@ -312,7 +301,7 @@ _delivery_resolver_task = asyncio.create_task(_delivery_resolver_loop())
 
 ---
 
-## 9. Files Changed
+## 10. Files Changed
 
 | File                                  | Change                                     |
 | ------------------------------------- | ------------------------------------------ |
@@ -328,7 +317,7 @@ _delivery_resolver_task = asyncio.create_task(_delivery_resolver_loop())
 
 ---
 
-## 10. Risks
+## 11. Risks
 
 | Risk                                       | Mitigation                                                                                 |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
