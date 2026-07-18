@@ -407,3 +407,10 @@ On 2026-07-15 the AI agent (`opencode`) was handed a comprehensive spec for a Cu
 - Tax stored as int (pence), rates as int (×10000) — never float/Decimal
 - Reporting queries with CTEs use raw `text()`; simple filtered queries use SQLModel `select()`
 - SQLModel type checker quirks: use `asc()`/`desc()` module functions from `sqlalchemy`, not method chains; use `|` instead of `.in_()` for lists; use batch queries instead of `joinedload` on relationships
+- Webhook event bus uses outbox pattern: events written to DB inside transaction, staged in request-scoped list, flushed to in-memory queue only after `commit()` succeeds
+- Event delivery uses per-subscriber `asyncio.create_task()` fan-out with `WebhookDeliveryAttempt` audit table — no shared-state contention on parent Event row
+- HMAC signing uses deterministic JSON: `json.dumps(payload, sort_keys=True, separators=(",", ":"))`
+- React Email templates compiled via `render()` not CLI — CLI builds a Next.js app, not standalone HTML
+- Jinja2 template tokens passed through React Email via `dangerouslySetInnerHTML` or literal string props; `render()` passes `{{ }}` tokens through verbatim
+- Campaign templates stored as Jinja2 in DB with `body_json` (editor state) and `body_html` (rendered output); token sanitization regex strips nested HTML tags before save
+- Scheduled campaign worker uses `SELECT ... FOR UPDATE SKIP LOCKED` for concurrency safety across instances
