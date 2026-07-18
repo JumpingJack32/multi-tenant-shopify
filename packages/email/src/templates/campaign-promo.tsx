@@ -16,22 +16,12 @@ export default function CampaignPromo({
 }: CampaignPromoProps) {
   return (
     <Layout>
-      <Text style={{ fontSize: 18, fontWeight: 600 }}>
-        Welcome to {segmentName}
-      </Text>
-      <Text>Hi {customerName},</Text>
+      <Text className="text-lg font-semibold">Welcome to {segmentName}</Text>
+      <Text className="text-sm mt-4">Hi {customerName},</Text>
       <div dangerouslySetInnerHTML={{ __html: offerHtml }} />
       <Button
         href={storeUrl}
-        style={{
-          background: "#000",
-          color: "#fff",
-          padding: "12px 24px",
-          borderRadius: 4,
-          textDecoration: "none",
-          display: "inline-block",
-          marginTop: 16,
-        }}
+        className="bg-black text-white px-6 py-3 rounded no-underline inline-block mt-4"
       >
         Shop Now
       </Button>
