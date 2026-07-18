@@ -7,24 +7,32 @@ A production-grade multi-tenant SaaS platform modeled after Shopify's e-commerce
 ## Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             Turborepo Monorepo                              │
-│                                                                             │
-│   ┌────────────────┐      ┌────────────────┐      ┌────────────────────┐    │
-│   │   apps/admin   │      │ apps/storefront│      │    services/api    │    │
-│   │   (Next.js)    │      │   (Next.js)    │      │  (FastAPI/Python)  │    │
-│   └───────┬────────┘      └───────┬────────┘      └─────────┬──────────┘    │
-│           │                       │                         │               │
-│   ┌───────┴───────────────────────┴─────────────────────────┴───────────┐   │
-│   │                              Packages                               │   │
-│   │  auth │ ui │ editor │ tenant-orm │ middleware │ codegen │ db        │   │
-│   └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│   ┌─────────────────────────────────────────────────────────────────────┐   │
-│   │                   PostgreSQL + Row-Level Security                   │   │
-│   │         (all tables scoped by tenant_id via mandatory FK)           │   │
-│   └─────────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────────┘
+       [ Storefront Workspace ]           [ Admin Dashboard Workspace ]
+       apps/storefront (Next.js)          apps/admin (Next.js)
+                  │                                     │
+                  └───────────────┐     ┌───────────────┘
+                                  ▼     ▼
+                    [ FastAPI Gateway (services/backend-api) ]
+                    Multi-tenant, Clerk JWT, CurrencyAwareRoute
+                                  │
+          ┌───────────────────────┼───────────────────────┐
+          ▼                       ▼                       ▼
+   [ Tax & Pricing ]     [ Split Fulfillment ]   [ Segment Analytics ]
+   Penny-perfect,        Multi-package,          Isolated query blocks,
+   multi-currency logs   pessimistic row locks   async background runner
+          │                       │                       │
+          └───────────────────────┼───────────────────────┘
+                                  ▼
+                     [ PostgreSQL (Shared-Schema Multi-Tenancy) ]
+                      Every table scoped by tenant_id
+                      Row-Level Security enforced
+                      Validated at 50,000+ orders
+                      Sub-10ms P95 query latencies
+
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │                          Packages                                   │
+   │  auth │ ui │ editor │ tenant-orm │ email │ middleware │ shared-utils│
+   └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Multi-Tenant Data Isolation
@@ -169,17 +177,25 @@ This starts:
 
 ## Key Features
 
-| Feature                     | Description                                                 |
-| --------------------------- | ----------------------------------------------------------- |
-| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS               |
-| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media  |
-| **Rich Text Editor**        | TipTap-based WYSIWYG with AI completion (Ollama)            |
-| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN               |
-| **Order Management**        | State machine with valid transitions, filtering, pagination |
-| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes            |
-| **Currency Switcher**       | Storefront multi-currency with price conversion             |
-| **Rate Limiting**           | In-memory (pluggable Redis)                                 |
-| **Error Tracking**          | Sentry (optional)                                           |
+| Feature                     | Description                                                          |
+| --------------------------- | -------------------------------------------------------------------- |
+| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context        |
+| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media           |
+| **Customer Management**     | Segmentation, saved segments, Mailchimp sync, import/export CSV      |
+| **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit           |
+| **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture         |
+| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive |
+| **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard    |
+| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center       |
+| **Automated Campaigns**     | Background segment evaluation, Mailchimp tag sync, email triggers    |
+| **Email Templates**         | React Email components, Jinja2 rendering, Resend delivery            |
+| **Rich Text Editor**        | TipTap-based WYSIWYG with AI completion (Ollama)                     |
+| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                        |
+| **Order Management**        | State machine with valid transitions, filtering, pagination          |
+| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                     |
+| **Currency Switcher**       | Storefront multi-currency with price conversion                      |
+| **Rate Limiting**           | In-memory (pluggable Redis)                                          |
+| **Error Tracking**          | Sentry (optional)                                                    |
 
 ---
 
@@ -221,6 +237,20 @@ Sign in with Clerk, then manage tenants, products, orders, and settings. Tenant 
 
 Tenant-aware e-commerce storefront. Access via `http://localhost:3000/<tenant-slug>`. Multi-currency support, product galleries, and abandoned cart recovery.
 
+---
+
+## Safety & Development Guide
+
+See `docs/superpowers/DEVELOPMENT_SAFETY.md` for:
+
+- **Test database isolation** — pytest uses a separate database, dev data never touched
+- **DDL destruction blocker** — PostgreSQL event trigger blocking accidental DROP/TRUNCATE
+- **Pre-commit hook** — intercepts destructive SQL patterns before commit
+- **Seed confirmation gate** — requires `DESTROY AND RESEED` with Doppler environment guard
+- **Specs & plans** — `docs/superpowers/specs/` and `docs/superpowers/plans/` for architectural decisions
+
+---
+
 ### API ([http://localhost:8000](http://localhost:8000))
 
 FastAPI backend with auto-generated OpenAPI docs at `/docs`. All tenant-scoped requests must include a valid Clerk JWT and will be isolated via RLS.
@@ -233,8 +263,8 @@ GitHub Actions runs on every push/PR to `main` with four jobs:
 
 1. **Lint** — Ruff (Python), ESLint (admin + storefront)
 2. **TypeCheck** — `tsc --noEmit` for admin + storefront
-3. **Frontend Tests** — Vitest across all packages (166+ tests)
-4. **Backend Tests** — Pytest with PostgreSQL service container (207+ tests)
+3. **Frontend Tests** — Vitest across all packages (166+ tests across 9 workspaces)
+4. **Backend Tests** — Pytest with separate test database (207+ tests, isolated from dev data)
 
 ---
 
