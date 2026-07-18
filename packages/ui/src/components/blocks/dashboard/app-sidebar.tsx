@@ -122,6 +122,7 @@ const navCommerce: NavItem[] = [
     items: [
       { title: "Campaigns", url: "/marketing/campaigns" },
       { title: "Automation", url: "/marketing/automation" },
+      { title: "Templates", url: "/marketing/templates" },
     ],
   },
   {
