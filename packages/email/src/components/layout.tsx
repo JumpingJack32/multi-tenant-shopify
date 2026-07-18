@@ -6,9 +6,12 @@ import {
   Text,
   Tailwind,
 } from "@react-email/components";
+import "@repo/ui/globals.css";
+import type { ReactNode } from "react";
+import { cn } from "@repo/shared-utils/cn";
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {

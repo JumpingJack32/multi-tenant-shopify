@@ -6,11 +6,19 @@
     "compile": "tsx scripts/compile.tsx"
   },
   "dependencies": {
-    "@react-email/components": "^0.0.36",
+    "@react-email/components": "^1.0.12",
+    "@repo/shared-utils": "workspace:*",
+    "@repo/ui": "workspace:*",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-email": "^6.9.0"
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "^4.3.2",
+    "postcss": "^8.5.3",
+    "@types/react": "^19.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.8.0"
   }
