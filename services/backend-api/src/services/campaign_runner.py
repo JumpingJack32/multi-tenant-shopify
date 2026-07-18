@@ -9,6 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.orm.models.order import Customer
 from src.orm.models.segment import CustomerSegmentMembership, SavedSegment
+from src.services.email_service import create_email_service, render_email_template
 from src.services.mailchimp_service import MailchimpConfig, sync_contact
 from src.services.segment_service import get_customer_ids_for_filters
 
@@ -111,8 +112,17 @@ class CampaignRunner:
                     segment_id=segment.id,
                     tenant_id=segment.tenant_id,
                 ))
+
+                # Fire-and-forget promotional email after successful tag add
+                html = render_email_template("campaign-promo", customer_name=customer.first_name or "Customer")
+                svc = create_email_service()
+                asyncio.ensure_future(svc.send_raw(
+                    customer.email,
+                    f"Welcome to {segment.name}",
+                    html,
+                ))
             except Exception:
-                logger.exception("Failed to add tag for customer %s segment %s", customer_id, segment.id)
+                logger.exception("Failed to process customer %s for segment %s", customer_id, segment.id)
 
     async def _remove_customer_tag(self, db, config, customer_id: UUID, segment):
         async with self.semaphore:

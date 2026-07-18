@@ -1,9 +1,11 @@
-"""Email notification service for abandoned cart recovery."""
+"""Email notification service for abandoned cart recovery and transactional emails."""
 
 from abc import ABC, abstractmethod
 import logging
+from pathlib import Path
 
 import httpx
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.config import settings
 
@@ -31,6 +33,33 @@ CURRENCY_SYMBOLS: dict[str, str] = {
 }
 
 logger = logging.getLogger(__name__)
+
+# ── Jinja2 email template rendering ────────────────────────────────
+
+TEMPLATES_DIR = Path(__file__).parent.parent / "email-templates"
+_jinja_env: Environment | None = None
+
+
+def _get_jinja_env() -> Environment:
+    global _jinja_env
+    if _jinja_env is None:
+        _jinja_env = Environment(
+            loader=FileSystemLoader(str(TEMPLATES_DIR)),
+            autoescape=select_autoescape(["html"]),
+        )
+    return _jinja_env
+
+
+def render_email_template(name: str, **context) -> str:
+    """Render a Jinja2 email template with auto-escaping.
+
+    Templates are pre-compiled React Email components with Jinja2 tokens
+    ({{ ... }}, {% ... %}) embedded as literal text. This function evaluates
+    those tokens against the provided context dict.
+    """
+    env = _get_jinja_env()
+    template = env.get_template(f"{name}.html")
+    return template.render(**context)
 
 
 class EmailService(ABC):
@@ -145,6 +174,27 @@ class ResendEmailService(EmailService):
             )
             return False
 
+        return True
+
+    async def send_raw(self, to_email: str, subject: str, html: str) -> bool:
+        """Send an arbitrary HTML email via Resend."""
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": self.from_email,
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html,
+                },
+            )
+        if response.status_code >= 400:
+            logger.error("Resend API error %d for %s: %s", response.status_code, to_email, response.text)
+            return False
         return True
 
 
