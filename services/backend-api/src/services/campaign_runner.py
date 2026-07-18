@@ -114,6 +114,11 @@ class CampaignRunner:
                     tenant_id=segment.tenant_id,
                 ))
 
+                # Publish segment.enter event
+                from src.services.event_publisher import publish as publish_event
+                temp_staged = []
+                await publish_event("customer.segment.enter", "campaigns", {"customer_id": str(customer_id), "segment_id": str(segment.id), "segment_name": segment.name}, segment.tenant_id, db, temp_staged)
+
                 # Send promotional email after successful tag add
                 svc = create_email_service()
                 if segment.campaign_template_id:
@@ -148,5 +153,10 @@ class CampaignRunner:
                 membership = (await db.exec(stmt_del)).one_or_none()
                 if membership:
                     await db.delete(membership)
+
+                # Publish segment.exit event
+                from src.services.event_publisher import publish as publish_event
+                temp_staged = []
+                await publish_event("customer.segment.exit", "campaigns", {"customer_id": str(customer_id), "segment_id": str(segment.id), "segment_name": segment.name}, segment.tenant_id, db, temp_staged)
             except Exception:
                 logger.exception("Failed to remove tag for customer %s segment %s", customer_id, segment.id)

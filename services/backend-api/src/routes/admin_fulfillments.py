@@ -20,7 +20,10 @@ async def create_fulfillment(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
+
     svc = FulfillmentService(db)
+    staged = []
     fulfillment = await svc.create_fulfillment(
         tenant_id=tenant_id,
         order_id=order_id,
@@ -29,6 +32,7 @@ async def create_fulfillment(
         tracking_number=body.tracking_number,
     )
     await db.flush()
+    await flush_events(staged)
     await db.refresh(fulfillment)
     return fulfillment
 
@@ -56,15 +60,20 @@ async def update_fulfillment_tracking(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
+
     svc = FulfillmentService(db)
+    staged = []
     fulfillment = await svc.update_tracking(
         tenant_id=tenant_id,
         fulfillment_id=fulfillment_id,
         carrier=body.carrier,
         tracking_number=body.tracking_number,
         status=body.status,
+        staged=staged,
     )
     await db.flush()
+    await flush_events(staged)
     await db.refresh(fulfillment)
     return fulfillment
 

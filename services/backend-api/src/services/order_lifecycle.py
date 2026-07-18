@@ -27,7 +27,7 @@ class OrderLifecycleService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def confirm(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def confirm(self, order_id: UUID, tenant_id: UUID, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.CONFIRMED.value)
         if not order.inventory_deducted:
@@ -35,9 +35,12 @@ class OrderLifecycleService:
             order.inventory_deducted = True
         order.status = OrderStatus.CONFIRMED
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.confirmed", "orders", {"order_id": str(order.id), "order_number": order.order_number}, tenant_id, self.db, staged)
         return order
 
-    async def mark_paid(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def mark_paid(self, order_id: UUID, tenant_id: UUID, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.PAID.value)
         if not order.inventory_deducted:
@@ -45,23 +48,32 @@ class OrderLifecycleService:
             order.inventory_deducted = True
         order.status = OrderStatus.PAID
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.paid", "orders", {"order_id": str(order.id), "order_number": order.order_number, "total": order.total}, tenant_id, self.db, staged)
         return order
 
-    async def ship(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def ship(self, order_id: UUID, tenant_id: UUID, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.SHIPPED.value)
         order.status = OrderStatus.SHIPPED
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.shipped", "orders", {"order_id": str(order.id), "order_number": order.order_number}, tenant_id, self.db, staged)
         return order
 
-    async def deliver(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def deliver(self, order_id: UUID, tenant_id: UUID, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.DELIVERED.value)
         order.status = OrderStatus.DELIVERED
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.delivered", "orders", {"order_id": str(order.id), "order_number": order.order_number}, tenant_id, self.db, staged)
         return order
 
-    async def cancel(self, order_id: UUID, tenant_id: UUID) -> Order:
+    async def cancel(self, order_id: UUID, tenant_id: UUID, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.CANCELLED.value)
         if order.inventory_deducted:
@@ -69,13 +81,15 @@ class OrderLifecycleService:
             order.inventory_deducted = False
         order.status = OrderStatus.CANCELLED
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.cancelled", "orders", {"order_id": str(order.id), "order_number": order.order_number}, tenant_id, self.db, staged)
         return order
 
-    async def refund(self, order_id: UUID, tenant_id: UUID, issue_credit: bool = True) -> Order:
+    async def refund(self, order_id: UUID, tenant_id: UUID, issue_credit: bool = True, staged: list | None = None) -> Order:
         order = await self._get_order(order_id, tenant_id)
         validate_transition(order.status.value, OrderStatus.REFUNDED.value)
 
-        # Guard: re-check status under lock to prevent double-credit from concurrent calls
         current = await self._get_order(order_id, tenant_id)
         if current.status == OrderStatus.REFUNDED:
             return order
@@ -104,6 +118,9 @@ class OrderLifecycleService:
 
         order.status = OrderStatus.REFUNDED
         self.db.add(order)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            await publish("order.refunded", "orders", {"order_id": str(order.id), "order_number": order.order_number, "total": order.total}, tenant_id, self.db, staged)
         return order
 
     async def _get_order(self, order_id: UUID, tenant_id: UUID) -> Order:

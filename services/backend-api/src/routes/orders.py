@@ -330,12 +330,15 @@ async def confirm_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.confirm(order_id, tenant_id)
+        order = await svc.confirm(order_id, tenant_id, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:
@@ -349,12 +352,15 @@ async def pay_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.mark_paid(order_id, tenant_id)
+        order = await svc.mark_paid(order_id, tenant_id, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:
@@ -368,12 +374,15 @@ async def ship_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.ship(order_id, tenant_id)
+        order = await svc.ship(order_id, tenant_id, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:
@@ -387,12 +396,15 @@ async def deliver_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.deliver(order_id, tenant_id)
+        order = await svc.deliver(order_id, tenant_id, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:
@@ -406,12 +418,15 @@ async def cancel_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.cancel(order_id, tenant_id)
+        order = await svc.cancel(order_id, tenant_id, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:
@@ -425,12 +440,15 @@ async def refund_order(
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
 ):
+    from src.services.event_publisher import flush as flush_events
     from src.services.order_lifecycle import OrderLifecycleService
 
     svc = OrderLifecycleService(db)
+    staged = []
     try:
-        order = await svc.refund(order_id, tenant_id)
+        order = await svc.refund(order_id, tenant_id, True, staged)
         await db.flush()
+        await flush_events(staged)
         await db.refresh(order)
         return order
     except Exception as e:

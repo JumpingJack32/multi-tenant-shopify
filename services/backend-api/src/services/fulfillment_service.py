@@ -87,6 +87,7 @@ class FulfillmentService:
         carrier: str,
         tracking_number: str,
         status: str,
+        staged: list | None = None,
     ) -> Fulfillment:
         stmt = select(Fulfillment).where(Fulfillment.id == fulfillment_id, Fulfillment.tenant_id == tenant_id)
         f = (await self.db.exec(stmt)).one_or_none()
@@ -100,9 +101,13 @@ class FulfillmentService:
             f.shipped_at = datetime.now(timezone.utc)
         elif f.status == FulfillmentStatus.DELIVERED:
             f.delivered_at = datetime.now(timezone.utc)
-        self.db.add(f)
-        return f
 
+        self.db.add(f)
+        if staged is not None:
+            from src.services.event_publisher import publish
+            event_type = "fulfillment.shipped" if f.status == FulfillmentStatus.TRANSIT else "fulfillment.delivered"
+            await publish(event_type, "fulfillment", {"fulfillment_id": str(fulfillment_id), "carrier": carrier, "tracking_number": tracking_number}, tenant_id, self.db, staged)
+        return f
     async def _get_packed_quantities(self, tenant_id: UUID, order_id: UUID) -> dict:
         """Return {order_item_id: {"ordered": int, "packed": int}} for validation."""
         from sqlmodel import func
