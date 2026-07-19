@@ -415,3 +415,4 @@ On 2026-07-15 the AI agent (`opencode`) was handed a comprehensive spec for a Cu
 - Jinja2 template tokens passed through React Email via `dangerouslySetInnerHTML` or literal string props; `render()` passes `{{ }}` tokens through verbatim
 - Campaign templates stored as Jinja2 in DB with `body_json` (editor state) and `body_html` (rendered output); token sanitization regex strips nested HTML tags before save
 - Scheduled campaign worker uses `SELECT ... FOR UPDATE SKIP LOCKED` for concurrency safety across instances
+- **Alembic migrations:** Use `op.execute("ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...")` for PostgreSQL column additions. `op.add_column()` with `sa.Column()` has been observed to not persist despite recording the migration version. Raw `ALTER TABLE` SQL is reliable.
