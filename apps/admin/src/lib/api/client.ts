@@ -327,6 +327,50 @@ export const api = {
     },
   },
 
+  marketing: {
+    templates: {
+      list(options?: { tenantId?: string | null }) {
+        return request<Array<Record<string, unknown>>>(
+          "/marketing/templates",
+          options ?? {},
+        );
+      },
+      get(id: string, options?: { tenantId?: string | null }) {
+        return request<Record<string, unknown>>(
+          `/marketing/templates/${id}`,
+          options ?? {},
+        );
+      },
+      create(
+        data: Record<string, unknown>,
+        options?: { tenantId?: string | null },
+      ) {
+        return request<Record<string, unknown>>("/marketing/templates", {
+          method: "POST",
+          body: JSON.stringify(data),
+          ...options,
+        });
+      },
+      update(
+        id: string,
+        data: Record<string, unknown>,
+        options?: { tenantId?: string | null },
+      ) {
+        return request<Record<string, unknown>>(`/marketing/templates/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+          ...options,
+        });
+      },
+      delete(id: string, options?: { tenantId?: string | null }) {
+        return request<void>(`/marketing/templates/${id}`, {
+          method: "DELETE",
+          ...options,
+        });
+      },
+    },
+  },
+
   suppliers: {
     list(
       params?: Record<string, string>,
