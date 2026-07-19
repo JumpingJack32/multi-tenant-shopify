@@ -43,3 +43,25 @@ class CheckoutRequest(BaseModel):
     shipping_address: dict = Field(default_factory=dict)
     billing_address: dict = Field(default_factory=dict)
     notes: str | None = None
+
+
+class CheckoutIntentItem(BaseModel):
+    variant_id: str
+    quantity: int = Field(ge=1)
+
+
+class CheckoutIntentRequest(BaseModel):
+    items: list[CheckoutIntentItem]
+    customer_email: str
+
+
+class CheckoutIntentResponse(BaseModel):
+    clientSecret: str
+    amount: int
+    currency: str
+
+
+class CreateOrderRequest(BaseModel):
+    payment_intent_id: str
+    customer_email: str
+    shipping_address: dict = Field(default_factory=dict)

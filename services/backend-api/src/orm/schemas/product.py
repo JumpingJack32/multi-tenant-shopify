@@ -15,6 +15,7 @@ class ProductCreate(PydanticBaseModel):
     sku: Optional[str] = None
     weight: Optional[float] = None
     weight_unit: str = "kg"
+    specs: Optional[list[dict[str, str]]] = None
     is_active: bool = True
     images: list[str] = []
 
@@ -27,6 +28,7 @@ class ProductUpdate(PydanticBaseModel):
     sku: Optional[str] = None
     weight: Optional[float] = None
     weight_unit: Optional[str] = None
+    specs: Optional[list[dict[str, str]]] = None
     is_active: Optional[bool] = None
 
 
@@ -47,6 +49,7 @@ class ProductResponse(PydanticBaseModel):
     sku: Optional[str] = None
     weight: Optional[float] = None
     weight_unit: str
+    specs: Optional[list[dict[str, str]]] = None
     is_active: bool
     images: list[ProductImageResponse] = []
     created_at: datetime

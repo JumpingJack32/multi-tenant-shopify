@@ -27,6 +27,29 @@ export async function fetchProducts(
   }
 }
 
+export async function fetchProductBySlug(
+  tenantSlug: string,
+  productSlug: string,
+  signal?: AbortSignal,
+): Promise<Product | null> {
+  try {
+    const url = new URL(
+      `${API_URL}/api/v1/storefront/${tenantSlug}/products/${productSlug}`,
+    );
+    const res = await fetch(url.toString(), {
+      signal,
+      next: {
+        revalidate: 60,
+        tags: [`storefront-product-${tenantSlug}-${productSlug}`],
+      },
+    });
+    if (!res.ok) return null;
+    return res.json() as Promise<Product>;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchCollections(
   tenantSlug: string,
 ): Promise<Collection[]> {

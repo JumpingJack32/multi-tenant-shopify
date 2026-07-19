@@ -30,6 +30,7 @@ class StorefrontProductResponse(BaseModel):
     display_currency: Optional[str] = None
     images: list["StorefrontImageResponse"] = []
     variants: list[StorefrontVariantResponse] = []
+    specs: Optional[list[dict[str, str]]] = None
     category_slug: Optional[str] = None
     collection_slugs: list[str] = []
     created_at: datetime

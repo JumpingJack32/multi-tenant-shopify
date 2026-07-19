@@ -35,6 +35,11 @@ class Product(BaseModel, table=True):
     weight_unit: str = Field(default="kg", max_length=10)
     is_active: bool = Field(default=True)
     supplier_id: Optional[UUID] = Field(default=None, foreign_key="suppliers.id", nullable=True, ondelete="RESTRICT")
+    specs: Optional[list[dict[str, str]]] = Field(
+        default=None,
+        sa_type=JSON,
+        nullable=True,
+    )
 
     # Relationships
     supplier_rel: Optional["Supplier"] = Relationship()

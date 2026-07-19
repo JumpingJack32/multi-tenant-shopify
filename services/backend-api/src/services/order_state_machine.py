@@ -12,6 +12,11 @@ from dataclasses import dataclass
 from src.orm.models.order import OrderStatus
 
 VALID_TRANSITIONS: dict[str, set[str]] = {
+    # Checkout flow
+    OrderStatus.PENDING_PAYMENT.value: {OrderStatus.PAYMENT_PROCESSING.value, OrderStatus.PAID.value, OrderStatus.PAYMENT_FAILED.value},
+    OrderStatus.PAYMENT_PROCESSING.value: {OrderStatus.PAID.value, OrderStatus.PAYMENT_FAILED.value},
+    OrderStatus.PAYMENT_FAILED.value: {OrderStatus.PENDING_PAYMENT.value},
+    # Fulfillment flow (existing)
     OrderStatus.PENDING.value: {OrderStatus.CONFIRMED.value, OrderStatus.PAID.value, OrderStatus.CANCELLED.value},
     OrderStatus.CONFIRMED.value: {OrderStatus.PAID.value, OrderStatus.PROCESSING.value, OrderStatus.SHIPPED.value, OrderStatus.CANCELLED.value},
     OrderStatus.PAID.value: {OrderStatus.PROCESSING.value, OrderStatus.SHIPPED.value, OrderStatus.CANCELLED.value, OrderStatus.REFUNDED.value},

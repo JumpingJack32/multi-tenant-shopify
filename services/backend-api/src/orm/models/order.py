@@ -11,6 +11,9 @@ from src.orm.base import BaseModel
 
 
 class OrderStatus(str, Enum):
+    PENDING_PAYMENT = "pending_payment"
+    PAYMENT_PROCESSING = "payment_processing"
+    PAYMENT_FAILED = "payment_failed"
     PENDING = "pending"
     CONFIRMED = "confirmed"
     PAID = "paid"
@@ -23,6 +26,7 @@ class OrderStatus(str, Enum):
 
 class PaymentStatus(str, Enum):
     PENDING = "pending"
+    PROCESSING = "processing"
     PAID = "paid"
     FAILED = "failed"
     REFUNDED = "refunded"
@@ -38,11 +42,13 @@ class Order(BaseModel, table=True):
     
     customer_id: Optional[UUID] = Field(default=None, foreign_key="customers.id", ondelete="SET NULL")
     # customer_id: UUID = Field(foreign_key="customers.id", ondelete="SET NULL")
+    customer_email: Optional[str] = Field(default=None, index=True, max_length=255)
     order_number: str = Field(max_length=50, unique=True)
     status: OrderStatus = Field(default=OrderStatus.PENDING, sa_column=Column(SAEnum(OrderStatus)))
     payment_status: PaymentStatus = Field(default=PaymentStatus.PENDING, sa_column=Column(SAEnum(PaymentStatus)))
     payment_method: Optional[str] = Field(default=None, max_length=50)
-    payment_intent_id: Optional[str] = Field(default=None, max_length=255)
+    payment_intent_id: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
+    stripe_client_secret: Optional[str] = Field(default=None, max_length=255)
     subtotal: int = Field(default=0, ge=0)
     tax: int = Field(default=0, ge=0)
     shipping: int = Field(default=0, ge=0)

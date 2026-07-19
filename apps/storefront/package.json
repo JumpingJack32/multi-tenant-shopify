@@ -20,6 +20,8 @@
     "@repo/tenant-orm": "workspace:*",
     "@repo/ui": "workspace:*",
     "@sentry/nextjs": "^10.65.0",
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.10.0",
     "@supabase/supabase-js": "^2.49.0",
     "@tanstack/react-query": "^5.60.0",
     "next": "^16.0.0",

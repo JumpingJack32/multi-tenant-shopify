@@ -95,7 +95,6 @@ async def list_orders(
         data=[
             OrderResponse(
                 **order.model_dump(),
-                customer_email=order.customer.email if order.customer else None,
                 items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
             )
             for order in orders
@@ -190,7 +189,6 @@ async def get_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     return OrderResponse(
         **order.model_dump(),
-        customer_email=order.customer.email if order.customer else None,
         items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
     )
 
@@ -306,7 +304,6 @@ async def update_order(
     await db.refresh(order, ["items"])
     return OrderResponse(
         **order.model_dump(),
-        customer_email=order.customer.email if order.customer else None,
         items=[OrderItemResponse(**item.model_dump()) for item in (order.items or [])],
     )
 

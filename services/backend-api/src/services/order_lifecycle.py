@@ -123,6 +123,39 @@ class OrderLifecycleService:
             await publish("order.refunded", "orders", {"order_id": str(order.id), "order_number": order.order_number, "total": order.total}, tenant_id, self.db, staged)
         return order
 
+    async def finalize_successful_order(self, payment_intent_id: str) -> Order | None:
+        """Idempotent order finalization called by both client and webhook.
+
+        Uses SELECT FOR UPDATE to lock the row. If already PAID, returns
+        the existing order (noop). Otherwise transitions PENDING_PAYMENT → PAID
+        with atomic inventory deduction.
+        """
+        from sqlalchemy import text
+
+        result = await self.db.exec(
+            text("SELECT id, tenant_id FROM orders WHERE payment_intent_id = :pid FOR UPDATE"),
+            {"pid": payment_intent_id},
+        )
+        row = result.one_or_none()
+        if not row:
+            return None
+
+        order = await self._get_order(row.id, row.tenant_id)
+        if order.status == OrderStatus.PAID:
+            return order
+
+        if order.status != OrderStatus.PENDING_PAYMENT:
+            return order
+
+        validate_transition(order.status.value, OrderStatus.PAID.value)
+        if not order.inventory_deducted:
+            await self._deduct_inventory(order, row.tenant_id)
+            order.inventory_deducted = True
+        order.status = OrderStatus.PAID
+        order.payment_status = order.payment_status  # keep existing
+        self.db.add(order)
+        return order
+
     async def _get_order(self, order_id: UUID, tenant_id: UUID) -> Order:
         from sqlalchemy.orm import selectinload
 

@@ -5,7 +5,7 @@ import type { Product } from "@repo/tenant-orm/types";
 import { MobileStickyCta } from "@/components/storefront/mobile-sticky-cta";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { ProductInfo } from "@/components/storefront/product-info";
-import { fetchProducts } from "@/lib/api";
+import { fetchProductBySlug } from "@/lib/api";
 
 export default async function ProductPage({
   params,
@@ -13,15 +13,7 @@ export default async function ProductPage({
   params: Promise<{ tenant: string; category: string; slug: string }>;
 }) {
   const { tenant, category, slug } = await params;
-  let products: Product[] = [];
-
-  try {
-    products = await fetchProducts(tenant);
-  } catch {
-    products = [];
-  }
-
-  const product = products.find((p) => p.slug === slug);
+  const product = await fetchProductBySlug(tenant, slug);
 
   if (!product) {
     notFound();

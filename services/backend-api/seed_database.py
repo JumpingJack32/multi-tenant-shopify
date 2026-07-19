@@ -307,15 +307,22 @@ async def seed_catalog(
             product_slug = name.lower().replace(" ", "-")
             cat_id = cat_ids.get(cat_slug)
 
+            specs_json = json.dumps([
+                {"label": "MATERIAL", "value": "Cordura® Ballistic Nylon"},
+                {"label": "CLOSURE", "value": "Magnetic Fidlock® Buckles"},
+                {"label": "LAPTOP FIT", "value": "16\" Integrated Chamber"},
+            ])
+
             await session.execute(
                 text("""
-                    INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, supplier_id, created_at, updated_at)
-                    VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', :sku, 'kg', true, :cat_id, :sup_id, NOW(), NOW())
+                    INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, supplier_id, specs, created_at, updated_at)
+                    VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', :sku, 'kg', true, :cat_id, :sup_id, :specs::jsonb, NOW(), NOW())
                 """),
                 {
                     "id": pid, "tid": tenant_id, "name": name,
                     "slug": product_slug, "desc": desc,
                     "sku": sku, "cat_id": cat_id, "sup_id": default_supplier["id"],
+                    "specs": specs_json,
                 },
             )
 

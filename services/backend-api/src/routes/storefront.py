@@ -15,6 +15,7 @@ from src.core.throttle import throttle_checkout, throttle_storefront
 from src.dependencies import get_db
 from src.orm.models.cart import Cart, CartItem, CartStatus
 from src.orm.models.collection import Collection, ProductCollection
+from src.orm.models.order import OrderStatus, PaymentStatus
 from src.orm.models.product import Product, Variant
 from src.orm.models.tenant import Tenant
 from src.orm.schemas.cart import (
@@ -22,7 +23,10 @@ from src.orm.schemas.cart import (
     CartItemResponse,
     CartResponse,
     CartUpdateItemRequest,
+    CheckoutIntentRequest,
+    CheckoutIntentResponse,
     CheckoutRequest,
+    CreateOrderRequest,
 )
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.order import OrderResponse
@@ -94,6 +98,7 @@ def _build_storefront_product(
         slug=product.slug,
         name=product.name,
         description=product.description,
+        specs=product.specs,
         status=product.status.value if hasattr(product.status, "value") else str(product.status),
         min_price=min(prices, default=0),
         max_price=max(prices, default=0),
@@ -639,6 +644,189 @@ async def checkout(
     await db.refresh(order, ["items"])
 
     return order
+
+
+# ─── Stripe Checkout ──────────────────────────────────────────────────
+
+
+@router.post("/{tenant_slug}/checkout/intent", response_model=CheckoutIntentResponse)
+async def create_checkout_intent(
+    tenant_slug: str,
+    request: Request,
+    body: CheckoutIntentRequest,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_checkout),
+):
+    """Create Stripe PaymentIntent with server-side price verification."""
+    import stripe
+
+    from src.config import settings
+    from src.orm.models.order import Order, OrderItem as OrderItemModel
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    # Verify prices server-side
+    variant_ids = [UUID(item.variant_id) for item in body.items]
+    stmt = select(Variant).where(Variant.id.in_(variant_ids), Variant.tenant_id == tenant.tenant_id)  # type: ignore[arg-type]
+    variants = {v.id: v for v in (await db.exec(stmt)).all()}
+
+    total = 0
+    order_items_data = []
+    for item in body.items:
+        vid = UUID(item.variant_id)
+        v = variants.get(vid)
+        if not v:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Variant {vid} not found")
+        if v.inventory_quantity < item.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Insufficient stock for variant {v.sku}",
+            )
+        item_total = v.price * item.quantity
+        total += item_total
+        order_items_data.append({"variant": v, "quantity": item.quantity})
+
+    stripe.api_key = settings.stripe_secret_key
+    intent = stripe.PaymentIntent.create(
+        amount=total,
+        currency=tenant.settings.get("currency", "gbp").lower(),
+        metadata={"tenant": tenant_slug},
+    )
+
+    order = Order(
+        tenant_id=tenant.tenant_id,
+        customer_email=body.customer_email,
+        order_number=f"SF-{uuid4().hex[:12].upper()}",
+        status=OrderStatus.PENDING_PAYMENT,
+        payment_status=PaymentStatus.PENDING,
+        payment_intent_id=intent.id,
+        stripe_client_secret=intent.client_secret,
+        total=total,
+        currency=tenant.settings.get("currency", "GBP"),
+        base_currency=getattr(request.state, "base_currency", "GBP"),
+        inventory_deducted=False,
+    )
+    db.add(order)
+    await db.flush()
+
+    for od in order_items_data:
+        v = od["variant"]
+        qty = od["quantity"]
+        oi = OrderItemModel(
+            order_id=order.id,
+            tenant_id=tenant.tenant_id,
+            variant_id=v.id,
+            product_id=v.product_id,
+            product_name=v.product.name if v.product else "",
+            sku=v.sku,
+            quantity=qty,
+            unit_price=v.price,
+            total_price=v.price * qty,
+        )
+        db.add(oi)
+
+    await db.commit()
+    await db.refresh(order)
+
+    return CheckoutIntentResponse(
+        clientSecret=intent.client_secret,
+        amount=total,
+        currency=order.currency,
+    )
+
+
+@router.post("/{tenant_slug}/orders", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
+async def create_storefront_order(
+    tenant_slug: str,
+    request: Request,
+    body: CreateOrderRequest,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_checkout),
+):
+    """Finalize order after successful Stripe payment."""
+    import stripe
+
+    from src.config import settings
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    # Verify payment with Stripe
+    stripe.api_key = settings.stripe_secret_key
+    try:
+        pi = stripe.PaymentIntent.retrieve(body.payment_intent_id)
+    except stripe.error.StripeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payment intent")
+
+    if pi.status != "succeeded":
+        raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="Payment not completed")
+
+    # Finalize order idempotently
+    svc = OrderLifecycleService(db)
+    order = await svc.finalize_successful_order(body.payment_intent_id)
+
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    # Update shipping info
+    order.shipping_address = body.shipping_address
+    order.customer_email = body.customer_email
+    db.add(order)
+    await db.commit()
+    await db.refresh(order, ["items"])
+
+    return order
+
+
+@router.post("/webhooks/stripe")
+async def stripe_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Handle Stripe webhook events asynchronously."""
+    import stripe
+
+    from src.config import settings
+    from src.services.order_lifecycle import OrderLifecycleService
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    if not sig_header:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing stripe-signature header")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
+    except (ValueError, stripe.error.SignatureVerificationError):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid webhook signature")
+
+    if event["type"] == "payment_intent.succeeded":
+        pi = event["data"]["object"]
+        svc = OrderLifecycleService(db)
+        await svc.finalize_successful_order(pi["id"])
+        await db.commit()
+
+    elif event["type"] == "payment_intent.payment_failed":
+        pi = event["data"]["object"]
+        stmt = select(Order).where(Order.payment_intent_id == pi["id"])
+        order = (await db.exec(stmt)).one_or_none()
+        if order and order.status != OrderStatus.PAID:
+            order.status = OrderStatus.PAYMENT_FAILED
+            db.add(order)
+            await db.commit()
+
+    return {"ok": True}
 
 
 @router.get("/{tenant_slug}/orders/{order_id}", response_model=OrderResponse)
