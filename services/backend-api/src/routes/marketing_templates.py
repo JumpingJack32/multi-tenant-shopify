@@ -66,7 +66,6 @@ async def create_template(
         subject=body.get("subject", ""),
         body_html=html,
         body_json=body.get("body_json"),
-        mailchimp_tag=body.get("mailchimp_tag"),
     )
     db.add(tmpl)
     await db.flush()
@@ -90,7 +89,6 @@ async def get_template(
         "subject": tmpl.subject,
         "body_html": tmpl.body_html,
         "body_json": tmpl.body_json,
-        "mailchimp_tag": tmpl.mailchimp_tag,
         "is_active": tmpl.is_active,
         "send_at": tmpl.send_at.isoformat() if tmpl.send_at else None,
         "send_recurrence": tmpl.send_recurrence,
@@ -120,8 +118,6 @@ async def update_template(
         tmpl.subject = body["subject"]
     if "body_json" in body:
         tmpl.body_json = body["body_json"]
-    if "mailchimp_tag" in body:
-        tmpl.mailchimp_tag = body["mailchimp_tag"]
     if "is_active" in body:
         tmpl.is_active = body["is_active"]
     if "send_at" in body:

@@ -38,7 +38,6 @@ async def create_segment(
         name=body.name,
         filters=body.filters,
         customer_count=count,
-        mailchimp_tag=body.mailchimp_tag,
         is_automated=body.is_automated,
     )
     db.add(segment)
@@ -84,7 +83,6 @@ async def toggle_segment_automation(
         raise HTTPException(status_code=404, detail="Segment not found")
 
     segment.is_automated = body.is_automated
-    segment.mailchimp_tag = body.mailchimp_tag
     segment.campaign_template_id = body.campaign_template_id
     db.add(segment)
     await db.flush()

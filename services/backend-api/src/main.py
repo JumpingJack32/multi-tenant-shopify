@@ -140,13 +140,12 @@ async def lifespan(app: FastAPI):
     # Start abandoned cart background worker
     _abandoned_cart_task = asyncio.create_task(_abandoned_cart_worker())
 
-    # Start campaign runner (only if Mailchimp API key + list ID are configured)
-    if settings.mailchimp_api_key and settings.mailchimp_list_id:
-        from src.services.campaign_runner import CampaignRunner
+    # Start campaign runner for automated segment processing
+    from src.services.campaign_runner import CampaignRunner
 
-        _campaign_runner_task = asyncio.create_task(
-            CampaignRunner(async_engine).start()
-        )
+    _campaign_runner_task = asyncio.create_task(
+        CampaignRunner(async_engine).start()
+    )
 
     # Start event bus worker
     from src.services.event_bus import _resolve_delivered_loop, EventBus

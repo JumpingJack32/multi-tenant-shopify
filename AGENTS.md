@@ -416,3 +416,4 @@ On 2026-07-15 the AI agent (`opencode`) was handed a comprehensive spec for a Cu
 - Campaign templates stored as Jinja2 in DB with `body_json` (editor state) and `body_html` (rendered output); token sanitization regex strips nested HTML tags before save
 - Scheduled campaign worker uses `SELECT ... FOR UPDATE SKIP LOCKED` for concurrency safety across instances
 - **Alembic migrations:** Use `op.execute("ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...")` for PostgreSQL column additions. `op.add_column()` with `sa.Column()` has been observed to not persist despite recording the migration version. Raw `ALTER TABLE` SQL is reliable.
+- **Email delivery only via Resend — no Mailchimp.** Mailchimp was replaced with Resend for transactional email (abandoned cart, order confirmation). All Mailchimp code (sync endpoints, mailchimp_service.py, mailchimp_tag fields) was removed in 2026-07-19. Do not reintroduce it.

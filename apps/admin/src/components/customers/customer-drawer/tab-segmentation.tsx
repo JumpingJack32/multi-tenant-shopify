@@ -27,9 +27,6 @@ interface TabSegmentationProps {
 export function TabSegmentation({ data, tenantId }: TabSegmentationProps) {
   const router = useRouter();
   const [newTagKey, setNewTagKey] = useState("");
-  const [syncLoading, setSyncLoading] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
-
   const tags = data?.tags ?? {};
   const activeTags = Object.entries(tags)
     .filter(([, v]) => v)
@@ -42,20 +39,6 @@ export function TabSegmentation({ data, tenantId }: TabSegmentationProps) {
   }, [newTagKey, data]);
 
   const handleRemoveTag = useCallback((_key: string) => {}, []);
-
-  const handleMailchimpSync = useCallback(async () => {
-    if (!data) return;
-    setSyncLoading(true);
-    setSyncMsg(null);
-    try {
-      await api.customers.syncMailchimp(data.id, { tenantId });
-      setSyncMsg("Sync initiated — status will update shortly.");
-    } catch {
-      setSyncMsg("Sync failed. Mailchimp may not be configured.");
-    } finally {
-      setSyncLoading(false);
-    }
-  }, [data, tenantId]);
 
   const handleSearchSimilar = useCallback(() => {
     const tagParam = activeTags.length > 0 ? activeTags[0] : "";
@@ -116,38 +99,6 @@ export function TabSegmentation({ data, tenantId }: TabSegmentationProps) {
       <Button variant="outline" size="sm" onClick={handleSearchSimilar}>
         <SearchIcon /> Search Similar Profiles
       </Button>
-
-      <Separator />
-
-      <Card className="p-4 space-y-3">
-        <h4 className="text-sm font-medium flex items-center gap-2">
-          <RefreshCwIcon className="h-4 w-4" />
-          Mailchimp Sync
-        </h4>
-        <p className="text-sm text-muted-foreground">
-          {data.last_synced_at
-            ? `Last synced: ${new Date(data.last_synced_at).toLocaleString()}`
-            : "Not yet synced with Mailchimp"}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleMailchimpSync}
-            disabled={syncLoading}
-          >
-            {syncLoading ? (
-              <LoaderIcon className="h-3 w-3 animate-spin" />
-            ) : (
-              <RefreshCwIcon className="h-3 w-3" />
-            )}
-            Sync Now
-          </Button>
-          {syncMsg && (
-            <span className="text-xs text-muted-foreground">{syncMsg}</span>
-          )}
-        </div>
-      </Card>
 
       <Separator />
 

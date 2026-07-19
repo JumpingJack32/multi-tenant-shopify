@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import io
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func as sa_func, or_
 from sqlalchemy.orm import selectinload
@@ -258,61 +258,6 @@ async def get_customer_metrics(
         total_store_credit=total_credit,
         avg_spent=avg_spent,
     )
-
-
-# ── Mailchimp Sync ────────────────────────────────────────────────────
-
-
-async def _mailchimp_sync_task(customer_id: UUID, tenant_id: UUID, db_factory):
-    """Background task to push a customer's subscription status to Mailchimp."""
-    from src.config import settings
-    from src.orm.models.order import Customer
-    from src.services.mailchimp_service import MailchimpConfig, sync_contact
-
-    if not settings.mailchimp_api_key or not settings.mailchimp_list_id:
-        return
-
-    async with db_factory() as session:
-        stmt = select(Customer).where(Customer.id == customer_id, Customer.tenant_id == tenant_id)
-        customer = (await session.exec(stmt)).one_or_none()
-        if not customer:
-            return
-
-        config = MailchimpConfig(
-            api_key=settings.mailchimp_api_key,
-            list_id=settings.mailchimp_list_id,
-        )
-        success = await sync_contact(
-            config,
-            email=customer.email,
-            status=customer.email_subscription_status,
-            first_name=customer.first_name,
-            last_name=customer.last_name,
-        )
-
-        if success:
-            customer.last_synced_at = datetime.now(timezone.utc)
-            session.add(customer)
-            await session.flush()
-
-
-@router.post("/customers/{customer_id}/sync-mailchimp", status_code=202)
-async def sync_customer_to_mailchimp(
-    customer_id: UUID,
-    background_tasks: BackgroundTasks,
-    db=Depends(get_db),
-    tenant_id: UUID = Depends(get_current_tenant_id),
-):
-    """Trigger a background Mailchimp sync for a customer's subscription status."""
-    stmt = select(Customer).where(Customer.id == customer_id, Customer.tenant_id == tenant_id)
-    customer = (await db.exec(stmt)).one_or_none()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
-
-    from src.dependencies import get_db as get_db_factory
-    background_tasks.add_task(_mailchimp_sync_task, customer_id, tenant_id, get_db_factory)
-
-    return {"status": "syncing", "email": customer.email}
 
 
 # ── Timeline ──────────────────────────────────────────────────────────

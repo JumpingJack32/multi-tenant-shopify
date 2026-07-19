@@ -127,32 +127,6 @@ async def shopify_webhook(
     return {"status": "received"}
 
 
-# ── Mailchimp Webhook (Inbound) ───────────────────────────────────────
-
-
-@router.post("/mailchimp")
-async def mailchimp_webhook(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-):
-    """Receive inbound subscription updates from Mailchimp."""
-    if not settings.mailchimp_api_key:
-        raise HTTPException(status_code=501, detail="Mailchimp not configured")
-
-    form = await request.form()
-    email = form.get("data[email]") or form.get("email")
-    status = form.get("data[new_status]") or form.get("status")
-
-    if email and status:
-        stmt = select(Customer).where(Customer.email == email)
-        customer = (await db.exec(stmt)).one_or_none()
-        if customer:
-            customer.email_subscription_status = status
-            customer.last_synced_at = datetime.now(timezone.utc)
-            db.add(customer)
-            await db.flush()
-
-    return {"status": "received"}
 
 
 

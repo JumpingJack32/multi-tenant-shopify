@@ -252,12 +252,6 @@ export const api = {
         ...(tid ? { tenantId: tid } : {}),
       });
     },
-    syncMailchimp(id: string, options?: { tenantId?: string | null }) {
-      return request<{ status: string; email: string }>(
-        `/customers/${id}/sync-mailchimp`,
-        { method: "POST", ...options },
-      );
-    },
   },
 
   collections: {

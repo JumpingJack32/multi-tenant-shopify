@@ -13,7 +13,6 @@ class SavedSegment(BaseModel, table=True):
     name: str = Field(max_length=255)
     filters: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False, default=dict))
     customer_count: int = Field(default=0)
-    mailchimp_tag: str | None = Field(default=None, max_length=100)
     is_automated: bool = Field(default=False)
     campaign_template_id: UUID | None = Field(default=None, foreign_key="campaign_templates.id")
 

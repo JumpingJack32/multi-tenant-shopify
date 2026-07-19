@@ -11,7 +11,6 @@ from src.orm.models.campaign import CampaignTemplate
 from src.orm.models.order import Customer
 from src.orm.models.segment import CustomerSegmentMembership, SavedSegment
 from src.services.email_service import create_email_service, render_email_template, render_jinja_string
-from src.services.mailchimp_service import MailchimpConfig, sync_contact
 from src.services.segment_service import get_customer_ids_for_filters
 
 logger = logging.getLogger(__name__)
@@ -55,17 +54,11 @@ class CampaignRunner:
         async with AsyncSession(self.engine) as db:
             stmt = select(SavedSegment).where(
                 SavedSegment.is_automated == True,  # noqa: E712
-                SavedSegment.mailchimp_tag != None,  # noqa: E711
             )
             result = await db.exec(stmt)
             return result.all()
 
     async def _process_segment(self, db, segment):
-        from src.config import settings
-
-        if not settings.mailchimp_api_key or not settings.mailchimp_list_id:
-            return
-
         current = await get_customer_ids_for_filters(db, segment.tenant_id, segment.filters)
         previous = await self._get_previous_members(db, segment.id, segment.tenant_id)
 
@@ -75,20 +68,12 @@ class CampaignRunner:
         if not to_add and not to_remove:
             return
 
-        logger.info(
-            "Segment %s: %d enters, %d exits",
-            segment.name, len(to_add), len(to_remove),
-        )
-
-        config = MailchimpConfig(
-            api_key=settings.mailchimp_api_key,
-            list_id=settings.mailchimp_list_id,
-        )
+        logger.info("Segment %s: %d enters, %d exits", segment.name, len(to_add), len(to_remove))
 
         for cid in to_add:
-            await self._add_customer_tag(db, config, cid, segment)
+            await self._add_customer_tag(db, cid, segment)
         for cid in to_remove:
-            await self._remove_customer_tag(db, config, cid, segment)
+            await self._remove_customer_tag(db, cid, segment)
 
     async def _get_previous_members(self, db, segment_id: UUID, tenant_id: UUID) -> set[UUID]:
         stmt = select(CustomerSegmentMembership.customer_id).where(
@@ -98,7 +83,7 @@ class CampaignRunner:
         result = await db.exec(stmt)
         return set(result.all())
 
-    async def _add_customer_tag(self, db, config, customer_id: UUID, segment):
+    async def _add_customer_tag(self, db, customer_id: UUID, segment):
         async with self.semaphore:
             try:
                 stmt = select(Customer).where(Customer.id == customer_id)
@@ -106,20 +91,16 @@ class CampaignRunner:
                 if not customer or not customer.email:
                     return
 
-                await sync_contact(config, customer.email, "subscribed")
-
                 db.add(CustomerSegmentMembership(
                     customer_id=customer_id,
                     segment_id=segment.id,
                     tenant_id=segment.tenant_id,
                 ))
 
-                # Publish segment.enter event
                 from src.services.event_publisher import publish as publish_event
                 temp_staged = []
                 await publish_event("customer.segment.enter", "campaigns", {"customer_id": str(customer_id), "segment_id": str(segment.id), "segment_name": segment.name}, segment.tenant_id, db, temp_staged)
 
-                # Send promotional email after successful tag add
                 svc = create_email_service()
                 if segment.campaign_template_id:
                     tmpl = await db.get(CampaignTemplate, segment.campaign_template_id)
@@ -136,15 +117,13 @@ class CampaignRunner:
             except Exception:
                 logger.exception("Failed to process customer %s for segment %s", customer_id, segment.id)
 
-    async def _remove_customer_tag(self, db, config, customer_id: UUID, segment):
+    async def _remove_customer_tag(self, db, customer_id: UUID, segment):
         async with self.semaphore:
             try:
                 stmt = select(Customer).where(Customer.id == customer_id)
                 customer = (await db.exec(stmt)).one_or_none()
                 if not customer or not customer.email:
                     return
-
-                await sync_contact(config, customer.email, "unsubscribed")
 
                 stmt_del = select(CustomerSegmentMembership).where(
                     CustomerSegmentMembership.customer_id == customer_id,
@@ -154,7 +133,6 @@ class CampaignRunner:
                 if membership:
                     await db.delete(membership)
 
-                # Publish segment.exit event
                 from src.services.event_publisher import publish as publish_event
                 temp_staged = []
                 await publish_event("customer.segment.exit", "campaigns", {"customer_id": str(customer_id), "segment_id": str(segment.id), "segment_name": segment.name}, segment.tenant_id, db, temp_staged)
