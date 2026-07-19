@@ -1,6 +1,6 @@
 # Customer Management — Specification & Implementation Plan
 
-> **Status:** Complete (Phases 1–4 delivered)  
+> **Status:** Phases 1–2 Complete — Phases 3–5 Planned  
 > **Based on:** Wireframe + JSON Blueprint (2026-07-15)
 
 ---
