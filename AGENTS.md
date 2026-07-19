@@ -279,6 +279,7 @@
 - Price in cents, display as `£ ${(n / 100).toFixed(2)}` (space between symbol and amount)
 - All monetary defaults changed from `"USD"` to `"GBP"` across backend models, schemas, frontend utilities, and seed data (2026-07-16)
 - Server components for data fetching; client components for interactivity
+- **UI components:** Always import from `@repo/ui/components/ui/*` (Button, Card, Input, etc.). **UI primitives:** Always import from `@repo/ui/base-ui` (Dialog, Popover, Tooltip, Menu, Select, Checkbox, Switch, etc.). Never import from `@radix-ui/react-*` or `@base-ui/react` directly — Use `render` prop pattern, never `asChild`.
 - `@repo/ui/components/motion` re-exports `motion` + `AnimatePresence` from `motion/react`
 - `@/` import alias works for vitest tests (configured in storefront's vitest.config.ts project)
 - ProductCard uses ghost card aesthetic (no border/shadow/background) with `bg-black`

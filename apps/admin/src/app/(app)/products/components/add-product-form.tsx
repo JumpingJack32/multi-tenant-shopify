@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { TenantEditor } from "@repo/editor";
 import type { Product } from "@repo/tenant-orm/types";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
+import { Textarea } from "@repo/ui/components/ui/textarea";
 
 import {
   MediaDropzone,
@@ -197,9 +197,11 @@ export default function AddProductForm({
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <TenantEditor
-              initialContent={description}
-              onChange={setDescription}
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="min-h-[200px]"
+              placeholder="Product description..."
             />
           </div>
         </div>

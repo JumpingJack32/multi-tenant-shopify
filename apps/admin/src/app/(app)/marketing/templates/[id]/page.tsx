@@ -1,12 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
-import { Textarea } from "@repo/ui/components/ui/textarea";
 
 import { useTenantContext } from "@/contexts/tenant-context";
 import {
@@ -15,11 +15,25 @@ import {
   useUpdateCampaignTemplate,
 } from "@/features/marketing/hooks/use-campaign-templates";
 
-const TOKENS = [
-  "{{ customerName }}",
-  "{{ segmentName }}",
-  "{{ storeUrl }}",
-  "{{ offerHtml | safe }}",
+const TenantEditor = dynamic(
+  () => import("@repo/editor").then((mod) => mod.TenantEditor),
+  { ssr: false },
+);
+
+const MERGE_TAGS = [
+  { name: "Customer Name", value: "{{ customerName }}", sample: "John Doe" },
+  { name: "Segment Name", value: "{{ segmentName }}", sample: "VIP Customers" },
+  { name: "Store URL", value: "{{ storeUrl }}", sample: "https://store.com" },
+  {
+    name: "Offer HTML",
+    value: "{{ offerHtml | safe }}",
+    sample: "<strong>50% off</strong>",
+  },
+  {
+    name: "Unsubscribe",
+    value: "{{ unsubscribeUrl }}",
+    sample: "https://store.com/unsub",
+  },
 ];
 
 export default function TemplateEditorPage() {
@@ -34,22 +48,29 @@ export default function TemplateEditorPage() {
 
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
-  const [html, setHtml] = useState("<p>Start designing your email...</p>");
+  const [html, setHtml] = useState("");
+  const [design, setDesign] = useState<object | null>(null);
 
   useEffect(() => {
     if (data && !isNew) {
       setName((data as any).name || "");
       setSubject((data as any).subject || "");
       setHtml((data as any).body_html || "");
+      if ((data as any).body_json) {
+        try {
+          setDesign(JSON.parse((data as any).body_json));
+        } catch {
+          setDesign(null);
+        }
+      }
     }
   }, [data, isNew]);
 
-  const insertToken = (token: string) => {
-    setHtml((prev) => prev + token);
-  };
-
   const handleSave = async () => {
-    const payload = { name, subject, body_html: html };
+    const payload: Record<string, unknown> = { name, subject, body_html: html };
+    if (design) {
+      payload.body_json = JSON.stringify(design);
+    }
     if (isNew) {
       await createMutation.mutateAsync(payload);
     } else {
@@ -117,29 +138,15 @@ export default function TemplateEditorPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 gap-4 p-4">
-        <div className="flex-1 flex flex-col">
-          <Label className="mb-2">HTML Body (Jinja2)</Label>
-          <Textarea
-            value={html}
-            onChange={(e) => setHtml(e.target.value)}
-            className="flex-1 min-h-[400px] font-mono text-sm"
-          />
-        </div>
-        <div className="w-48 space-y-2">
-          <h3 className="text-sm font-medium">Tokens</h3>
-          {TOKENS.map((token) => (
-            <Button
-              key={token}
-              variant="outline"
-              size="sm"
-              className="w-full justify-start font-mono text-xs"
-              onClick={() => insertToken(token)}
-            >
-              {token}
-            </Button>
-          ))}
-        </div>
+      <div className="flex-1 p-4">
+        <TenantEditor
+          design={design}
+          mergeTags={MERGE_TAGS}
+          onSave={(newHtml, newDesign) => {
+            setHtml(newHtml);
+            setDesign(newDesign);
+          }}
+        />
       </div>
     </div>
   );

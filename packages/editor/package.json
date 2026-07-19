@@ -5,15 +5,7 @@
     ".": "./src/index.tsx"
   },
   "dependencies": {
-    "@radix-ui/react-popover": "^1.1.19",
-    "@tiptap/core": "^2.11.2",
-    "@tiptap/extension-link": "^2.11.2",
-    "@tiptap/extension-placeholder": "^2.11.2",
-    "@tiptap/extension-underline": "^2.11.2",
-    "@tiptap/pm": "^2.11.2",
-    "@tiptap/react": "^2.11.2",
-    "@tiptap/starter-kit": "^2.11.2",
-    "lucide-react": "^1.16.0"
+    "react-email-editor": "^2.0.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
