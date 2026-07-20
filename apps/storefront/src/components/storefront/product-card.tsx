@@ -71,7 +71,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
       <div className="mt-2 space-y-1">
         <h3 className="line-clamp-2 font-semibold">{product.name}</h3>
         {product.price != null && (
-          <p className="font-mono">£{product.price.toFixed(2)}</p>
+          <p className="font-mono">£ {product.price.toFixed(2)}</p>
         )}
       </div>
     </div>

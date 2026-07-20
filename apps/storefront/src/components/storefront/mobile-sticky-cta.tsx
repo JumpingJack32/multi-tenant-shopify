@@ -43,7 +43,7 @@ export function MobileStickyCta({ product }: MobileStickyCtaProps) {
         <div className="min-h-14 px-4 flex items-center justify-between gap-4 pb-[env(safe-area-inset-bottom)]">
           {product.price != null && (
             <span className="text-sm font-text text-foreground whitespace-nowrap">
-              £{product.price.toFixed(2)}
+              £ {product.price.toFixed(2)}
             </span>
           )}
           <div className="w-auto shrink-0">

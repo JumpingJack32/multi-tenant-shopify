@@ -45,7 +45,7 @@ beforeEach(() => {
 describe("MobileStickyCta", () => {
   it("renders formatted price", () => {
     render(<MobileStickyCta product={baseProduct} />);
-    expect(screen.getByText("£49.99")).toBeInTheDocument();
+    expect(screen.getByText("£ 49.99")).toBeInTheDocument();
   });
 
   it("renders AddToCartButton", () => {

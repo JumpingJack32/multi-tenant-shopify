@@ -219,7 +219,7 @@ export default function CheckoutForm({ tenantSlug }: CheckoutFormProps) {
                     {item.name}
                   </span>
                   <span className="font-mono">
-                    £{((item.price ?? 0) / 100).toFixed(2)}
+                    £ {((item.price ?? 0) / 100).toFixed(2)}
                   </span>
                 </div>
               ))}

@@ -41,7 +41,7 @@ describe("ProductInfo", () => {
   it("renders product name and price", () => {
     render(<ProductInfo product={baseProduct} />);
     expect(screen.getByText("Test Product")).toBeDefined();
-    expect(screen.getByText("£49.99")).toBeDefined();
+    expect(screen.getByText("£ 49.99")).toBeDefined();
   });
 
   it("renders specs when provided", () => {

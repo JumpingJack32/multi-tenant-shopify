@@ -38,7 +38,7 @@ const baseProduct: Product = {
 describe("ProductCard", () => {
   it("renders product name and price", () => {
     render(<ProductCard product={baseProduct} categorySlug="cats" />);
-    expect(screen.getByText("£29.99")).toBeDefined();
+    expect(screen.getByText("£ 29.99")).toBeDefined();
     expect(screen.getAllByText("Test Product").length).toBe(2);
   });
 
