@@ -7,7 +7,7 @@
 
 ## 🏛️ System Architecture
 
-```
+```text
                                   +-------------------+
                                   |   Admin Portal    |
                                   |   (React/Next)    |
@@ -21,7 +21,7 @@
                |                  +---------+---------+                  |
                v                            |                            v
      +---------+---------+                  |                   +--------+--------+
-     |     Mailchimp     |                  |                   |  PostgreSQL DB  |
+     |     Resend        |                  |                   |  PostgreSQL DB  |
      |   Marketing API   |                  v                   |   (SQLAlchemy)  |
      +---------+---------+        +---------+---------+         +--------+--------+
                |                  |  BackgroundTasks  |                  |

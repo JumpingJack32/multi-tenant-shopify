@@ -204,6 +204,33 @@ class ResendEmailService(EmailService):
             return False
         return True
 
+    async def send_batch(self, emails: list[dict]) -> list[dict]:
+        """Send up to 100 emails via Resend batch API.
+
+        Each item: { from: str, to: [str], subject: str, html: str }.
+        Returns list of { id, email } response objects in same order.
+        """
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                "https://api.resend.com/emails/batch",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=[{
+                    "from": e.get("from", self.from_email),
+                    "to": e["to"],
+                    "subject": e["subject"],
+                    "html": e["html"],
+                } for e in emails],
+            )
+
+        if response.status_code >= 400:
+            logger.error("Resend batch API error %d: %s", response.status_code, response.text)
+            raise RuntimeError(f"Resend batch failed: {response.status_code}")
+
+        return response.json()
+
 
 def create_email_service() -> EmailService:
     """Factory — ResendEmailService when API key configured, else LogEmailService."""

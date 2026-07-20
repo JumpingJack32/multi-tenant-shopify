@@ -1,13 +1,19 @@
+from datetime import datetime, timezone
 import re
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from jinja2 import Environment
-from sqlmodel import select
+from sqlmodel import select, text
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.campaign import CampaignTemplate
+from src.orm.models.dispatch import CampaignDispatch, CampaignDispatchRecipient, DispatchStatus
+from src.orm.models.order import Customer
+from src.orm.models.segment import SavedSegment
+from src.orm.schemas.dispatch import DispatchCreate, DispatchResponse
+from src.services.segment_service import get_customer_ids_for_filters
 
 router = APIRouter(tags=["marketing"])
 
@@ -142,3 +148,127 @@ async def delete_template(
     if not tmpl:
         raise HTTPException(status_code=404, detail="Template not found")
     await db.delete(tmpl)
+
+
+# ── Campaign Dispatches ──────────────────────────────────────────────
+
+
+@router.get("/marketing/dispatches", response_model=list[DispatchResponse])
+async def list_dispatches(
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    status_filter: str | None = Query(None, alias="status"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+):
+    stmt = select(CampaignDispatch).where(CampaignDispatch.tenant_id == tenant_id)
+    if status_filter:
+        stmt = stmt.where(CampaignDispatch.status == status_filter)
+    stmt = stmt.order_by(CampaignDispatch.created_at.desc())
+    stmt = stmt.offset((page - 1) * per_page).limit(per_page)
+    return (await db.exec(stmt)).all()
+
+
+@router.post("/marketing/dispatches", response_model=DispatchResponse, status_code=status.HTTP_201_CREATED)
+async def create_dispatch(
+    body: DispatchCreate,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    template = await db.get(CampaignTemplate, body.template_id)
+    if not template or template.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    segment_stmt = select(SavedSegment).where(SavedSegment.id == body.segment_id, SavedSegment.tenant_id == tenant_id)
+    segment = (await db.exec(segment_stmt)).one_or_none()
+    if not segment:
+        raise HTTPException(status_code=404, detail="Segment not found")
+
+    target_schedule = body.scheduled_at or (datetime.now(timezone.utc) if body.send_immediately else None)
+    target_status = DispatchStatus.SCHEDULED if target_schedule else DispatchStatus.DRAFT
+
+    customer_ids = await get_customer_ids_for_filters(db, tenant_id, segment.filters)
+    subscribed_ids = set()
+    if customer_ids:
+        c_stmt = select(Customer).where(Customer.id.in_(customer_ids), Customer.email_subscription_status == "subscribed")  # type: ignore[arg-type]
+        for c in (await db.exec(c_stmt)).all():
+            subscribed_ids.add(c.id)
+
+    dispatch = CampaignDispatch(
+        tenant_id=tenant_id,
+        name=body.name,
+        template_id=body.template_id,
+        segment_id=body.segment_id,
+        template_html=template.body_html,
+        status=target_status,
+        scheduled_at=target_schedule,
+        total_count=len(subscribed_ids),
+    )
+    db.add(dispatch)
+    await db.flush()
+
+    # Bulk insert recipient rows
+    if subscribed_ids:
+        await db.execute(
+            text("""
+                INSERT INTO campaign_dispatch_recipients (id, dispatch_id, customer_id, email, status)
+                SELECT gen_random_uuid(), :dispatch_id, c.id, c.email, 'pending'
+                FROM customers c
+                WHERE c.id = ANY(:ids) AND c.email_subscription_status = 'subscribed'
+            """),
+            {"dispatch_id": dispatch.id, "ids": list(subscribed_ids)},
+        )
+
+    await db.commit()
+    await db.refresh(dispatch)
+    return dispatch
+
+
+@router.get("/marketing/dispatches/{dispatch_id}", response_model=DispatchResponse)
+async def get_dispatch(
+    dispatch_id: UUID,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    stmt = select(CampaignDispatch).where(CampaignDispatch.id == dispatch_id, CampaignDispatch.tenant_id == tenant_id)
+    dispatch = (await db.exec(stmt)).one_or_none()
+    if not dispatch:
+        raise HTTPException(status_code=404, detail="Dispatch not found")
+    return dispatch
+
+
+@router.post("/marketing/dispatches/{dispatch_id}/schedule", response_model=DispatchResponse)
+async def schedule_dispatch(
+    dispatch_id: UUID,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+    scheduled_at: datetime = Query(...),
+):
+    stmt = select(CampaignDispatch).where(CampaignDispatch.id == dispatch_id, CampaignDispatch.tenant_id == tenant_id)
+    dispatch = (await db.exec(stmt)).one_or_none()
+    if not dispatch:
+        raise HTTPException(status_code=404, detail="Dispatch not found")
+    dispatch.scheduled_at = scheduled_at
+    dispatch.status = DispatchStatus.SCHEDULED
+    db.add(dispatch)
+    await db.commit()
+    await db.refresh(dispatch)
+    return dispatch
+
+
+@router.post("/marketing/dispatches/{dispatch_id}/cancel", response_model=DispatchResponse)
+async def cancel_dispatch(
+    dispatch_id: UUID,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    stmt = select(CampaignDispatch).where(CampaignDispatch.id == dispatch_id, CampaignDispatch.tenant_id == tenant_id)
+    dispatch = (await db.exec(stmt)).one_or_none()
+    if not dispatch:
+        raise HTTPException(status_code=404, detail="Dispatch not found")
+    dispatch.status = DispatchStatus.DRAFT
+    dispatch.scheduled_at = None
+    db.add(dispatch)
+    await db.commit()
+    await db.refresh(dispatch)
+    return dispatch
