@@ -211,8 +211,8 @@ async def create_dispatch(
     if subscribed_ids:
         await db.execute(
             text("""
-                INSERT INTO campaign_dispatch_recipients (id, dispatch_id, customer_id, email, status)
-                SELECT gen_random_uuid(), :dispatch_id, c.id, c.email, 'pending'
+                INSERT INTO campaign_dispatch_recipients (id, dispatch_id, customer_id, email, status, created_at, updated_at)
+                SELECT gen_random_uuid(), :dispatch_id, c.id, c.email, 'pending', NOW(), NOW()
                 FROM customers c
                 WHERE c.id = ANY(:ids) AND c.email_subscription_status = 'subscribed'
             """),

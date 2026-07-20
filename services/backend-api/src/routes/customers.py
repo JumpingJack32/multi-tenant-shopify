@@ -465,8 +465,8 @@ async def import_customers_csv(
         try:
             await db.execute(
                 text("""
-                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, email_subscription_status, tags, store_credit, created_at, updated_at)
-                    VALUES (:id, :tid, :email, :first_name, :last_name, :phone, :sub_status, CAST(:tags AS jsonb), :store_credit, NOW(), NOW())
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, email_subscription_status, email_subscription_type, tags, store_credit, is_verified, total_orders, total_spent, refunded_total, language, email_marketing_consent, sms_marketing_consent, tax_exempt, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :first_name, :last_name, :phone, :sub_status, 'digital', CAST(:tags AS jsonb), :store_credit, false, 0, 0, 0, 'en', false, false, false, NOW(), NOW())
                     ON CONFLICT (tenant_id, email) DO UPDATE SET
                         first_name = EXCLUDED.first_name,
                         last_name = EXCLUDED.last_name,
@@ -538,8 +538,8 @@ async def resolve_csv_import_errors(
 
             await db.execute(
                 text("""
-                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, email_subscription_status, tags, store_credit, created_at, updated_at)
-                    VALUES (:id, :tid, :email, :fn, :ln, :phone, :sub_status, '{}'::jsonb, :credit, NOW(), NOW())
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, email_subscription_status, email_subscription_type, tags, store_credit, is_verified, total_orders, total_spent, refunded_total, language, email_marketing_consent, sms_marketing_consent, tax_exempt, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :fn, :ln, :phone, :sub_status, 'digital', '{}'::jsonb, :credit, false, 0, 0, 0, 'en', false, false, false, NOW(), NOW())
                     ON CONFLICT (tenant_id, email) DO UPDATE SET
                         first_name = CASE WHEN :fn <> '' THEN EXCLUDED.first_name ELSE customers.first_name END,
                         last_name = CASE WHEN :ln <> '' THEN EXCLUDED.last_name ELSE customers.last_name END,
