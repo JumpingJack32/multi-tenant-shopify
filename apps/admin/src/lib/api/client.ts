@@ -252,6 +252,20 @@ export const api = {
         ...(tid ? { tenantId: tid } : {}),
       });
     },
+    resolveCsvErrors(
+      corrections: Array<Record<string, unknown>>,
+      options?: { tenantId?: string | null },
+    ) {
+      const tid = options?.tenantId;
+      return request<{ fixed: number; errors: number }>(
+        "/customers/import/resolve",
+        {
+          method: "POST",
+          body: JSON.stringify({ corrections }),
+          ...(tid ? { tenantId: tid } : {}),
+        },
+      );
+    },
   },
 
   collections: {

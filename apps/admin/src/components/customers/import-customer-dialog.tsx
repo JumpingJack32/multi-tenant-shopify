@@ -12,7 +12,9 @@ import {
 import { Progress } from "@repo/ui/components/ui/progress";
 import { UploadIcon } from "@repo/ui/icons";
 
+import { CsvErrorResolver } from "@/components/customers/csv-error-resolver";
 import { useImportCsv } from "@/features/customers/hooks/use-customers";
+import { api } from "@/lib/api/client";
 
 interface ImportCustomerDialogProps {
   open: boolean;
@@ -53,99 +55,131 @@ export function ImportCustomerDialog({
   }, [file, importMutation, onOpenChange]);
 
   const result = importMutation.data;
+  const [showErrorResolver, setShowErrorResolver] = useState(false);
+
+  const handleResolve = useCallback(
+    async (corrections: Array<Record<string, unknown>>) => {
+      await api.customers.resolveCsvErrors(corrections, { tenantId });
+      setShowErrorResolver(false);
+      setFile(null);
+      importMutation.reset();
+      onOpenChange(false);
+    },
+    [tenantId, importMutation, onOpenChange],
+  );
+
+  const errors = result?.errors ?? [];
+  const parsedErrors =
+    errors.length > 0
+      ? errors.map((e: Record<string, unknown>) => ({
+          row: Number(e.row),
+          field: String(e.field),
+          value: String(e.value),
+          message: String(e.message),
+        }))
+      : [];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Import Customers from CSV</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open && !showErrorResolver} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Customers from CSV</DialogTitle>
+          </DialogHeader>
 
-        {!result && (
-          <div className="space-y-4 py-2">
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                dragOver
-                  ? "border-primary bg-primary/5"
-                  : "border-muted-foreground/30"
-              }`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
-              onClick={() => inputRef.current?.click()}
-            >
-              <UploadIcon className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">
-                Drop your CSV file here or click to browse
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Headers: email, first_name, last_name, phone,
-                subscription_status, store_credit_pounds, tags
-              </p>
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-            </div>
-
-            {file && (
-              <div className="flex items-center justify-between text-sm p-2 rounded border">
-                <span className="font-medium">{file.name}</span>
-                <span className="text-muted-foreground">
-                  {(file.size / 1024).toFixed(1)} KB
-                </span>
-              </div>
-            )}
-
-            {importMutation.isPending && (
-              <Progress value={50} className="w-full" />
-            )}
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleUpload}
-                disabled={!file || importMutation.isPending}
+          {!result && (
+            <div className="space-y-4 py-2">
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                  dragOver
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/30"
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => inputRef.current?.click()}
               >
-                {importMutation.isPending ? "Importing..." : "Import"}
+                <UploadIcon className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm font-medium">
+                  Drop your CSV file here or click to browse
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Headers: email, first_name, last_name, phone,
+                  subscription_status, store_credit_pounds, tags
+                </p>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </div>
+
+              {file && (
+                <div className="flex items-center justify-between text-sm p-2 rounded border">
+                  <span className="font-medium">{file.name}</span>
+                  <span className="text-muted-foreground">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </span>
+                </div>
+              )}
+
+              {importMutation.isPending && (
+                <Progress value={50} className="w-full" />
+              )}
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpload}
+                  disabled={!file || importMutation.isPending}
+                >
+                  {importMutation.isPending ? "Importing..." : "Import"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {result && (
+            <div className="space-y-3 py-2">
+              <p className="text-sm">
+                <Badge variant="secondary" className="mr-1">
+                  {result.imported}
+                </Badge>{" "}
+                customers imported
+              </p>
+              {parsedErrors.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowErrorResolver(true)}
+                >
+                  Review {parsedErrors.length} Error
+                  {parsedErrors.length !== 1 ? "s" : ""}
+                </Button>
+              )}
+              <Button onClick={() => onOpenChange(false)} className="w-full">
+                Done
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </DialogContent>
+      </Dialog>
 
-        {result && (
-          <div className="space-y-3 py-2">
-            <p className="text-sm">
-              <Badge variant="secondary" className="mr-1">
-                {result.imported}
-              </Badge>{" "}
-              customers imported
-            </p>
-            {result.errors.length > 0 && (
-              <div className="max-h-40 overflow-y-auto space-y-1">
-                <p className="text-sm font-medium text-destructive">Errors:</p>
-                {result.errors.map((err, i) => (
-                  <p key={i} className="text-xs text-destructive">
-                    Row {String(err.row)}: {String(err.field)} —{" "}
-                    {String(err.message)}
-                  </p>
-                ))}
-              </div>
-            )}
-            <Button onClick={() => onOpenChange(false)} className="w-full">
-              Done
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+      <CsvErrorResolver
+        errors={parsedErrors}
+        onResolve={handleResolve}
+        onClose={() => setShowErrorResolver(false)}
+        open={showErrorResolver}
+      />
+    </>
   );
 }

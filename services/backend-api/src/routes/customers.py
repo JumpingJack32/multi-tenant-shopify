@@ -501,6 +501,71 @@ async def import_customers_csv(
     }
 
 
+@router.post("/customers/import/resolve")
+async def resolve_csv_import_errors(
+    body: dict,
+    db=Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    """Apply corrected rows from CSV import error resolution.
+
+    Payload: { corrections: [{ row: number, ...fields }] }
+    Each correction overwrites the original row's fields via upsert.
+    """
+    corrections = body.get("corrections", [])
+    if not corrections:
+        raise HTTPException(status_code=400, detail="No corrections provided")
+
+    fixed = 0
+    errors = 0
+
+    for corr in corrections:
+        try:
+            email = corr.get("email")
+            if not email:
+                errors += 1
+                continue
+
+            update_fields = {}
+            for field in ("first_name", "last_name", "phone", "email_subscription_status"):
+                if field in corr:
+                    update_fields[field] = corr[field]
+            if "store_credit" in corr:
+                try:
+                    update_fields["store_credit"] = int(float(corr["store_credit"]))
+                except (ValueError, TypeError):
+                    pass
+
+            await db.execute(
+                text("""
+                    INSERT INTO customers (id, tenant_id, email, first_name, last_name, phone, email_subscription_status, tags, store_credit, created_at, updated_at)
+                    VALUES (:id, :tid, :email, :fn, :ln, :phone, :sub_status, '{}'::jsonb, :credit, NOW(), NOW())
+                    ON CONFLICT (tenant_id, email) DO UPDATE SET
+                        first_name = CASE WHEN :fn <> '' THEN EXCLUDED.first_name ELSE customers.first_name END,
+                        last_name = CASE WHEN :ln <> '' THEN EXCLUDED.last_name ELSE customers.last_name END,
+                        phone = CASE WHEN :phone <> '' THEN EXCLUDED.phone ELSE customers.phone END,
+                        updated_at = NOW()
+                """),
+                {
+                    "id": uuid4(),
+                    "tid": tenant_id,
+                    "email": email,
+                    "fn": update_fields.get("first_name", ""),
+                    "ln": update_fields.get("last_name", ""),
+                    "phone": update_fields.get("phone", ""),
+                    "sub_status": update_fields.get("email_subscription_status", "subscribed"),
+                    "credit": update_fields.get("store_credit", 0),
+                },
+            )
+            fixed += 1
+        except Exception:
+            errors += 1
+
+    await db.flush()
+
+    return {"fixed": fixed, "errors": errors}
+
+
 # ── Address CRUD ─────────────────────────────────────────────────────
 
 
