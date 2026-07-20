@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import type { Order } from "@repo/tenant-orm/types";
 
 vi.mock("@repo/tenant-orm/utils", () => ({
-  formatCurrency: (n: number) => `$${(n / 100).toFixed(2)}`,
+  formatCurrency: (n: number) => `£ ${(n / 100).toFixed(2)}`,
 }));
 
 import { OrdersTable } from "../orders-table";
@@ -103,7 +103,7 @@ describe("OrdersTable", () => {
       <OrdersTable orders={[MOCK_ORDERS[0]!]} onRowClick={() => {}} />,
     );
 
-    expect(container.textContent).toContain("$10.00");
+    expect(container.textContent).toContain("£ 10.00");
     expect(container.textContent).toContain("1/1/2025");
   });
 });
