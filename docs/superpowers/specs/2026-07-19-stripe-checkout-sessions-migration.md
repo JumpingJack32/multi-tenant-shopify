@@ -136,8 +136,10 @@ This lets customers manage saved cards, update billing info, and view invoice hi
 
 ## 5. Migration Safety
 
-| Risk                                       | Mitigation                                                                               |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Existing in-flight PaymentIntents orphaned | Adapter swap only affects new checkouts; in-flight intents complete via existing webhook |
-| Checkout Session URL changes frontend flow | Frontend checks adapter response — if `url` present, `window.location.href = url`        |
-| Customer Portal requires `stripe.Customer` | Create customer on first checkout if not exists                                          |
+| Risk                                               | Mitigation                                                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Existing in-flight PaymentIntents orphaned         | Adapter swap only affects new checkouts; in-flight intents complete via existing webhook   |
+| Checkout Session URL changes frontend flow         | Frontend checks adapter response — if `url` present, `window.location.href = url`          |
+| Customer Portal requires `stripe.Customer`         | Create customer on first checkout if not exists                                            |
+| Stripe metadata 500-char limit on multi-item carts | Store `order_id` in metadata, not serialized cart items — look up order from DB on webhook |
+| Multi-tenant `stripe.Customer` overlap             | Tag Customer with `tenant_id` metadata; scope Customer Portal lookups by tenant            |

@@ -36,6 +36,7 @@ from src.orm.schemas.storefront import (
     StorefrontVariantResponse,
 )
 from src.orm.schemas.tenant import TenantSettingsResponse
+from src.services.stripe_adapter import CheckoutItem, get_stripe_adapter
 
 router = APIRouter(route_class=CurrencyAwareRoute)
 
@@ -786,17 +787,50 @@ async def create_storefront_order(
     return order
 
 
+@router.post("/{tenant_slug}/checkout/session", response_model=dict, status_code=status.HTTP_201_CREATED)
+async def create_storefront_checkout_session(
+    tenant_slug: str,
+    request: Request,
+    payload: CheckoutIntentRequest,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_checkout),
+):
+    """Create a Stripe Checkout Session — hosted payment page."""
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
+
+    adapter = get_stripe_adapter()
+    items = [
+        CheckoutItem(variant_id=UUID(i.variant_id), quantity=i.quantity)
+        for i in payload.items
+    ]
+
+    base_url = str(request.base_url).rstrip("/")
+    success_url = f"{base_url}/{tenant_slug}/checkout/success?session_id=" + "{CHECKOUT_SESSION_ID}"
+    cancel_url = f"{base_url}/{tenant_slug}/checkout"
+
+    result = await adapter.create_checkout(
+        tenant_id=tenant.tenant_id,
+        tenant_slug=tenant_slug,
+        customer_email=payload.customer_email,
+        items=items,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        db=db,
+    )
+
+    return {"session_id": result.session_id, "session_url": result.session_url}
+
+
 @router.post("/webhooks/stripe")
 async def stripe_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Handle Stripe webhook events asynchronously."""
-    import stripe
-
-    from src.config import settings
-    from src.services.order_lifecycle import OrderLifecycleService
-
+    """Handle Stripe webhook events via the active adapter."""
     if not settings.stripe_enabled:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -806,27 +840,10 @@ async def stripe_webhook(
     if not sig_header:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing stripe-signature header")
 
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
-    except (ValueError, stripe.error.SignatureVerificationError):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid webhook signature")
+    adapter = get_stripe_adapter()
+    order_id = await adapter.handle_event(payload, sig_header, db)
 
-    if event["type"] == "payment_intent.succeeded":
-        pi = event["data"]["object"]
-        svc = OrderLifecycleService(db)
-        await svc.finalize_successful_order(pi["id"])
-        await db.commit()
-
-    elif event["type"] == "payment_intent.payment_failed":
-        pi = event["data"]["object"]
-        stmt = select(Order).where(Order.payment_intent_id == pi["id"])
-        order = (await db.exec(stmt)).one_or_none()
-        if order and order.status != OrderStatus.PAID:
-            order.status = OrderStatus.PAYMENT_FAILED
-            db.add(order)
-            await db.commit()
-
-    return {"ok": True}
+    return {"ok": True, "order_id": order_id}
 
 
 @router.get("/{tenant_slug}/orders/{order_id}", response_model=OrderResponse)
