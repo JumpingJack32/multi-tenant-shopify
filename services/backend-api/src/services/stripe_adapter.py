@@ -9,8 +9,6 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
-from src.orm.models.order import Order, OrderItem as OrderItemModel, OrderStatus, PaymentStatus
-from src.orm.models.product import Variant
 
 
 @dataclass
@@ -64,11 +62,14 @@ class CheckoutSessionAdapter(StripeAdapter):
         from fastapi import HTTPException
         import stripe
 
+        from src.orm.models.order import Order, OrderItem as OrderItemModel, OrderStatus, PaymentStatus
+        from src.orm.models.product import Variant
+
         stripe.api_key = settings.stripe_secret_key
 
         line_items = []
         total = 0
-        resolved_variants: dict[UUID, Variant] = {}
+        resolved_variants: dict[UUID, "Variant"] = {}
 
         # 1. Fetch & validate all variants with eager-loaded products
         for ci in items:
@@ -193,8 +194,10 @@ class PaymentIntentAdapter(StripeAdapter):
         return CheckoutResult(client_secret="stub")
 
     async def handle_event(self, payload: bytes, sig_header: str, db: AsyncSession) -> str | None:
+        from sqlmodel import select
         import stripe
 
+        from src.orm.models.order import Order, OrderStatus
         from src.services.order_lifecycle import OrderLifecycleService
 
         stripe.api_key = settings.stripe_secret_key
