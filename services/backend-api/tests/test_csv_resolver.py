@@ -34,12 +34,38 @@ async def client(tenant_id):
         yield ac
 
 
-@pytest.mark.skip(reason="httpx multi-part file upload needs context-type handling")
 @pytest.mark.anyio
 async def test_csv_import_partial_success_returns_errors(
     client: AsyncClient,
 ):
-    pass
+    """Verify CSV import returns errors for invalid rows."""
+    csv_content = (
+        "email,first_name,last_name,store_credit_pounds\n"
+        "alice@example.com,Alice,Smith,15.00\n"
+        "bob@example.com,Bob,Jones,\n"
+        ",Charlie,Brown,\n"
+    )
+
+    # Build multipart body manually for httpx ASGITransport compatibility
+    boundary = "----TestBoundary123"
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="customers.csv"\r\n'
+        f"Content-Type: text/csv\r\n\r\n"
+        f"{csv_content}\r\n"
+        f"--{boundary}--\r\n"
+    ).encode()
+
+    response = await client.post(
+        "/api/v1/customers/import",
+        content=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["total"] == 3
+    assert data["imported"] >= 1  # at least the valid row imported
 
 
 @pytest.mark.anyio
