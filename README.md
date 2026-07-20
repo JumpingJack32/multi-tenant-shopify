@@ -61,7 +61,7 @@ This platform uses **shared-schema multi-tenancy** enforced at the database leve
 | **AI**                    | Local Ollama (qwen2.5:7b), OpenAI-compatible route      |
 | **Media**                 | Cloudinary (unsigned upload, image + video)             |
 | **Email**                 | Resend (production), LogEmailService (dev)              |
-| **Payments**              | Stripe (optional)                                       |
+| **Payments**              | Stripe Checkout Sessions + Customer Portal (optional)   |
 | **Webhooks**              | Svix (optional)                                         |
 | **Validation**            | Zod, Pydantic                                           |
 | **Secrets**               | Doppler                                                 |
@@ -161,7 +161,7 @@ This starts:
 │   ├── auth/               # Clerk auth utilities, JWT helpers, middleware factory
 │   ├── codegen/            # Auto-generated TypeScript types & Zod schemas from OpenAPI
 │   ├── db/                 # Raw migration scripts and schema setup
-│   ├── editor/             # Shared rich text editor (TipTap) with AI button
+│   ├── editor/             # Shared Unlayer email editor wrapper (react-email-editor)
 │   ├── eslint-config/      # Shared ESLint configuration
 │   ├── middleware/          # Webhook signature verification, rate limiting, CORS
 │   ├── shared-utils/       # cn(), currency formatting, date helpers
@@ -177,25 +177,29 @@ This starts:
 
 ## Key Features
 
-| Feature                     | Description                                                          |
-| --------------------------- | -------------------------------------------------------------------- |
-| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context        |
-| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media           |
-| **Customer Management**     | Segmentation, saved segments, Mailchimp sync, import/export CSV      |
-| **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit           |
-| **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture         |
-| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive |
-| **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard    |
-| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center       |
-| **Automated Campaigns**     | Background segment evaluation, Mailchimp tag sync, email triggers    |
-| **Email Templates**         | React Email components, Jinja2 rendering, Resend delivery            |
-| **Rich Text Editor**        | TipTap-based WYSIWYG with AI completion (Ollama)                     |
-| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                        |
-| **Order Management**        | State machine with valid transitions, filtering, pagination          |
-| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                     |
-| **Currency Switcher**       | Storefront multi-currency with price conversion                      |
-| **Rate Limiting**           | In-memory (pluggable Redis)                                          |
-| **Error Tracking**          | Sentry (optional)                                                    |
+| Feature                     | Description                                                             |
+| --------------------------- | ----------------------------------------------------------------------- |
+| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context           |
+| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media              |
+| **Customer Management**     | Segmentation, saved segments, store credit, timeline, import/export CSV |
+| **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit              |
+| **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture            |
+| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive    |
+| **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard       |
+| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center          |
+| **Automated Campaigns**     | Background segment evaluation, campaign dispatch via Resend batch       |
+| **Campaign Dispatch**       | Scheduled sends via CampaignRunner, progress tracking, cancel/retry     |
+| **Email Templates**         | Unlayer visual editor, Jinja2 tokens, Resend delivery                   |
+| **Stripe Checkout**         | Hosted Checkout Sessions with Adapter Pattern, anyio thread safety      |
+| **Stripe Customer Portal**  | Self-serve billing management, saved cards, guest auth guard            |
+| **Rich Text Editor**        | Unlayer-based WYSIWYG with merge tags for campaign templates            |
+| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                           |
+| **Order Management**        | State machine with valid transitions, filtering, pagination             |
+| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                        |
+| **Currency Switcher**       | Storefront multi-currency with price conversion                         |
+| **CSV Import**              | Bulk customer import with error resolution and inline correction UI     |
+| **Rate Limiting**           | In-memory (pluggable Redis)                                             |
+| **Error Tracking**          | Sentry (optional)                                                       |
 
 ---
 
@@ -263,8 +267,8 @@ GitHub Actions runs on every push/PR to `main` with four jobs:
 
 1. **Lint** — Ruff (Python), ESLint (admin + storefront)
 2. **TypeCheck** — `tsc --noEmit` for admin + storefront
-3. **Frontend Tests** — Vitest across all packages (166+ tests across 9 workspaces)
-4. **Backend Tests** — Pytest with separate test database (207+ tests, isolated from dev data)
+3. **Frontend Tests** — Vitest across all packages (167 tests across 42 test files)
+4. **Backend Tests** — Pytest with separate test database (214 tests, 0 skipped, isolated from dev data)
 
 ---
 
