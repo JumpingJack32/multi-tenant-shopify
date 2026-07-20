@@ -23,7 +23,7 @@
 
 ## 2. Adapter Pattern Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    CheckoutService                       │
 │  (core business logic — price calc, order scaffold,     │
@@ -46,14 +46,14 @@
 
 ### Current path (PaymentIntentAdapter):
 
-```
+```text
 cart → POST /checkout/intent → PaymentIntent → client_secret
   → frontend Elements → confirmPayment → POST /orders → webhook
 ```
 
 ### Target path (CheckoutSessionAdapter):
 
-```
+```text
 cart → POST /checkout/session → CheckoutSession.url
   → redirect to Stripe → user completes payment
   → Stripe redirects to /checkout/success
