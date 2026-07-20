@@ -138,6 +138,35 @@ export default function TemplateEditorPage() {
         </div>
       </div>
 
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  type: "campaign_template",
+                  prompt: `Campaign: ${name}. Subject: ${subject}. Write an HTML email body.`,
+                  context: {
+                    name: name || undefined,
+                    tokens: MERGE_TAGS.map((t) => t.value),
+                  },
+                }),
+              });
+              const body = await res.json();
+              if (body.completion) setHtml(body.completion);
+            } catch {
+              // silent
+            }
+          }}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Draft with AI
+        </button>
+      </div>
+
       <div className="flex-1 p-4">
         <TenantEditor
           design={design}

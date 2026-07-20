@@ -1,55 +1,46 @@
 import { NextResponse } from "next/server";
 
+const FASTAPI_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
+    const body = await req.json();
 
-    if (!prompt) {
+    const res = await fetch(`${FASTAPI_BASE}/api/v1/ai/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
       return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 },
+        { error: "AI generation failed" },
+        { status: res.status },
       );
     }
 
-    // Local AI via Ollama — install https://ollama.ai and pull a model:
-    //   ollama pull qwen2.5:7b
-    let completion: string | null = null;
+    // Stream the SSE response back to the client
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("No response body");
 
-    try {
-      const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
-      const res = await fetch(`${OLLAMA_URL}/v1/chat/completions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: process.env.OLLAMA_MODEL || "qwen2.5:7b",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an expert copywriter helping an ecommerce merchant write compelling product descriptions. Keep responses concise and ready to use.",
-            },
-            { role: "user", content: prompt },
-          ],
-          stream: false,
-        }),
-      });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          controller.enqueue(value);
+        }
+        controller.close();
+      },
+    });
 
-      if (res.ok) {
-        const data = await res.json();
-        completion = data.choices?.[0]?.message?.content;
-      }
-    } catch {
-      // Ollama not running — fall through to default text
-    }
-
-    // Fallback when AI is unavailable
-    return NextResponse.json({
-      completion:
-        completion ??
-        "\n\n" +
-          "Crafted from premium materials, this product combines timeless design with modern functionality. " +
-          "Perfect for everyday use, it offers exceptional comfort and durability. " +
-          "Available in a range of sizes to suit your needs.",
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch {
     return NextResponse.json(

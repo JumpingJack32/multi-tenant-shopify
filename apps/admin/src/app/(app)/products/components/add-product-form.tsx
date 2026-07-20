@@ -196,7 +196,32 @@ export default function AddProductForm({
             />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <div className="flex items-center justify-between">
+              <Label>Description</Label>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/generate", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        type: "product_description",
+                        prompt: `Product: ${name}. ${description || "Write a compelling product description."}`,
+                        context: { name: name || undefined },
+                      }),
+                    });
+                    const body = await res.json();
+                    if (body.completion) setDescription(body.completion);
+                  } catch {
+                    // silent — AI is optional
+                  }
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Generate
+              </button>
+            </div>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

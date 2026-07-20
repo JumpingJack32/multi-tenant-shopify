@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     resend_api_key: str | None = None
     resend_from_email: str = "noreply@yourplatform.com"
 
+    # AI (optional)
+    ai_provider: str = "ollama"
+    openrouter_api_key: str | None = None
+    openai_api_key: str | None = None
+
     # Sentry (optional)
     sentry_dsn: str | None = None
 
