@@ -217,7 +217,7 @@ export default function AddProductForm({
                     // silent — AI is optional
                   }
                 }}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 title="Generate with AI"
               >
                 <svg viewBox="0 0 65 65" fill="none" className="h-4 w-4">
