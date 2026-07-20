@@ -37,7 +37,7 @@ import {
 } from "@/features/purchase-orders/hooks/use-purchase-orders";
 
 function formatPence(n: number): string {
-  return `£${(n / 100).toFixed(2)}`;
+  return `£ ${(n / 100).toFixed(2)}`;
 }
 
 const STATUS_LABELS: Record<string, string> = {

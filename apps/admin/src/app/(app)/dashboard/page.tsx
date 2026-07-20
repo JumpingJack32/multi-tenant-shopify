@@ -128,7 +128,7 @@ export default function DashboardPage() {
               <AreaChart data={data.timeline}>
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis
-                  tickFormatter={(v) => `£${(Number(v) / 100).toFixed(0)}`}
+                  tickFormatter={(v) => `£ ${(Number(v) / 100).toFixed(0)}`}
                   tick={{ fontSize: 12 }}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />

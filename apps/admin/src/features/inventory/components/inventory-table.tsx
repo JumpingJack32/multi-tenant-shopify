@@ -112,7 +112,7 @@ export function InventoryTable({
                   {item.total_stock}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  \u00A3{item.total_value.toLocaleString()}
+                  \u00A3 {item.total_value.toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusVariantMap[item.status] ?? "outline"}>

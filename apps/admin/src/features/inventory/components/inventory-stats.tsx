@@ -34,7 +34,7 @@ export function InventoryStatsCards({
     { label: "Total SKUs", value: stats.total_skus.toLocaleString() },
     {
       label: "Inventory Value",
-      value: `\u00A3${stats.total_value.toLocaleString()}`,
+      value: `\u00A3 ${stats.total_value.toLocaleString()}`,
     },
     {
       label: "Low Stock",

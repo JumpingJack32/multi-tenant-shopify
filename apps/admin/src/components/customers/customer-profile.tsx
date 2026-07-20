@@ -17,7 +17,7 @@ import { ErrorBanner } from "@/components/ui/error-banner";
 import { useCustomer } from "@/features/customers/hooks/use-customers";
 
 function formatPence(n: number): string {
-  return `£${(n / 100).toFixed(2)}`;
+  return `£ ${(n / 100).toFixed(2)}`;
 }
 
 const statusColors: Record<string, string> = {

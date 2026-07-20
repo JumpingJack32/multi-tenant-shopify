@@ -13,7 +13,7 @@ import {
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
 
 function formatPence(n: number): string {
-  return `\u00A3${(n / 100).toFixed(2)}`;
+  return `\u00A3 ${(n / 100).toFixed(2)}`;
 }
 
 interface CardDef {

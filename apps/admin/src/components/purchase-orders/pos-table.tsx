@@ -36,7 +36,7 @@ interface POSTableProps {
 }
 
 function formatPence(n: number): string {
-  return `£${(n / 100).toFixed(2)}`;
+  return `£ ${(n / 100).toFixed(2)}`;
 }
 
 const STATUS_LABELS: Record<string, string> = {
