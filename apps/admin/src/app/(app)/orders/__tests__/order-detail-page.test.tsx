@@ -196,7 +196,7 @@ describe("OrderDetailContent", () => {
   it("renders financial breakdown total", () => {
     setupDefault();
     render(<OrderDetailContent id="ord-001" />);
-    expect(screen.getByText("£29.00")).toBeDefined();
+    expect(screen.getByText("£ 29.00")).toBeDefined();
   });
 
   it("calls updateStatus when action button clicked", () => {

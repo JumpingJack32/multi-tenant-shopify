@@ -1,9 +1,13 @@
+const SYMBOLS: Record<string, string> = {
+  GBP: "£",
+  USD: "$",
+  EUR: "€",
+};
+
 export function formatCurrency(
   cents: number,
-  currencyCode: string = "USD",
+  currencyCode: string = "GBP",
 ): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(cents / 100);
+  const symbol = SYMBOLS[currencyCode] ?? currencyCode;
+  return `${symbol} ${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
