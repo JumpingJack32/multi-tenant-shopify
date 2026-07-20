@@ -20,7 +20,7 @@
 - Toast via `sonner`: `toast.success()`, `toast.error()`
 - Delete confirmation via `AlertDialog`
 - Add/edit via `Dialog`
-- Monetary values displayed as `£{value.toLocaleString()}` (value stored as GBP, not pence)
+- Monetary values displayed as `£ {value.toLocaleString()}` (value stored as GBP, not pence)
 
 ---
 
@@ -518,7 +518,7 @@ export function InventoryStatsCards({
     { label: "Total SKUs", value: stats.total_skus.toLocaleString() },
     {
       label: "Inventory Value",
-      value: `\u00A3${stats.total_value.toLocaleString()}`,
+      value: `\u00A3 ${stats.total_value.toLocaleString()}`,
     },
     {
       label: "Low Stock",
@@ -791,7 +791,7 @@ export function InventoryTable({
                   {item.total_stock}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  \u00A3{item.total_value.toLocaleString()}
+                  \u00A3 {item.total_value.toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusVariantMap[item.status] ?? "outline"}>
