@@ -127,55 +127,81 @@ export default function CheckoutForm({ tenantSlug }: CheckoutFormProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const { items, clear } = useCart();
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const res = await fetch(
-          `/api/v1/storefront/${tenantSlug}/checkout/intent`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              items: items.map((i) => ({
-                variant_id: i.product_id,
-                quantity: i.quantity,
-              })),
-              customer_email: "",
-            }),
-          },
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "Failed to initialize checkout");
-        }
-        const data = await res.json();
-        setClientSecret(data.clientSecret);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Checkout unavailable");
-      } finally {
-        setLoading(false);
+  const handleCheckoutSession = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/v1/storefront/${tenantSlug}/checkout/session`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customer_email: email,
+            items: items.map((i) => ({
+              variant_id: i.product_id,
+              quantity: i.quantity,
+            })),
+          }),
+        },
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to create checkout session");
       }
-    };
-    init();
-  }, [tenantSlug, items]);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white/60">Loading checkout...</div>
-      </main>
-    );
-  }
+      const { session_url } = await res.json();
+      clear();
+      window.location.href = session_url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout unavailable");
+      setLoading(false);
+    }
+  }, [tenantSlug, email, items, clear]);
 
-  if (error || !clientSecret) {
+  const handleLegacyCheckout = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/v1/storefront/${tenantSlug}/checkout/intent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({
+              variant_id: i.product_id,
+              quantity: i.quantity,
+            })),
+            customer_email: email,
+          }),
+        },
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to initialize checkout");
+      }
+      const data = await res.json();
+      setClientSecret(data.clientSecret);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout unavailable");
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantSlug, items, email]);
+
+  useEffect(() => {
+    if (!email) return;
+    handleCheckoutSession();
+  }, [email, handleCheckoutSession]);
+
+  if (error && !clientSecret) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="max-w-md text-center space-y-4">
-          <div className="text-red-400 text-lg">
-            {error || "Checkout unavailable"}
-          </div>
+          <div className="text-red-400 text-lg">{error}</div>
           <a
             href={`/${tenantSlug}/cart`}
             className="inline-block rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20 transition-colors"
@@ -187,54 +213,93 @@ export default function CheckoutForm({ tenantSlug }: CheckoutFormProps) {
     );
   }
 
-  const options: StripeElementsOptions = {
-    clientSecret,
-    appearance: darkTheme,
-  };
+  if (clientSecret) {
+    const options: StripeElementsOptions = {
+      clientSecret,
+      appearance: darkTheme,
+    };
 
-  return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-3 space-y-6">
-            <h1 className="text-2xl font-bold">Checkout</h1>
-            <Elements stripe={stripePromise} options={options}>
-              <EmbeddedForm
-                tenantSlug={tenantSlug}
-                clientSecret={clientSecret}
-                onComplete={() => clear()}
-              />
-            </Elements>
-          </div>
-          <div className="lg:col-span-2">
-            <div className="sticky top-24 rounded-xl border border-white/10 p-6 space-y-4">
-              <h2 className="text-lg font-semibold">Order Summary</h2>
-              {items.map((item) => (
-                <div
-                  key={item.product_id}
-                  className="flex justify-between text-sm"
-                >
-                  <span className="text-white/60 truncate mr-2">
-                    {item.name}
-                  </span>
+    return (
+      <main className="min-h-screen bg-black text-white">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-6">
+              <h1 className="text-2xl font-bold">Checkout</h1>
+              <Elements stripe={stripePromise} options={options}>
+                <EmbeddedForm
+                  tenantSlug={tenantSlug}
+                  clientSecret={clientSecret}
+                  onComplete={() => clear()}
+                />
+              </Elements>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="sticky top-24 rounded-xl border border-white/10 p-6 space-y-4">
+                <h2 className="text-lg font-semibold">Order Summary</h2>
+                {items.map((item) => (
+                  <div
+                    key={item.product_id}
+                    className="flex justify-between text-sm"
+                  >
+                    <span className="text-white/60 truncate mr-2">
+                      {item.name}
+                    </span>
+                    <span className="font-mono">
+                      £ {((item.price ?? 0) / 100).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+                <div className="border-t border-white/10 pt-4 flex justify-between font-semibold">
+                  <span>Total</span>
                   <span className="font-mono">
-                    £ {((item.price ?? 0) / 100).toFixed(2)}
+                    £{" "}
+                    {(
+                      items.reduce(
+                        (s, i) => s + (i.price ?? 0) * i.quantity,
+                        0,
+                      ) / 100
+                    ).toFixed(2)}
                   </span>
                 </div>
-              ))}
-              <div className="border-t border-white/10 pt-4 flex justify-between font-semibold">
-                <span>Total</span>
-                <span className="font-mono">
-                  £
-                  {(
-                    items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0) /
-                    100
-                  ).toFixed(2)}
-                </span>
               </div>
             </div>
           </div>
         </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-black flex items-center justify-center">
+      <div className="max-w-md w-full px-4 space-y-6">
+        <h1 className="text-2xl font-bold text-white">Checkout</h1>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-white/80">Email</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded border border-white/10 bg-black px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:border-white/30"
+            placeholder="you@example.com"
+          />
+        </div>
+        {error && (
+          <div className="rounded bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+        <button
+          onClick={() => {
+            if (!email) return;
+            setLoading(true);
+            handleCheckoutSession();
+          }}
+          disabled={loading || !email}
+          className="w-full rounded bg-white px-6 py-3 text-sm font-medium text-black hover:bg-white/90 transition-colors disabled:opacity-50"
+        >
+          {loading ? "Redirecting to Stripe..." : "Proceed to Payment"}
+        </button>
       </div>
     </main>
   );
