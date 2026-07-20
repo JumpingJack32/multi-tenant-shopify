@@ -1,6 +1,5 @@
 "use client";
 
-import type { CampaignDispatch } from "@/lib/api/client";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import { Skeleton } from "@repo/ui/components/ui/skeleton";
@@ -12,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/ui/table";
+
+import type { CampaignDispatch } from "@/lib/api/client";
 
 const statusVariantMap: Record<
   string,

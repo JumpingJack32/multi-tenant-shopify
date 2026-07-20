@@ -4,8 +4,8 @@ import { useState, useRef, useCallback } from "react";
 import type { Product } from "@repo/tenant-orm/types";
 import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
-import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
 import { Textarea } from "@repo/ui/components/ui/textarea";
+import { PlusIcon, Trash2Icon } from "@repo/ui/icons";
 
 import {
   MediaDropzone,
