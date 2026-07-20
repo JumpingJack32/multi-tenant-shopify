@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
@@ -10,6 +7,9 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import type { StripeElementsOptions } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 
 import { useCart } from "@/hooks/use-cart";
 
