@@ -26,6 +26,30 @@ import type {
   TimelineEvent,
 } from "@repo/tenant-orm/types";
 
+export interface CampaignDispatch {
+  id: string;
+  tenant_id: string;
+  name: string;
+  template_id: string;
+  segment_id: string;
+  status: "draft" | "scheduled" | "processing" | "completed" | "failed";
+  scheduled_at: string | null;
+  sent_count: number;
+  failed_count: number;
+  total_count: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+interface CreateDispatchPayload {
+  name: string;
+  template_id: string;
+  segment_id: string;
+  scheduled_at?: string | null;
+  send_immediately?: boolean;
+}
+
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
 
 export class ApiError extends Error {
@@ -373,6 +397,53 @@ export const api = {
       delete(id: string, options?: { tenantId?: string | null }) {
         return request<void>(`/marketing/templates/${id}`, {
           method: "DELETE",
+          ...options,
+        });
+      },
+    },
+    dispatches: {
+      list(
+        params?: Record<string, string>,
+        options?: { tenantId?: string | null },
+      ) {
+        return request<{ data: CampaignDispatch[]; total: number }>(
+          `/marketing/dispatches${buildQuery(params)}`,
+          options ?? {},
+        );
+      },
+      get(id: string, options?: { tenantId?: string | null }) {
+        return request<CampaignDispatch>(
+          `/marketing/dispatches/${id}`,
+          options ?? {},
+        );
+      },
+      create(
+        data: CreateDispatchPayload,
+        options?: { tenantId?: string | null },
+      ) {
+        return request<CampaignDispatch>("/marketing/dispatches", {
+          method: "POST",
+          body: JSON.stringify(data),
+          ...options,
+        });
+      },
+      schedule(
+        id: string,
+        scheduledAt: string,
+        options?: { tenantId?: string | null },
+      ) {
+        return request<CampaignDispatch>(
+          `/marketing/dispatches/${id}/schedule`,
+          {
+            method: "POST",
+            body: JSON.stringify({ scheduled_at: scheduledAt }),
+            ...options,
+          },
+        );
+      },
+      cancel(id: string, options?: { tenantId?: string | null }) {
+        return request<CampaignDispatch>(`/marketing/dispatches/${id}/cancel`, {
+          method: "POST",
           ...options,
         });
       },

@@ -121,6 +121,7 @@ const navCommerce: NavItem[] = [
     icon: <MegaphoneIcon />,
     items: [
       { title: "Campaigns", url: "/marketing/campaigns" },
+      { title: "Dispatches", url: "/marketing/dispatches" },
       { title: "Automation", url: "/marketing/automation" },
       { title: "Templates", url: "/marketing/templates" },
     ],

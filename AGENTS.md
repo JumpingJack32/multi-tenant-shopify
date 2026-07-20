@@ -276,7 +276,7 @@
 - Coverage: v8 provider (root vitest.config.ts with workspace projects), 30% threshold
 - Secrets via Doppler only (never .env directly)
 - Root `package.json` `"dev"` uses `doppler run -- pnpm turbo run dev`
-- Price in cents, display as `£ ${(n / 100).toFixed(2)}` (space between symbol and amount)
+- Price in cents, display as `£ ${(n / 100).toFixed(2)}` (space between symbol and amount). Use `formatCurrency()` from `@repo/tenant-orm/utils` (admin) or `@repo/shared-utils` (storefront) — both default to GBP with `£ ` prefix. Do not use `Intl.NumberFormat` directly; it doesn't support space after symbol.
 - All monetary defaults changed from `"USD"` to `"GBP"` across backend models, schemas, frontend utilities, and seed data (2026-07-16)
 - Server components for data fetching; client components for interactivity
 - **UI components:** Always import from `@repo/ui/components/ui/*` (Button, Card, Input, etc.). **UI primitives:** Always import from `@repo/ui/base-ui` (Dialog, Popover, Tooltip, Menu, Select, Checkbox, Switch, etc.). Never import from `@radix-ui/react-*` or `@base-ui/react` directly — Use `render` prop pattern, never `asChild`.
