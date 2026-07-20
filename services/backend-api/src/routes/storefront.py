@@ -825,6 +825,55 @@ async def create_storefront_checkout_session(
     return {"session_id": result.session_id, "session_url": result.session_url}
 
 
+@router.post("/{tenant_slug}/customer-portal")
+async def create_customer_portal(
+    tenant_slug: str,
+    request: Request,
+    body: CheckoutIntentRequest,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_checkout),
+):
+    """Create a Stripe Customer Portal session for managing saved cards/billing."""
+    from sqlalchemy import or_
+
+    from src.orm.models.order import Order, OrderStatus
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    email = body.customer_email
+    if not email:
+        raise HTTPException(status_code=400, detail="customer_email required")
+
+    # Verify this email has a completed/pending order for this tenant
+    stmt = (
+        select(Order.id)
+        .where(
+            Order.tenant_id == tenant.tenant_id,
+            Order.customer_email == email,
+            or_(Order.status == OrderStatus.PAID, Order.status == OrderStatus.PENDING_PAYMENT),
+        )
+        .limit(1)
+    )
+    result = await db.exec(stmt)
+    if not result.first():
+        raise HTTPException(status_code=403, detail="No active orders found for this email")
+
+    adapter = get_stripe_adapter()
+    base_url = str(request.base_url).rstrip("/")
+    return_url = f"{base_url}/{tenant_slug}/account"
+    url = await adapter.create_customer_portal_session(
+        customer_email=email,
+        tenant_id=tenant.tenant_id,
+        return_url=return_url,
+    )
+
+    return {"url": url}
+
+
 @router.post("/webhooks/stripe")
 async def stripe_webhook(
     request: Request,
