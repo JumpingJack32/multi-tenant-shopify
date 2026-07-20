@@ -871,3 +871,38 @@ async def get_storefront_order(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
     return order
+
+
+@router.get("/{tenant_slug}/orders/by-session/{session_id}", response_model=OrderResponse)
+async def get_storefront_order_by_session(
+    tenant_slug: str,
+    request: Request,
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Look up an order by Stripe Checkout Session ID."""
+    from sqlalchemy.orm import selectinload
+
+    from src.orm.models.order import Order
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(
+            Order.payment_intent_id == session_id,
+            Order.tenant_id == tenant.tenant_id,
+        )
+    )
+    result = await db.exec(stmt)
+    order = result.one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found or processing payment")
+
+    return order
+
+
+
