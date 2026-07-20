@@ -177,29 +177,30 @@ This starts:
 
 ## Key Features
 
-| Feature                     | Description                                                             |
-| --------------------------- | ----------------------------------------------------------------------- |
-| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context           |
-| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media              |
-| **Customer Management**     | Segmentation, saved segments, store credit, timeline, import/export CSV |
-| **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit              |
-| **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture            |
-| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive    |
-| **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard       |
-| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center          |
-| **Automated Campaigns**     | Background segment evaluation, campaign dispatch via Resend batch       |
-| **Campaign Dispatch**       | Scheduled sends via CampaignRunner, progress tracking, cancel/retry     |
-| **Email Templates**         | Unlayer visual editor, Jinja2 tokens, Resend delivery                   |
-| **Stripe Checkout**         | Hosted Checkout Sessions with Adapter Pattern, anyio thread safety      |
-| **Stripe Customer Portal**  | Self-serve billing management, saved cards, guest auth guard            |
-| **Rich Text Editor**        | Unlayer-based WYSIWYG with merge tags for campaign templates            |
-| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                           |
-| **Order Management**        | State machine with valid transitions, filtering, pagination             |
-| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                        |
-| **Currency Switcher**       | Storefront multi-currency with price conversion                         |
-| **CSV Import**              | Bulk customer import with error resolution and inline correction UI     |
-| **Rate Limiting**           | In-memory (pluggable Redis)                                             |
-| **Error Tracking**          | Sentry (optional)                                                       |
+| Feature                     | Description                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context                  |
+| **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media                     |
+| **Customer Management**     | Segmentation, saved segments, store credit, timeline, import/export CSV        |
+| **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit                     |
+| **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture                   |
+| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive           |
+| **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard              |
+| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center                 |
+| **Automated Campaigns**     | Background segment evaluation, campaign dispatch via Resend batch              |
+| **Campaign Dispatch**       | Scheduled sends via CampaignRunner, progress tracking, cancel/retry            |
+| **Email Templates**         | Unlayer visual editor, Jinja2 tokens, Resend delivery                          |
+| **Stripe Checkout**         | Hosted Checkout Sessions with Adapter Pattern, anyio thread safety             |
+| **Stripe Customer Portal**  | Self-serve billing management, saved cards, guest auth guard                   |
+| **AI Content Generation**   | FastAPI adapter (Ollama/OpenRouter/OpenAI), SSE streaming, bleach sanitization |
+| **Rich Text Editor**        | Unlayer-based WYSIWYG with merge tags for campaign templates                   |
+| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                                  |
+| **Order Management**        | State machine with valid transitions, filtering, pagination                    |
+| **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                               |
+| **Currency Switcher**       | Storefront multi-currency with price conversion                                |
+| **CSV Import**              | Bulk customer import with error resolution and inline correction UI            |
+| **Rate Limiting**           | In-memory (pluggable Redis)                                                    |
+| **Error Tracking**          | Sentry (optional)                                                              |
 
 ---
 
@@ -269,6 +270,7 @@ GitHub Actions runs on every push/PR to `main` with four jobs:
 2. **TypeCheck** — `tsc --noEmit` for admin + storefront
 3. **Frontend Tests** — Vitest across all packages (167 tests across 42 test files)
 4. **Backend Tests** — Pytest with separate test database (214 tests, 0 skipped, isolated from dev data)
+5. **AI Smoke Tests** — Backend `/api/v1/ai/generate` endpoint verified via pytest integration
 
 ---
 

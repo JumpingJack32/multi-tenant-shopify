@@ -130,6 +130,53 @@
 
 **Tests:** 14 backend tests (model, email service, token utils, service, unsubscribe, recovery URL variants) + 12 admin detail page tests + 48 total admin tests — all passing.
 
+## Session Context — Saved 2026-07-20 (AI Generation + Checkout Sessions + Customer Portal)
+
+> [!IMPORTANT]
+> After generating or modifying any backend files, you must check the existing database schema. Ensure tables, fields, are populated.
+
+### PR #20 — `feat: AI content generation with FastAPI + adapter pattern`
+
+- Backend: AIService with Ollama/OpenRouter/OpenAI via OpenAI-compatible API
+- SSE streaming with `httpx.Timeout(60.0, connect=10.0)`, `[DONE]` sentinel, `X-Accel-Buffering: no`
+- Pydantic GenerateRequest/GenerateContext models, `bleach` HTML sanitization
+- Frontend: Gemini icon buttons on product form (description) + template editor (campaign body)
+- Next.js `/api/generate` route proxies to FastAPI backend
+- **381 tests passing** (214 backend + 167 frontend), 0 skipped
+
+### PR #19 — `feat: Stripe Customer Portal with anyio thread safety + guest auth guard`
+
+- StripeAdapter with `anyio.to_thread.run_sync` wrapping all SDK calls (event loop safety)
+- CheckoutSessionAdapter + PaymentIntentAdapter, configurable via `use_checkout_sessions`
+- Customer Portal: `stripe.Customer.search()` with metadata query, order-verified guest access
+- Account page at `/[tenant]/account` with Manage Billing button
+
+### PR #18 — `feat: activate Stripe Checkout Sessions — redirect flow live`
+
+- `use_checkout_sessions = True` activates hosted Stripe Checkout
+- Frontend redirects to `session_url` instead of mounting Elements
+- Fallback to legacy PaymentIntent flow retained
+
+### PR #17 — `feat: campaign dispatch admin UI + tests`
+
+- CampaignDispatch + CampaignDispatchRecipient models with status tracking
+- POST /marketing/dispatches, list/create/schedule/cancel endpoints
+- CampaignRunner extended with \_send_dispatch (streams 100/batch, 1s pause)
+- FOR UPDATE SKIP LOCKED for concurrency, stalled PROCESSING recovery
+- 5 new test files, 214 total backend tests
+
+### PR #16 — `chore: remove all Mailchimp code — Resend-only email delivery`
+
+- Removed mailchimp_service.py, mailchimp_tag fields, sync endpoints, webhooks
+- 296 lines deleted across 14 files
+- AGENTS.md note added to prevent reintroduction
+
+### PR #15 — `fix: consistent £ spacing across entire codebase`
+
+- formatCurrency in both tenant-orm/utils and shared-utils defaults to GBP with `£ ` prefix
+- Replaced Intl.NumberFormat with symbol map — `Intl` doesn't support space after symbol
+- 7 source files + 3 test files updated
+
 ## Key Decisions
 
 - Background worker follows existing `asyncio.create_task()` pattern (no Celery/Redis queue)
