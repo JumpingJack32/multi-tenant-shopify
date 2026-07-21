@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel as PydanticBaseModel, Field
 
-if TYPE_CHECKING:
-    from src.orm.schemas.customer import CustomerResponse
+from src.orm.schemas.customer import CustomerResponse  # noqa: F401
 
 # ── Product ──────────────────────────────────────────────────────────────
 
