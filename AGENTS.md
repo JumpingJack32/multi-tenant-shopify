@@ -126,7 +126,7 @@
 
 **Resend config:** `RESEND_API_KEY` and `RESEND_FROM_EMAIL` set in Doppler (`dev` config). Domain `multiDNS-tenant-shopify.com` added in Resend (Ireland region) — verification (TXT record) pending before emails send.
 
-**Ruff:** 72 auto-fixed + 13 unsafe-fixed. 2 remaining: Alembic star import (`alembic/env.py:16` — intentional) and `CustomerResponse` forward reference (`src/orm/schemas/product.py:154` — pre-existing).
+**Ruff:** 72 auto-fixed + 13 unsafe-fixed. 1 remaining: Alembic star import (`alembic/env.py:16` — intentional). `CustomerResponse` forward reference fixed — `from __future__ import annotations` added to `src/orm/schemas/product.py`.
 
 **Tests:** 14 backend tests (model, email service, token utils, service, unsubscribe, recovery URL variants) + 12 admin detail page tests + 48 total admin tests — all passing.
 

@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import BaseModel as PydanticBaseModel, Field
+
+if TYPE_CHECKING:
+    from src.orm.schemas.customer import CustomerResponse
 
 # ── Product ──────────────────────────────────────────────────────────────
 
