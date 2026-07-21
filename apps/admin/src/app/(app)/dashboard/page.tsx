@@ -398,24 +398,31 @@ function CategoryWidget({
           <p className="text-sm text-muted-foreground">No category data yet</p>
         ) : (
           <div className="flex items-center gap-6">
-            <PieChart width={180} height={180}>
-              <Pie
-                data={categories.map((c) => ({
-                  name: c.category_name,
-                  value: Number(c.total_revenue),
-                }))}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                dataKey="value"
-              >
-                {categories.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <ChartTooltip content={<ChartTooltipContent />} />
-            </PieChart>
+            <ChartContainer
+              config={{
+                revenue: { label: "Revenue", color: "hsl(var(--primary))" },
+              }}
+              className="h-[180px] w-[180px]"
+            >
+              <PieChart>
+                <Pie
+                  data={categories.map((c) => ({
+                    name: c.category_name,
+                    value: Number(c.total_revenue),
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {categories.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </PieChart>
+            </ChartContainer>
             <div className="space-y-1.5 text-sm">
               {categories.map((c, i) => (
                 <div
