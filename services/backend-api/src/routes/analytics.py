@@ -76,13 +76,13 @@ async def category_breakdown(
     end_date: Optional[str] = Query(None),
 ):
     """Revenue and units sold by product category."""
-    from sqlalchemy import literal
+    from sqlalchemy import String
 
     from src.orm.models.category import Category
 
     stmt = (
         select(
-            func.coalesce(Category.id.cast(type(literal(""))), "uncategorized").label("category_id"),
+            func.coalesce(Category.id.cast(String), "uncategorized").label("category_id"),
             func.coalesce(Category.name, "Uncategorized").label("category_name"),
             func.sum(OrderItem.quantity).label("units_sold"),
             func.sum(OrderItem.total_price).label("total_revenue"),
