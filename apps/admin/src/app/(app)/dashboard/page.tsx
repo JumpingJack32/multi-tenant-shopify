@@ -239,9 +239,9 @@ export default function DashboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-muted-foreground">
-                <th className="pb-2">Order</th>
-                <th className="pb-2">Customer</th>
-                <th className="pb-2 text-right">Total</th>
+                <th className="pb-2 pr-2">Order</th>
+                <th className="pb-2 pr-2">Customer</th>
+                <th className="pb-2 pr-2 text-right">Total</th>
                 <th className="pb-2">Status</th>
               </tr>
             </thead>
