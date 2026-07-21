@@ -492,6 +492,27 @@ export const api = {
     },
   },
 
+  analytics: {
+    topProducts(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/top-products" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    categoryBreakdown(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/category-breakdown" + buildQuery(params),
+        options ?? {},
+      );
+    },
+  },
+
   segments: {
     list(options?: { tenantId?: string | null }) {
       return request<SavedSegment[]>("/segments", options ?? {});

@@ -1,7 +1,18 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { Area, AreaChart, XAxis, YAxis } from "recharts";
+import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
@@ -24,6 +35,10 @@ import {
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useTenantContext } from "@/contexts/tenant-context";
+import {
+  useTopProducts,
+  useCategoryBreakdown,
+} from "@/features/analytics/hooks/use-analytics";
 import {
   SectionCards,
   SectionCardsSkeleton,
@@ -259,6 +274,173 @@ export default function DashboardPage() {
           </table>
         </div>
       </Card>
+
+      {/* Top Products */}
+      <TopProductsWidget tenantId={currentTenantId} period={period} />
+
+      {/* Category Breakdown */}
+      <CategoryWidget tenantId={currentTenantId} period={period} />
     </div>
+  );
+}
+
+function TopProductsWidget({
+  tenantId,
+  period,
+}: {
+  tenantId?: string | null;
+  period: string;
+}) {
+  const [sortBy, setSortBy] = useState<"revenue" | "units">("revenue");
+  const { data, isLoading } = useTopProducts(
+    { limit: "10", sort_by: sortBy, period },
+    tenantId,
+  );
+  const products = (data ?? []) as Array<Record<string, unknown>>;
+
+  if (isLoading) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm">Top Products</CardTitle>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setSortBy("revenue")}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                sortBy === "revenue"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Revenue
+            </button>
+            <button
+              onClick={() => setSortBy("units")}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                sortBy === "units"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Units
+            </button>
+          </div>
+        </div>
+      </CardHeader>
+      <div className="px-6 pb-4">
+        {products.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No product data yet</p>
+        ) : (
+          <div className="space-y-2">
+            {products.map((p, i) => (
+              <div
+                key={String(p.product_id)}
+                className="flex items-center gap-3 text-sm"
+              >
+                <span className="text-muted-foreground w-5 text-right">
+                  {i + 1}.
+                </span>
+                <div className="flex-1 truncate font-medium">
+                  {String(p.product_name)}
+                </div>
+                <div className="font-mono text-right tabular-nums w-24">
+                  {sortBy === "revenue"
+                    ? `\u00A3 ${(Number(p.total_revenue) / 100).toFixed(2)}`
+                    : String(p.units_sold)}
+                </div>
+                <Badge variant="outline" className="text-xs font-mono">
+                  {String(p.primary_sku ?? "")}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function CategoryWidget({
+  tenantId,
+  period,
+}: {
+  tenantId?: string | null;
+  period: string;
+}) {
+  const { data, isLoading } = useCategoryBreakdown({ period }, tenantId);
+  const categories = (data ?? []) as Array<Record<string, unknown>>;
+
+  if (isLoading) return null;
+
+  const COLORS = [
+    "hsl(var(--primary))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+    "hsl(var(--muted-foreground) / 0.3)",
+  ];
+
+  const totalRevenue = categories.reduce(
+    (s, c) => s + Number(c.total_revenue ?? 0),
+    0,
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Revenue by Category</CardTitle>
+      </CardHeader>
+      <div className="px-6 pb-4">
+        {categories.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No category data yet</p>
+        ) : (
+          <div className="flex items-center gap-6">
+            <PieChart width={180} height={180}>
+              <Pie
+                data={categories.map((c) => ({
+                  name: c.category_name,
+                  value: Number(c.total_revenue),
+                }))}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                dataKey="value"
+              >
+                {categories.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+              <ChartTooltip content={<ChartTooltipContent />} />
+            </PieChart>
+            <div className="space-y-1.5 text-sm">
+              {categories.map((c, i) => (
+                <div
+                  key={String(c.category_id)}
+                  className="flex items-center gap-2"
+                >
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                  />
+                  <span className="text-muted-foreground">
+                    {String(c.category_name)}
+                  </span>
+                  <span className="font-mono tabular-nums">
+                    {String(c.percentage_of_total)}%
+                  </span>
+                </div>
+              ))}
+              <div className="pt-2 border-t text-muted-foreground font-medium">
+                Total: \u00A3 {(totalRevenue / 100).toFixed(2)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
