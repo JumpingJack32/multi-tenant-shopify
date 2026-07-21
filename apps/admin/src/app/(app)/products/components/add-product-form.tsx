@@ -11,6 +11,7 @@ import {
   MediaDropzone,
   type MediaItem,
 } from "@/components/products/media-dropzone";
+import { AIToolbar } from "@/components/ui/ai-toolbar";
 import { uploadToCloudinary } from "@/lib/cloudinary-upload";
 
 interface AddProductFormProps {
@@ -83,6 +84,7 @@ export default function AddProductForm({
     total: number;
   } | null>(null);
   const submitRef = useRef(false);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
   const addVariant = () => {
     setVariants((prev) => [
@@ -229,11 +231,13 @@ export default function AddProductForm({
               </button>
             </div>
             <Textarea
+              ref={descriptionRef}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="min-h-[200px]"
               placeholder="Product description..."
             />
+            <AIToolbar textareaRef={descriptionRef} />
           </div>
         </div>
 

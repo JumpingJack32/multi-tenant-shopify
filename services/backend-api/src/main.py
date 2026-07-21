@@ -222,6 +222,7 @@ from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
 from src.routes.admin_fulfillments import router as admin_fulfillments_router  # noqa: E402
 from src.routes.admin_webhooks import router as admin_webhooks_router  # noqa: E402
 from src.routes.ai import router as ai_router  # noqa: E402
+from src.routes.ai_transform import router as ai_transform_router  # noqa: E402
 from src.routes.analytics import router as analytics_router  # noqa: E402
 from src.routes.auth import router as auth_router  # noqa: E402
 from src.routes.categories import router as categories_router  # noqa: E402
@@ -248,6 +249,7 @@ app.include_router(storefront_router, prefix="/api/v1/storefront")
 app.include_router(exchange_rates_router)
 app.include_router(analytics_router, prefix="/api/v1/analytics")
 app.include_router(ai_router, prefix="/api/v1/ai")
+app.include_router(ai_transform_router, prefix="/api/v1/ai")
 app.include_router(tenants_router, prefix="/api/v1/tenants")
 app.include_router(products_router, prefix="/api/v1/products")
 app.include_router(orders_router, prefix="/api/v1/orders")
