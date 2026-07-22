@@ -4,45 +4,41 @@
 
 ---
 
-## Step 1 — Richer Seed Data
-
-**File:** `services/backend-api/seed_database.py`
-
-- Add `specs` arrays, multiple categories, 2-3 variants per product, demo image URLs
-- Ensure all products are `is_active: true` and `status: PUBLISHED`
-
----
-
-## Step 2 — Playwright Setup
+## Step 1 — Install Stripe SDK (Node.js)
 
 ```bash
-cd apps/storefront && pnpm add -D @playwright/test
-cd / && npx playwright install chromium
+cd apps/storefront && pnpm add stripe
 ```
 
-**File:** `e2e/purchase.spec.ts` (new)
+The Python SDK is already installed. The Node.js `stripe` package is needed for `generateTestHeaderString()`.
 
 ---
 
-## Step 3 — data-testid Attributes
+## Step 2 — Rewrite E2E Test
 
-Add `data-testid` to these storefront components:
+**File:** `apps/storefront/e2e/purchase.spec.ts`
 
-| File                     | Attribute                                                               |
-| ------------------------ | ----------------------------------------------------------------------- |
-| `product-card.tsx`       | `data-testid="product-card"`                                            |
-| `add-to-cart-button.tsx` | `data-testid="add-to-cart"`                                             |
-| `cart.tsx`               | `data-testid="cart-drawer-trigger"`                                     |
-| `cart-drawer.tsx`        | `data-testid="cart-quantity-plus"`, `data-testid="proceed-to-checkout"` |
-| `success/page.tsx`       | `data-testid="order-success-title"`                                     |
+- Phase A: PLP → PDP → API call to `/checkout/session` → assert `session_id`
+- Phase B: Construct signed `checkout.session.completed` event, POST to webhook
+- Phase C: Navigate to success page, assert order confirmation visible
 
 ---
 
-## Step 4 — Verify
+## Step 3 — Run & Verify
 
 ```bash
-# Run E2E (requires backend, storefront, and stripe listen running)
-cd / && stripe listen --forward-to localhost:8000/api/v1/storefront/webhooks/stripe &
-pnpm dev &
-npx playwright test e2e/purchase.spec.ts
+# Ensure backend, stripe listen, and storefront are running
+lsof -ti:8000 | xargs kill -9; lsof -ti:3000 | xargs kill -9
+
+# Start backend
+cd services/backend-api && nohup doppler run -- uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 &
+
+# Start stripe listen
+nohup stripe listen --forward-to localhost:8000/api/v1/storefront/webhooks/stripe &
+
+# Start storefront
+cd apps/storefront && NEXT_PUBLIC_API_URL=http://localhost:8000 pnpm dev --port 3000 &
+
+# Run test
+cd apps/storefront && NEXT_PUBLIC_API_URL=http://localhost:8000 npx playwright test e2e/purchase.spec.ts --reporter=list
 ```

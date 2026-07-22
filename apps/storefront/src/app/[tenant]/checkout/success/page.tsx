@@ -33,6 +33,7 @@ export default function CheckoutSuccessPage() {
 
   const tenantSlug = params.tenant as string;
   const sessionId = searchParams.get("session_id");
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,7 @@ export default function CheckoutSuccessPage() {
     const fetchOrder = async () => {
       try {
         const res = await fetch(
-          `/api/v1/storefront/${tenantSlug}/orders/by-session/${sessionId}`,
+          `${apiBase}/api/v1/storefront/${tenantSlug}/orders/by-session/${sessionId}`,
         );
 
         if (res.ok) {

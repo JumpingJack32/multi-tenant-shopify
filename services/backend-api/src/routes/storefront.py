@@ -838,6 +838,7 @@ async def create_customer_portal(
     """Create a Stripe Customer Portal session for managing saved cards/billing."""
     from sqlalchemy import or_
 
+    from src.config import settings
     from src.orm.models.order import Order, OrderStatus
 
     if not settings.stripe_enabled:
@@ -882,6 +883,8 @@ async def stripe_webhook(
     db: AsyncSession = Depends(get_db),
 ):
     """Handle Stripe webhook events via the active adapter."""
+    from src.config import settings
+
     if not settings.stripe_enabled:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 

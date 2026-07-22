@@ -132,8 +132,8 @@ class OrderLifecycleService:
         """
         from sqlalchemy import text
 
-        result = await self.db.exec(
-            text("SELECT id, tenant_id FROM orders WHERE payment_intent_id = :pid FOR UPDATE"),
+        result = await self.db.execute(
+            text("SELECT id, tenant_id FROM orders WHERE payment_intent_id = :pid FOR UPDATE"),  # type: ignore[arg-type]
             {"pid": payment_intent_id},
         )
         row = result.one_or_none()
