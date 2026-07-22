@@ -132,6 +132,7 @@ export function CartDrawer() {
                         {item.quantity}
                       </span>
                       <button
+                        data-testid="cart-quantity-plus"
                         onClick={() =>
                           updateQty({
                             itemId: item.id,

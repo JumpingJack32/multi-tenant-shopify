@@ -290,6 +290,7 @@ export default function CheckoutForm({ tenantSlug }: CheckoutFormProps) {
           </div>
         )}
         <button
+          data-testid="proceed-to-checkout"
           onClick={() => {
             if (!email) return;
             setLoading(true);

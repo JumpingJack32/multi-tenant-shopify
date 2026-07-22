@@ -28,6 +28,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
 
   return (
     <button
+      data-testid="add-to-cart"
       onClick={handleClick}
       disabled={added}
       className="w-full bg-primary text-primary-foreground py-4 px-6 font-semibold text-lg disabled:opacity-70"
@@ -65,6 +66,7 @@ export function AddToCartVariantButton({
 
   return (
     <button
+      data-testid="add-to-cart"
       onClick={handleClick}
       disabled={busy || added}
       className={

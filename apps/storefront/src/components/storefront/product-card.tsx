@@ -27,6 +27,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
 
   return (
     <div
+      data-testid="product-card"
       role="link"
       tabIndex={0}
       onClick={handleClick}

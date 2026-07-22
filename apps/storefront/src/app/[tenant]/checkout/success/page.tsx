@@ -135,7 +135,10 @@ export default function CheckoutSuccessPage() {
               />
             </svg>
           </div>
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight">
+          <h1
+            data-testid="order-success-title"
+            className="mt-4 text-3xl font-extrabold tracking-tight"
+          >
             Thank you for your order!
           </h1>
           <p className="mt-2 text-sm text-white/60">

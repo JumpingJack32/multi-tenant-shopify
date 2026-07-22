@@ -12,6 +12,7 @@ export function CartToggle() {
 
   return (
     <button
+      data-testid="cart-drawer-trigger"
       onClick={openDrawer}
       className="relative text-muted-foreground hover:text-foreground transition-colors"
       aria-label="Open cart"
