@@ -1,15 +1,15 @@
+"use client";
+
 import dynamic from "next/dynamic";
+import { useParams } from "next/navigation";
 
 const CheckoutFormClient = dynamic(
   () => import("@/components/storefront/checkout-form"),
   { ssr: false },
 );
 
-export default async function CheckoutPage({
-  params,
-}: {
-  params: Promise<{ tenant: string }>;
-}) {
-  const { tenant } = await params;
+export default function CheckoutPage() {
+  const params = useParams();
+  const tenant = params.tenant as string;
   return <CheckoutFormClient tenantSlug={tenant} />;
 }

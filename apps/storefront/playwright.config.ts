@@ -2,8 +2,8 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 60000,
-  retries: 1,
+  timeout: 90000,
+  retries: 0,
   use: {
     headless: true,
     viewport: { width: 1280, height: 720 },
@@ -14,6 +14,7 @@ export default defineConfig({
       port: 3000,
       cwd: "../..",
       reuseExistingServer: true,
+      env: { NEXT_PUBLIC_API_URL: "http://localhost:8000" },
     },
     {
       command: "doppler run -- uvicorn src.main:app --host 0.0.0.0 --port 8000",

@@ -796,6 +796,8 @@ async def create_storefront_checkout_session(
     _: None = Depends(throttle_checkout),
 ):
     """Create a Stripe Checkout Session — hosted payment page."""
+    from src.config import settings
+
     tenant = await _resolve_tenant(db, tenant_slug)
     request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
 

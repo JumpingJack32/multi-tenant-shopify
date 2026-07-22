@@ -316,7 +316,7 @@ async def seed_catalog(
             await session.execute(
                 text("""
                     INSERT INTO products (id, tenant_id, name, slug, description, status, sku, weight_unit, is_active, category_id, supplier_id, specs, created_at, updated_at)
-                    VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', :sku, 'kg', true, :cat_id, :sup_id, :specs::jsonb, NOW(), NOW())
+                    VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', :sku, 'kg', true, :cat_id, :sup_id, CAST(:specs AS jsonb), NOW(), NOW())
                 """),
                 {
                     "id": pid, "tid": tenant_id, "name": name,

@@ -22,7 +22,8 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
   const secondaryImage = product.images?.[1]?.url;
 
   const handleClick = () => {
-    router.push(`/${tenant}/shop/${categorySlug}/${product.slug}`);
+    const cat = categorySlug || "all";
+    router.push(`/${tenant}/shop/${cat}/${product.slug}`);
   };
 
   return (
