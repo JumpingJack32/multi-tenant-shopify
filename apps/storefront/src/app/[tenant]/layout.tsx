@@ -11,8 +11,9 @@ import { CartHydrator } from "@/components/storefront/cart-hydrator";
 import { CartToggle } from "@/components/storefront/cart-toggle";
 import { CurrencySwitcher } from "@/components/storefront/currency-switcher";
 import { SettingsHydrator } from "@/components/storefront/settings-hydrator";
+import { MobileNav, SiteNav } from "@/components/storefront/site-nav";
 import { getCartCookieName } from "@/lib/cart-cookie";
-import { fetchSettings, getCart } from "@/lib/storefront-api";
+import { fetchNavigation, fetchSettings, getCart } from "@/lib/storefront-api";
 
 export default async function TenantLayout({
   children,
@@ -34,10 +35,18 @@ export default async function TenantLayout({
     cookieStore.get("preferred_currency")?.value ?? null;
 
   if (cartId) {
-    queryClient.prefetchQuery({
+    await queryClient.prefetchQuery({
       queryKey: ["cart", tenant, cartId],
       queryFn: () => getCart(tenant, cartId),
     });
+  }
+
+  const navData = await queryClient.fetchQuery({
+    queryKey: ["navigation", "main", tenant],
+    queryFn: () => fetchNavigation(tenant),
+  });
+  if (!navData) {
+    queryClient.removeQueries({ queryKey: ["navigation", "main", tenant] });
   }
 
   const storeName = settings?.name ?? "Store";
@@ -50,23 +59,21 @@ export default async function TenantLayout({
         storeName={settings?.name ?? "Store"}
       />
       <CartDrawer />
-      <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
-        <Link
-          href={`/${tenant}`}
-          className="text-lg font-semibold tracking-tight"
-        >
-          {storeName}
-        </Link>
-        <nav className="flex items-center gap-6 text-sm">
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background px-6">
+        <div className="flex items-center gap-4">
+          <MobileNav tenant={tenant} />
           <Link
-            href={`/${tenant}/products`}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            href={`/${tenant}`}
+            className="text-lg font-semibold tracking-tight"
           >
-            Products
+            {storeName}
           </Link>
+        </div>
+        <SiteNav className="hidden lg:flex" tenant={tenant} />
+        <div className="flex items-center gap-2">
           <CurrencySwitcher defaultCurrency={preferredCurrency ?? undefined} />
           <CartToggle />
-        </nav>
+        </div>
       </header>
       {children}
     </HydrationBoundary>

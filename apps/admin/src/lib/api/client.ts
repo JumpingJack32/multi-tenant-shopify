@@ -529,6 +529,57 @@ export const api = {
         options ?? {},
       );
     },
+    salesReport(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/reports/sales" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    productsReport(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/reports/products" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    customersReport(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/reports/customers" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    cartsReport(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/reports/carts" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    liveView(options?: { tenantId?: string | null }) {
+      return request<Record<string, unknown>>(
+        "/analytics/live-view",
+        options ?? {},
+      );
+    },
+    customReport(
+      data: Record<string, unknown>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<{ columns: string[]; rows: Record<string, unknown>[] }>(
+        "/analytics/custom-reports",
+        { method: "POST", body: JSON.stringify(data), ...options },
+      );
+    },
   },
 
   segments: {
@@ -740,6 +791,97 @@ export const api = {
         method: "DELETE",
         ...options,
       });
+    },
+  },
+
+  navigation: {
+    listMenus(options?: { tenantId?: string | null }) {
+      return request<Array<{ id: string; slug: string; title: string }>>(
+        "/admin/navigation",
+        options ?? {},
+      );
+    },
+    createMenu(
+      data: { slug: string; title: string },
+      options?: { tenantId?: string | null },
+    ) {
+      return request<{ id: string; slug: string; title: string }>(
+        "/admin/navigation",
+        { method: "POST", body: JSON.stringify(data), ...options },
+      );
+    },
+    getTree(menuId: string, options?: { tenantId?: string | null }) {
+      return request<{
+        id: string;
+        slug: string;
+        title: string;
+        items: unknown[];
+      }>(`/admin/navigation/${menuId}`, options ?? {});
+    },
+    reconcileTree(
+      menuId: string,
+      data: { items: unknown[] },
+      options?: { tenantId?: string | null },
+    ) {
+      return request<{ status: string }>(`/admin/navigation/${menuId}/items`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    updateMenu(
+      menuId: string,
+      data: { title?: string },
+      options?: { tenantId?: string | null },
+    ) {
+      return request<{ status: string }>(`/admin/navigation/${menuId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+        ...options,
+      });
+    },
+    searchCategories(query: string, options?: { tenantId?: string | null }) {
+      return request<Array<{ id: string; name: string }>>(
+        `/categories?q=${encodeURIComponent(query)}`,
+        options ?? {},
+      );
+    },
+    searchCollections(query: string, options?: { tenantId?: string | null }) {
+      return request<Array<{ id: string; name: string }>>(
+        `/collections?q=${encodeURIComponent(query)}`,
+        options ?? {},
+      );
+    },
+    searchProducts(query: string, options?: { tenantId?: string | null }) {
+      return request<Array<{ id: string; name: string }>>(
+        `/products?q=${encodeURIComponent(query)}`,
+        options ?? {},
+      );
+    },
+  },
+
+  fulfillment: {
+    create(
+      orderId: string,
+      data: {
+        items_to_pack: Array<{ order_item_id: string; quantity: number }>;
+        notify_customer?: boolean;
+        carrier?: string;
+        tracking_number?: string;
+        tracking_url?: string;
+      },
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Record<string, unknown>>(
+        `/admin/orders/${orderId}/fulfillments`,
+        { method: "POST", body: JSON.stringify(data), ...options },
+      );
+    },
+    list(orderId: string, options?: { tenantId?: string | null }) {
+      return request<Array<Record<string, unknown>>>(
+        `/admin/orders/${orderId}/fulfillments`,
+        options ?? {},
+      );
     },
   },
 };

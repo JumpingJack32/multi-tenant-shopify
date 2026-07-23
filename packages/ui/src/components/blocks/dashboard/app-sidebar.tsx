@@ -112,6 +112,7 @@ const navCommerce: NavItem[] = [
     icon: <StoreIcon />,
     items: [
       { title: "Online Store", url: "/sales-channel/online-store" },
+      { title: "Navigation", url: "/navigation" },
       { title: "Point of Sale", url: "/sales-channel/pos" },
       { title: "Shop", url: "/sales-channel/shop" },
     ],
