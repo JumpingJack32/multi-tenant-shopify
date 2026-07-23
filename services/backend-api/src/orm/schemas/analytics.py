@@ -18,3 +18,17 @@ class CategoryBreakdownResponse(BaseModel):
     units_sold: int
     total_revenue: int = Field(description="Revenue in pence")
     percentage_of_total: float
+
+
+class MonthlyRetentionPoint(BaseModel):
+    month: str
+    new_customers: int
+    returning_customers: int
+    new_revenue: int
+    returning_revenue: int
+
+
+class CartAbandonmentPoint(BaseModel):
+    month: str
+    abandoned_carts: int
+    completed_carts: int

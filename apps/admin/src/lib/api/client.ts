@@ -511,6 +511,24 @@ export const api = {
         options ?? {},
       );
     },
+    customerRetention(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/customer-retention" + buildQuery(params),
+        options ?? {},
+      );
+    },
+    cartAbandonment(
+      params?: Record<string, string>,
+      options?: { tenantId?: string | null },
+    ) {
+      return request<Array<Record<string, unknown>>>(
+        "/analytics/cart-abandonment" + buildQuery(params),
+        options ?? {},
+      );
+    },
   },
 
   segments: {

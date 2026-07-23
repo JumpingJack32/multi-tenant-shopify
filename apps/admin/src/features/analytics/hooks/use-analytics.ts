@@ -35,3 +35,27 @@ export function useCategoryBreakdown(
     enabled: !!tid,
   });
 }
+
+export function useCustomerRetention(
+  params?: Record<string, string>,
+  tenantId?: string | null,
+) {
+  const tid = tenantId ?? getTenantId();
+  return useQuery({
+    queryKey: ["analytics", "customer-retention", params, tid],
+    queryFn: () => api.analytics.customerRetention(params, { tenantId: tid }),
+    enabled: !!tid,
+  });
+}
+
+export function useCartAbandonment(
+  params?: Record<string, string>,
+  tenantId?: string | null,
+) {
+  const tid = tenantId ?? getTenantId();
+  return useQuery({
+    queryKey: ["analytics", "cart-abandonment", params, tid],
+    queryFn: () => api.analytics.cartAbandonment(params, { tenantId: tid }),
+    enabled: !!tid,
+  });
+}

@@ -137,7 +137,7 @@ async def resolve_delivered_flags(db: AsyncSession):
           AND NOT EXISTS (
               SELECT 1 FROM webhook_subscribers ws
               WHERE ws.tenant_id = events.tenant_id AND ws.is_active = TRUE
-                AND events.event_type = ANY(ws.event_types)
+                AND ws.event_types::jsonb ? events.event_type
                 AND NOT EXISTS (
                     SELECT 1 FROM webhook_delivery_attempts wda
                     WHERE wda.event_id = events.id AND wda.subscriber_id = ws.id AND wda.success = TRUE
