@@ -1,4 +1,5 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
 import { useTenantContext } from "@/contexts/tenant-context";
@@ -9,6 +10,16 @@ import {
 } from "@/features/orders/hooks/use-orders";
 
 import { OrderDetailContent } from "../[id]/order-detail-content";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
 
 vi.mock("@/features/orders/hooks/use-orders", () => ({
   useOrder: vi.fn(),
@@ -113,7 +124,7 @@ describe("OrderDetailContent", () => {
     mockUseOrder({ isLoading: true, data: undefined });
     mockUseLinkedPOs([]);
     mockUseUpdateStatus();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByTestId("loading-skeleton")).toBeDefined();
   });
 
@@ -124,33 +135,33 @@ describe("OrderDetailContent", () => {
       error: new Error("Network error"),
       data: undefined,
     });
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Network error")).toBeDefined();
     expect(screen.getByText("Back to Orders")).toBeDefined();
   });
 
   it("renders order header with order number", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("SO-001")).toBeDefined();
   });
 
   it("renders customer email", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText(/buyer@test\.com/)).toBeDefined();
   });
 
   it("renders order items table", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Widget")).toBeDefined();
     expect(screen.getByText("WDG-001")).toBeDefined();
   });
 
   it("renders linked POs section when present", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Procurement")).toBeDefined();
     expect(screen.getByText("PO-001")).toBeDefined();
   });
@@ -160,13 +171,13 @@ describe("OrderDetailContent", () => {
     mockUseOrder();
     mockUseLinkedPOs([]);
     mockUseUpdateStatus();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.queryByText("Procurement")).toBeNull();
   });
 
   it("renders Mark as Paid and Cancel buttons for pending orders", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Mark as Paid")).toBeDefined();
     expect(screen.getByText("Cancel Order")).toBeDefined();
   });
@@ -178,7 +189,7 @@ describe("OrderDetailContent", () => {
     });
     mockUseLinkedPOs([]);
     mockUseUpdateStatus();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Ship Order")).toBeDefined();
   });
 
@@ -189,13 +200,13 @@ describe("OrderDetailContent", () => {
     });
     mockUseLinkedPOs([]);
     mockUseUpdateStatus();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("Current")).toBeDefined();
   });
 
   it("renders financial breakdown total", () => {
     setupDefault();
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     expect(screen.getByText("£ 29.00")).toBeDefined();
   });
 
@@ -205,7 +216,7 @@ describe("OrderDetailContent", () => {
     mockUseOrder();
     mockUseLinkedPOs([]);
     mockUseUpdateStatus({ mutateAsync });
-    render(<OrderDetailContent id="ord-001" />);
+    renderWithProviders(<OrderDetailContent id="ord-001" />);
     fireEvent.click(screen.getByText("Mark as Paid"));
     expect(mutateAsync).toHaveBeenCalledWith({
       id: "ord-001",

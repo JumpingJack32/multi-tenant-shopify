@@ -16,6 +16,7 @@ from sqlmodel import text
 
 from src.orm.base import BaseModel
 import src.orm.models  # noqa: F401 — register all models with BaseModel.metadata
+from src.services.seed_navigation import seed_navigation
 
 random.seed(42)
 
@@ -921,6 +922,7 @@ async def main() -> None:
             await seed_customer_relations(session, tenants, customers)
             order_data = await seed_orders(session, tenants, catalog, customers)
             await seed_purchase_orders(session, tenants, catalog, order_data)
+            await seed_navigation(session, tenants)
 
         total_tenants = len(tenants)
         total_products = sum(len(PRODUCTS_BY_TENANT[s]) for s in tenants)

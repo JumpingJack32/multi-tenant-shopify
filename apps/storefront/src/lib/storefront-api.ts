@@ -20,6 +20,46 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// ── Navigation ──
+
+export interface NavigationTreeItem {
+  id: string;
+  title: string;
+  type: string;
+  href?: string | null;
+  image_url?: string | null;
+  open_in_new_tab: boolean;
+  is_title_link: boolean;
+  show_view_all: boolean;
+  is_featured: boolean;
+  badge?: string | null;
+  children: NavigationTreeItem[];
+}
+
+export interface NavigationTreeResponse {
+  id: string;
+  slug: string;
+  title: string;
+  items: NavigationTreeItem[];
+}
+
+export async function fetchNavigation(
+  tenantSlug: string,
+  signal?: AbortSignal,
+): Promise<NavigationTreeResponse | null> {
+  try {
+    return await fetchJson<NavigationTreeResponse>(
+      `${API_URL}/api/v1/navigation/main?tenant_id=${tenantSlug}`,
+      {
+        signal,
+        next: { revalidate: 3600, tags: [`navigation-${tenantSlug}`] },
+      },
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ── Settings ──
 
 export async function fetchSettings(
@@ -49,7 +89,7 @@ export async function fetchStorefrontProducts(
       url.searchParams.set("collection", options.collection);
     const res = await fetchJson<PaginatedProducts>(url.toString(), {
       signal: options?.signal,
-      next: { revalidate: 0 },
+      next: { revalidate: 60, tags: [`products-${tenantSlug}`] },
     });
     return res.data ?? [];
   } catch {
@@ -64,7 +104,7 @@ export async function fetchStorefrontProduct(
   try {
     return await fetchJson<StorefrontProductResponse>(
       `${API_URL}/api/v1/storefront/${tenantSlug}/products/${productSlug}`,
-      { next: { revalidate: 0 } },
+      { next: { revalidate: 300, tags: [`products-${tenantSlug}`] } },
     );
   } catch {
     return null;
@@ -72,7 +112,6 @@ export async function fetchStorefrontProduct(
 }
 
 // ── Cart ──
-
 export async function createCart(
   tenantSlug: string,
   variantId: string,
@@ -160,6 +199,19 @@ export async function clearCart(
 }
 
 // ── Orders ──
+
+export async function fetchCustomerOrders(
+  tenantSlug: string,
+  customerEmail: string,
+): Promise<OrderResponse[]> {
+  try {
+    return await fetchJson<OrderResponse[]>(
+      `${API_URL}/api/v1/storefront/${tenantSlug}/customers/orders?customer_email=${encodeURIComponent(customerEmail)}`,
+    );
+  } catch {
+    return [];
+  }
+}
 
 export async function fetchOrder(
   tenantSlug: string,
