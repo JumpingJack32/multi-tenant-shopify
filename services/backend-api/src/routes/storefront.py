@@ -585,7 +585,16 @@ async def checkout(
 
     order_number = f"SF-{uuid4().hex[:12].upper()}"
 
-    grand_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
+    # Calculate shipping
+    shipping_total = 0
+    from src.services.shipping_service import calculate_shipping_rates
+    shipping_rates = await calculate_shipping_rates(db, tenant.tenant_id, subtotal)
+    if shipping_rates:
+        cheapest = min(shipping_rates, key=lambda r: r.cost)
+        shipping_total = int(cheapest.cost * Decimal("100"))
+
+    base_total = subtotal if (tax_config and tax_config.tax_inclusive) else subtotal + tax_total
+    grand_total = base_total + shipping_total
 
     # Capture exchange rate for ledger integrity
     base_currency = getattr(request.state, "base_currency", "GBP")
@@ -608,6 +617,7 @@ async def checkout(
         payment_status="pending",
         subtotal=subtotal,
         tax=tax_total,
+        shipping=shipping_total,
         total=grand_total,
         currency=body.currency or "USD",
         shipping_address=body.shipping_address or {},
