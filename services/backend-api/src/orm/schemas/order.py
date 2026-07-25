@@ -37,6 +37,16 @@ class OrderUpdate(PydanticBaseModel):
     notes: Optional[str] = None
 
 
+class FulfillmentResponse(PydanticBaseModel):
+    id: UUID
+    status: str
+    tracking_number: Optional[str] = None
+    carrier: Optional[str] = None
+    tracking_url: Optional[str] = None
+    shipped_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
+
+
 class OrderResponse(PydanticBaseModel):
     id: UUID
     tenant_id: UUID
@@ -62,6 +72,10 @@ class OrderResponse(PydanticBaseModel):
     items: list["OrderItemResponse"]
     created_at: datetime
     updated_at: datetime
+
+
+class OrderDetailResponse(OrderResponse):
+    fulfillments: list[FulfillmentResponse] = []
 
     @field_validator("transitions", mode="before")
     @classmethod

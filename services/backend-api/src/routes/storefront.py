@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -29,7 +30,7 @@ from src.orm.schemas.cart import (
     CreateOrderRequest,
 )
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
-from src.orm.schemas.order import OrderResponse
+from src.orm.schemas.order import OrderDetailResponse, OrderResponse
 from src.orm.schemas.storefront import (
     StorefrontImageResponse,
     StorefrontProductResponse,
@@ -641,8 +642,38 @@ async def checkout(
     cart.email = body.customer_email
     cart.status = CartStatus.COMPLETED
     cart.completed_at = datetime.now(timezone.utc)
+    order.customer_email = body.customer_email
     await db.flush()
     await db.refresh(order, ["items"])
+
+    # Send order confirmation email in background
+    if order.customer_email:
+        import asyncio
+        from src.services.email_service import create_email_service
+
+        email_svc = create_email_service()
+        asyncio.create_task(
+            email_svc.send_order_confirmation(
+                to_email=order.customer_email,
+                order={
+                    "order_number": order.order_number,
+                    "total": order.total,
+                    "items": [
+                        {
+                            "product_name": oi.product_name,
+                            "variant_name": oi.variant_name or "",
+                            "quantity": oi.quantity,
+                            "total_price": oi.total_price,
+                        }
+                        for oi in (order.items or [])
+                    ],
+                    "shipping_address": order.shipping_address,
+                },
+                tenant_name=tenant.name or tenant.slug,
+                currency=order.currency,
+                account_url=f"https://{tenant.domain if tenant.domain else tenant.slug + '.example.com'}/account/orders/{order.id}",
+            )
+        )
 
     return order
 
@@ -900,7 +931,7 @@ async def stripe_webhook(
     return {"ok": True, "order_id": order_id}
 
 
-@router.get("/{tenant_slug}/orders/{order_id}", response_model=OrderResponse)
+@router.get("/{tenant_slug}/orders/{order_id}", response_model=OrderDetailResponse)
 async def get_storefront_order(
     tenant_slug: str,
     request: Request,
@@ -908,6 +939,7 @@ async def get_storefront_order(
     db: AsyncSession = Depends(get_db),
 ):
     """Tenant-scoped order lookup for order confirmation page."""
+    from src.orm.models.fulfillment import Fulfillment
     from src.orm.models.order import Order
 
     tenant = await _resolve_tenant(db, tenant_slug)
@@ -915,7 +947,10 @@ async def get_storefront_order(
 
     stmt = (
         select(Order)
-        .options(selectinload(Order.items))
+        .options(
+            selectinload(Order.items),
+            selectinload(Order.fulfillments).selectinload(Fulfillment.items),
+        )
         .where(Order.id == order_id, Order.tenant_id == tenant.tenant_id)
     )
     result = await db.exec(stmt)
@@ -924,7 +959,7 @@ async def get_storefront_order(
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
-    return order
+    return OrderDetailResponse.model_validate(order, from_attributes=True)
 
 
 @router.get("/{tenant_slug}/orders/by-session/{session_id}", response_model=OrderResponse)
@@ -957,6 +992,32 @@ async def get_storefront_order_by_session(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found or processing payment")
 
     return order
+
+
+@router.get("/{tenant_slug}/customers/orders", response_model=list[OrderResponse])
+async def get_customer_orders(
+    tenant_slug: str,
+    customer_email: str = Query(..., description="Customer email to filter orders"),
+    db: AsyncSession = Depends(get_db),
+):
+    """List orders for a customer by email. Used by the account orders page."""
+    from src.orm.models.order import Order
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(
+            Order.tenant_id == tenant.tenant_id,
+            Order.customer_email == customer_email,
+        )
+        .order_by(Order.created_at.desc())
+    )
+    result = await db.exec(stmt)
+    orders = result.all()
+
+    return list(orders)
 
 
 

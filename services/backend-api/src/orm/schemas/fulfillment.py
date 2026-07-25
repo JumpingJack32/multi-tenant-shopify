@@ -14,6 +14,8 @@ class FulfillmentCreate(BaseModel):
     items_to_pack: list[FulfillmentItemCreate]
     carrier: Optional[str] = None
     tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    notify_customer: bool = False
 
 
 class FulfillmentItemResponse(BaseModel):

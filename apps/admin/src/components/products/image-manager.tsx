@@ -86,7 +86,7 @@ export function ImageManager({
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 p-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-end justify-center bg-linear-to-t from-black/60 p-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <input
                   type="text"
                   defaultValue={image.alt_text ?? ""}

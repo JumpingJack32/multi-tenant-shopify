@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { formatCents } from "@repo/shared-utils/currency";
 import {
   Sheet,
@@ -26,6 +26,7 @@ export function CartDrawer() {
   const { tenant } = useParams<{ tenant: string }>();
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const cartId = useCartStore((s) => s.cartId);
   const isOpen = useCartStore((s) => s.isDrawerOpen);
   const closeDrawer = useCartStore((s) => s.closeDrawer);
@@ -34,6 +35,7 @@ export function CartDrawer() {
   const { mutate: updateQty, isPending: isUpdating } = useUpdateQuantity();
   const { mutate: removeItem } = useRemoveFromCart();
   const { mutate: clear } = useClearCart();
+  const clearError = useCallback(() => setCheckoutError(null), []);
   const checkoutMutation = useCheckout();
 
   const items = cart?.items ?? [];
@@ -43,17 +45,27 @@ export function CartDrawer() {
 
   const handleCheckout = () => {
     if (!cartId) return;
-    closeDrawer();
+    setCheckoutError(null);
     checkoutMutation.mutate(
       { cartId, customer_email: email || undefined } as Parameters<
         typeof checkoutMutation.mutate
       >[0],
       {
         onSuccess: (order) => {
+          closeDrawer();
           router.push(`/${tenant}/order-confirmation/${order.id}`);
+        },
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : "Checkout failed. Please try again.";
+          setCheckoutError(msg);
         },
       },
     );
+  };
+
+  const handleRetry = () => {
+    setCheckoutError(null);
+    checkoutMutation.reset();
   };
 
   return (
@@ -114,6 +126,7 @@ export function CartDrawer() {
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => {
+                          clearError();
                           if (item.quantity <= 1) {
                             removeItem(item.id);
                           } else {
@@ -133,19 +146,23 @@ export function CartDrawer() {
                       </span>
                       <button
                         data-testid="cart-quantity-plus"
-                        onClick={() =>
+                        onClick={() => {
+                          clearError();
                           updateQty({
                             itemId: item.id,
                             quantity: item.quantity + 1,
-                          })
-                        }
+                          });
+                        }}
                         disabled={isUpdating}
                         className="w-7 h-7 flex items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-50"
                       >
                         <PlusIcon className="h-3 w-3" />
                       </button>
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => {
+                          clearError();
+                          removeItem(item.id);
+                        }}
                         className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <Trash2Icon className="h-4 w-4" />
@@ -199,6 +216,18 @@ export function CartDrawer() {
                   className="w-full border border-border rounded-sm px-3 py-2 text-sm bg-transparent mt-1"
                 />
               </div>
+              {checkoutError && (
+                <div className="bg-destructive/10 border border-destructive/30 rounded p-3 text-xs text-destructive space-y-2">
+                  <p>{checkoutError}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="underline hover:text-destructive/80"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
               <button
                 onClick={handleCheckout}
                 disabled={checkoutMutation.isPending}

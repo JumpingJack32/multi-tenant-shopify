@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@repo/shared-utils/index";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 interface OrderItem {
   id: string;
   product_name: string;
@@ -33,8 +35,6 @@ export default function CheckoutSuccessPage() {
 
   const tenantSlug = params.tenant as string;
   const sessionId = searchParams.get("session_id");
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +53,7 @@ export default function CheckoutSuccessPage() {
     const fetchOrder = async () => {
       try {
         const res = await fetch(
-          `${apiBase}/api/v1/storefront/${tenantSlug}/orders/by-session/${sessionId}`,
+          `${API_BASE}/api/v1/storefront/${tenantSlug}/orders/by-session/${sessionId}`,
         );
 
         if (res.ok) {

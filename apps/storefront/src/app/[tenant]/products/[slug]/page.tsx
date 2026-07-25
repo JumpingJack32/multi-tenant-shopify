@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { fetchStorefrontProduct } from "@/lib/storefront-api";
+import { fetchStorefrontProduct, fetchStorefrontProducts } from "@/lib/storefront-api";
 
 import { ProductDetail } from "./product-detail";
 
@@ -17,17 +16,15 @@ export default async function ProductPage({
     notFound();
   }
 
+  const relatedProducts = product.category_slug
+    ? (await fetchStorefrontProducts(tenant, { category: product.category_slug }))
+        .filter((p) => p.id !== product.id)
+        .slice(0, 4)
+    : [];
+
   return (
     <main className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <Link
-          href={`/${tenant}/products`}
-          className="inline-block text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          ← Back to Products
-        </Link>
-      </div>
-      <ProductDetail product={product} tenantSlug={tenant} />
+      <ProductDetail product={product} tenantSlug={tenant} relatedProducts={relatedProducts} />
     </main>
   );
 }

@@ -85,6 +85,29 @@ class EmailService(ABC):
         """Send abandoned cart reminder email. Returns True on success."""
         ...
 
+    @abstractmethod
+    async def send_order_confirmation(
+        self,
+        to_email: str,
+        order: dict,
+        tenant_name: str,
+        currency: str,
+        account_url: str,
+    ) -> bool:
+        """Send order confirmation email. Returns True on success."""
+        ...
+
+    @abstractmethod
+    async def send_shipping_notification(
+        self,
+        to_email: str,
+        order: dict,
+        fulfillment: dict,
+        tenant_name: str,
+    ) -> bool:
+        """Send shipping notification with tracking link. Returns True on success."""
+        ...
+
 
 class LogEmailService(EmailService):
     """Mock email service that logs instead of sending."""
@@ -109,6 +132,41 @@ class LogEmailService(EmailService):
             symbol,
             recovery_url,
             unsubscribe_token,
+        )
+        return True
+
+    async def send_order_confirmation(
+        self,
+        to_email: str,
+        order: dict,
+        tenant_name: str,
+        currency: str,
+        account_url: str,
+    ) -> bool:
+        logger.info(
+            "Order confirmation email to %s for '%s': order %s, total %s %s",
+            to_email,
+            tenant_name,
+            order.get("order_number"),
+            currency,
+            order.get("total", 0),
+        )
+        return True
+
+    async def send_shipping_notification(
+        self,
+        to_email: str,
+        order: dict,
+        fulfillment: dict,
+        tenant_name: str,
+    ) -> bool:
+        logger.info(
+            "Shipping notification email to %s for '%s': order %s, carrier %s, tracking %s",
+            to_email,
+            tenant_name,
+            order.get("order_number"),
+            fulfillment.get("carrier"),
+            fulfillment.get("tracking_number"),
         )
         return True
 
@@ -182,6 +240,76 @@ class ResendEmailService(EmailService):
             return False
 
         return True
+
+    async def send_order_confirmation(
+        self,
+        to_email: str,
+        order: dict,
+        tenant_name: str,
+        currency: str,
+        account_url: str,
+    ) -> bool:
+        symbol = CURRENCY_SYMBOLS.get(currency, currency)
+        items_html = "".join(
+            f"""
+            <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:12px 0;font-size:14px;">{i.get("product_name", "Product")}</td>
+                <td style="padding:12px 0;font-size:13px;color:#666;">{i.get("variant_name", "")}</td>
+                <td style="padding:12px 0;text-align:center;font-size:14px;">{i.get("quantity", 0)}</td>
+                <td style="padding:12px 0;text-align:right;font-size:14px;">{symbol}{"%.2f" % (i.get("total_price", 0) / 100)}</td>
+            </tr>"""
+            for i in order.get("items", [])
+        )
+        shipping = order.get("shipping_address", {})
+        address_html = f"{shipping.get('line1', '')}<br/>{shipping.get('city', '')} {shipping.get('postal_code', '')}" if shipping else ""
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Order Confirmed — {order.get("order_number", "")}</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+<h1 style="font-size:20px;font-weight:400;">{tenant_name}</h1>
+<p style="color:#666;font-size:14px;">Your order <strong>{order.get("order_number", "")}</strong> has been confirmed.</p>
+<table style="width:100%;border-collapse:collapse;margin:24px 0;">
+<tr style="border-bottom:2px solid #ddd;"><th style="text-align:left;padding:8px 0;font-size:12px;color:#666;">Item</th><th style="text-align:left;padding:8px 0;font-size:12px;color:#666;">Variant</th><th style="text-align:center;padding:8px 0;font-size:12px;color:#666;">Qty</th><th style="text-align:right;padding:8px 0;font-size:12px;color:#666;">Total</th></tr>
+{items_html}</table>
+<table style="width:100%;margin:16px 0;"><tr><td style="text-align:right;font-size:14px;font-weight:600;">Total: {symbol}{"%.2f" % (order.get("total", 0) / 100)}</td></tr></table>
+<hr style="border:none;border-top:1px solid #eee;"/>
+<p style="font-size:13px;color:#666;">{address_html}</p>
+<p style="margin-top:24px;"><a href="{account_url}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:12px 24px;border-radius:4px;font-size:14px;">View Order</a></p>
+</body></html>"""
+        return await self.send_raw(to_email, f"Order Confirmed — {order.get('order_number', '')}", html)
+
+    async def send_shipping_notification(
+        self,
+        to_email: str,
+        order: dict,
+        fulfillment: dict,
+        tenant_name: str,
+    ) -> bool:
+        tracking_url = fulfillment.get("tracking_url") or ""
+        tracking_number = fulfillment.get("tracking_number") or ""
+        carrier = fulfillment.get("carrier") or ""
+        items_list = fulfillment.get("items", []) or []
+        items_html = "".join(
+            f"""<tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0;font-size:14px;">{i.get("product_name", "Product")}</td><td style="padding:8px 0;text-align:right;font-size:14px;">x{i.get("quantity", 0)}</td></tr>"""
+            for i in items_list
+        )
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Your order has shipped — {order.get("order_number", "")}</title></head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+<h1 style="font-size:20px;font-weight:400;">{tenant_name}</h1>
+<p style="color:#666;font-size:14px;">Your order <strong>{order.get("order_number", "")}</strong> is on its way.</p>
+<table style="width:100%;margin:24px 0;"><tr><td style="padding:16px;background:#f5f5f5;border-radius:8px;">
+<p style="margin:0 0 4px;font-size:14px;">{carrier}{" — " + tracking_number if tracking_number else ""}</p>
+{"<a href='" + tracking_url + "' style='display:inline-block;margin-top:8px;color:#000;font-size:13px;'>Track Shipment →</a>" if tracking_url else ""}
+</td></tr></table>
+<table style="width:100%;border-collapse:collapse;">{items_html}</table>
+</body></html>"""
+        return await self.send_raw(to_email, f"Your {tenant_name} order has shipped", html)
 
     async def send_raw(self, to_email: str, subject: str, html: str) -> bool:
         """Send an arbitrary HTML email via Resend."""

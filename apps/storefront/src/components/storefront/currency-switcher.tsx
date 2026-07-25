@@ -45,7 +45,7 @@ export function CurrencySwitcher({
 }: {
   defaultCurrency?: string;
 }) {
-  const [current, setCurrent] = useState(defaultCurrency ?? "GBP");
+  const [current, setCurrent] = useState(defaultCurrency ?? CURRENCIES[0].code);
 
   useEffect(() => {
     const saved = getCookie(COOKIE_NAME);
@@ -54,7 +54,6 @@ export function CurrencySwitcher({
     }
   }, []);
 
-  // FIX 1: Match the full signature expected by Base UI
   const handleValueChange = useCallback(
     (value: string | null, eventDetails?: SelectRootChangeEventDetails) => {
       if (!value) return;

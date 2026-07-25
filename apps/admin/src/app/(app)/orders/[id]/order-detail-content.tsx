@@ -24,6 +24,7 @@ import {
 
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useTenantContext } from "@/contexts/tenant-context";
+import { FulfillmentSection } from "@/features/fulfillment/components/fulfillment-section";
 import {
   useOrder,
   useOrderLinkedPOs,
@@ -195,6 +196,16 @@ export function OrderDetailContent({ id }: { id: string }) {
               </Table>
             </CardContent>
           </Card>
+
+          <FulfillmentSection
+            orderId={order.id}
+            items={(order.items ?? []).map((i: any) => ({
+              id: i.id,
+              product_name: i.product_name,
+              variant_name: i.variant_name,
+              quantity: i.quantity,
+            }))}
+          />
 
           {linkedPOs && linkedPOs.length > 0 && (
             <Card>

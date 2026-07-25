@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.fulfillment import Fulfillment
+from src.orm.models.order import Order
 from src.orm.schemas.fulfillment import FulfillmentCreate, FulfillmentResponse, TrackingUpdate
 from src.services.fulfillment_service import FulfillmentService
 
@@ -31,9 +32,58 @@ async def create_fulfillment(
         carrier=body.carrier,
         tracking_number=body.tracking_number,
     )
+    if body.tracking_url:
+        fulfillment.tracking_url = body.tracking_url
+        db.add(fulfillment)
     await db.flush()
     await flush_events(staged)
     await db.refresh(fulfillment)
+
+    # Send shipping notification in background
+    if body.notify_customer:
+        from src.orm.models.tenant import Tenant
+        from src.services.email_service import create_email_service
+
+        order = (
+            await db.exec(
+                select(Order)
+                .options(selectinload(Order.items))
+                .where(Order.id == order_id, Order.tenant_id == tenant_id)
+            )
+        ).one_or_none()
+        tenant = (
+            await db.exec(select(Tenant).where(Tenant.tenant_id == tenant_id))
+        ).one_or_none()
+
+        if order and order.customer_email:
+            import asyncio
+
+            email_svc = create_email_service()
+            await db.refresh(fulfillment, ["items"])
+            asyncio.create_task(
+                email_svc.send_shipping_notification(
+                    to_email=order.customer_email,
+                    order={
+                        "order_number": order.order_number,
+                    },
+                    fulfillment={
+                        "carrier": body.carrier or "",
+                        "tracking_number": body.tracking_number or "",
+                        "tracking_url": body.tracking_url or "",
+                        "items": [
+                            {
+                                "product_name": oi.product_name,
+                                "quantity": fi.quantity,
+                            }
+                            for oi in (order.items or [])
+                            for fi in (fulfillment.items or [])
+                            if fi.order_item_id == oi.id
+                        ],
+                    },
+                    tenant_name=tenant.name if tenant and tenant.name else tenant.slug if tenant else "",
+                )
+            )
+
     return fulfillment
 
 

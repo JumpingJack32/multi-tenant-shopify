@@ -230,6 +230,8 @@ from src.routes.customers import router as customers_router  # noqa: E402
 from src.routes.inventory import router as inventory_router  # noqa: E402
 from src.routes.marketing_templates import router as marketing_templates_router  # noqa: E402
 from src.routes.media import router as media_router  # noqa: E402
+from src.routes.navigation import router as navigation_router  # noqa: E402
+from src.routes.navigation_admin import router as navigation_admin_router  # noqa: E402
 from src.routes.orders import router as orders_router  # noqa: E402
 from src.routes.product_images import router as product_images_router  # noqa: E402
 from src.routes.products import router as products_router  # noqa: E402
@@ -258,11 +260,13 @@ app.include_router(admin_fulfillments_router)
 app.include_router(admin_webhooks_router)
 app.include_router(marketing_templates_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1/media")
+app.include_router(navigation_router, prefix="/api/v1")
 app.include_router(product_images_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")
 app.include_router(collections_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(navigation_admin_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
 app.include_router(segments_router, prefix="/api/v1")
