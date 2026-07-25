@@ -78,6 +78,7 @@ class Variant(BaseModel, table=True):
     compare_at_price: Optional[int] = Field(default=None, ge=0)
     weight: Optional[float] = Field(default=None)
     weight_unit: str = Field(default="kg", max_length=10)
+    tax_code: Optional[str] = Field(default=None, max_length=50)
     inventory_quantity: int = Field(default=0)
     is_active: bool = Field(default=True)
     supplier_sku: Optional[str] = Field(default=None, max_length=255)

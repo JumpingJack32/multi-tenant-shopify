@@ -588,7 +588,8 @@ async def checkout(
     # Calculate shipping
     shipping_total = 0
     from src.services.shipping_service import calculate_shipping_rates
-    shipping_rates = await calculate_shipping_rates(db, tenant.tenant_id, subtotal)
+    cart_item_list = [{"variant_id": ci.variant_id, "quantity": ci.quantity} for ci in cart.items]
+    shipping_rates = await calculate_shipping_rates(db, tenant.tenant_id, subtotal, items=cart_item_list)
     if shipping_rates:
         cheapest = min(shipping_rates, key=lambda r: r.cost)
         shipping_total = int(cheapest.cost * Decimal("100"))

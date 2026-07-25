@@ -26,6 +26,9 @@ interface VariantRow {
   price: number;
   sku: string;
   stock: number;
+  weight: number;
+  weightUnit: string;
+  taxCode: string;
 }
 
 const OPTION_TYPES = [
@@ -75,6 +78,9 @@ export default function AddProductForm({
       price: 0,
       sku: "",
       stock: 0,
+      weight: 0,
+      weightUnit: "kg",
+      taxCode: "",
     },
   ]);
   const [submitting, setSubmitting] = useState(false);
@@ -94,6 +100,9 @@ export default function AddProductForm({
         price: 0,
         sku: "",
         stock: 0,
+        weight: 0,
+        weightUnit: "kg",
+        taxCode: "",
       },
     ]);
   };
@@ -142,6 +151,9 @@ export default function AddProductForm({
                 price: Math.round(v.price * 100),
                 sku: v.sku,
                 inventory_quantity: v.stock,
+                weight: v.weight || null,
+                weight_unit: v.weightUnit || "kg",
+                tax_code: v.taxCode || null,
               }))
             : [],
         };

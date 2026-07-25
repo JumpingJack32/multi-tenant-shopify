@@ -12,6 +12,9 @@ class ShippingMethodResponse(BaseModel):
     rate_type: str
     base_price: Decimal
     free_shipping_threshold: Optional[Decimal] = None
+    min_weight: Optional[Decimal] = None
+    max_weight: Optional[Decimal] = None
+    price_per_unit_weight: Optional[Decimal] = None
     is_active: bool
 
     model_config = {"from_attributes": True}
@@ -23,6 +26,9 @@ class CreateShippingMethodRequest(BaseModel):
     rate_type: str
     base_price: Decimal
     free_shipping_threshold: Optional[Decimal] = None
+    min_weight: Optional[Decimal] = None
+    max_weight: Optional[Decimal] = None
+    price_per_unit_weight: Optional[Decimal] = None
     is_active: bool = True
 
 
@@ -32,6 +38,9 @@ class UpdateShippingMethodRequest(BaseModel):
     rate_type: Optional[str] = None
     base_price: Optional[Decimal] = None
     free_shipping_threshold: Optional[Decimal] = None
+    min_weight: Optional[Decimal] = None
+    max_weight: Optional[Decimal] = None
+    price_per_unit_weight: Optional[Decimal] = None
     is_active: Optional[bool] = None
 
 

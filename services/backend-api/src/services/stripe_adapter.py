@@ -95,10 +95,13 @@ class CheckoutSessionAdapter(StripeAdapter):
             resolved_variants[ci.variant_id] = variant
             product_name = variant.product.name if variant.product else "Product"
             total += variant.price * ci.quantity
+            product_data: dict = {"name": product_name}
+            if variant.tax_code:
+                product_data["tax_code"] = variant.tax_code
             line_items.append({
                 "price_data": {
                     "currency": "gbp",
-                    "product_data": {"name": product_name},
+                    "product_data": product_data,
                     "unit_amount": variant.price,
                 },
                 "quantity": ci.quantity,

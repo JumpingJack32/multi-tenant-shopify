@@ -67,6 +67,7 @@ class VariantCreate(PydanticBaseModel):
     compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: str = "kg"
+    tax_code: Optional[str] = None
     inventory_quantity: int = Field(default=0, ge=0)
     is_active: bool = True
     options: dict = Field(default_factory=dict)
@@ -79,6 +80,7 @@ class VariantUpdate(PydanticBaseModel):
     compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: Optional[str] = None
+    tax_code: Optional[str] = None
     inventory_quantity: Optional[int] = Field(None, ge=0)
     is_active: Optional[bool] = None
     options: Optional[dict] = None
@@ -93,6 +95,7 @@ class VariantResponse(PydanticBaseModel):
     compare_at_price: Optional[int] = Field(None, ge=0)
     weight: Optional[float] = None
     weight_unit: str
+    tax_code: Optional[str] = None
     inventory_quantity: int
     is_active: bool
     options: dict
