@@ -20,6 +20,96 @@
 
 # This rule is not optional.
 
+# Session Context — Saved 2026-07-25 (Full Storefront Commerce Loop — Complete)
+
+> [!IMPORTANT]
+> After generating or modifying any backend files, you must check the existing database schema. Ensure tables, fields, are populated.
+
+## Session — 2026-07-25 (Full Storefront Commerce Loop)
+
+### Commits pushed to `main`
+
+| Commit | Scope | Files |
+|--------|-------|-------|
+| `c6237fe` | Navigation menu model + admin tree builder + storefront nav + SSR prefetch + Clerk public auth | 26 |
+| `2ed0cc0` | Analytics reports/live/custom, PLP/PDP upgrades, fulfillment engine, transactional emails, caching | 41 |
+| `699a16b` | Lockfile update for @dnd-kit | 1 |
+| `5690b41` | Tax/shipping Phase 1: ShippingMethod model, flat-rate/threshold shipping, admin settings | 10 |
+| `1143557` | Wire shipping calculation into checkout flow | 1 |
+| `d6d1c98` | Test import fix, marketing automation under-construction page | 2 |
+| `aeb9d0f` | Tax/shipping Phase 2: weight-based tiers, Stripe Tax codes, weight normalization | 10 |
+
+### Navigation Menu
+
+- NavigationMenu + NavigationItem models with tenant isolation, compound index `(menu_id, parent_id, sort_order)`
+- `GET /api/v1/navigation/{slug}` — O(n) in-memory tree builder, max 3 depth levels
+- `PUT /api/v1/admin/navigation/{menu_id}/items` — 4-phase batch reconcile (fetch → flatten → delete → upsert)
+- Admin UI: @dnd-kit drag-and-drop tree builder, link picker modal (categories/collections/products/custom), item properties drawer, save/discard workflow
+- Storefront SiteNav (desktop mega menu) + MobileNav (Sheet + Accordion) with Base UI render props
+- SSR prefetch with `placeholderData` fallback eliminates nav flash
+- tenant-scoped cache tags with `POST /api/revalidate` fire-and-forget invalidation
+
+### Analytics Reports
+
+- `GET /reports/sales|products|customers|carts` with `?format=csv` streaming
+- `GET /live-view` — active carts, today's revenue/orders, activity feed (30s polling)
+- `POST /custom-reports` — whitelist-validated dimensions/metrics/filters → dynamic SQL
+
+### Storefront PLP/PDP
+
+- Catch-all `[...path]/page.tsx` resolves nav taxonomy → category-filtered PLP
+- ProductListing with sort (newest/price/name), load-more pagination, `useSearchParams` URL sync
+- ImageGallery: desktop thumbnail strip, mobile dot indicators, SVG placeholder fallback
+- VariantSelector: labelled option rows, stock-aware cross-checking, auto-select first valid variant
+- ProductDetail: two-column layout, breadcrumb, collapsible description, related products grid
+
+### Cart & Checkout
+
+- Checkout error banner: surface backend stock error messages inline
+- Drawer stays open on checkout failure, error clears on cart interaction
+
+### Fulfillment Engine
+
+- FulfillmentSection admin UI: per-item quantity pickers, carrier select with auto-generated tracking URL, "notify customer" toggle
+- Backend fulfillment already existed: `FulfillmentService` with over-fulfillment protection, tracking updates, cancel
+
+### Customer Order History
+
+- `GET /{tenant}/customers/orders` — list orders by customer email
+- Storefront `account/orders/` — card list with status badges, item previews
+- `account/orders/[id]` — status timeline (physical: Placed/Processing/Shipped/Delivered, digital: Placed/Fulfilled), fulfillment cards with tracking/carrier/links, line items, order summary, shipping address
+
+### Transactional Emails
+
+- `send_order_confirmation()` triggered after checkout completion (background task)
+- `send_shipping_notification()` triggered on fulfillment creation when `notify_customer=true`
+- Inline HTML (matching existing abandoned cart pattern), LogEmailService for dev, Resend for production
+
+### Performance Caching
+
+- `fetchNavigation`: `next: { revalidate: 3600, tags: ["navigation-{slug}"] }`
+- `fetchStorefrontProducts`: `next: { revalidate: 60, tags: ["products-{slug}"] }`
+- `fetchStorefrontProduct`: `next: { revalidate: 300, tags: ["products-{slug}"] }`
+- `POST /api/revalidate` route with `REVALIDATION_SECRET` guard
+- Backend fire-and-forget revalidation calls via `asyncio.create_task`
+
+### Tax & Shipping — Phase 1
+
+- ShippingMethod model with FLAT_RATE and THRESHOLD rate types + CRUD endpoints
+- Shipping service: `calculate_shipping_rates()` with threshold evaluation (free over $X)
+- Admin shipping page: list/create/delete methods
+- Admin tax page: rate (×10000), inclusive/exclusive toggle
+- Shipping cost computed during checkout, stored on `Order.shipping`
+
+### Tax & Shipping — Phase 2
+
+- `Variant.tax_code` field for Stripe Tax codes (migration applied)
+- Weight normalization (kg/g/lb/oz → kg) in shipping service
+- `ShippingMethod.min_weight`, `max_weight`, `price_per_unit_weight` weight brackets
+- Rate formula: `base_price + (total_weight_kg * price_per_unit_weight)`
+- Stripe Checkout Session forwards `tax_code` on line items
+- Admin variant form: weight, weight_unit, tax_code fields
+
 # Session Context — Saved 2026-07-12 (Storefront Currency Switcher — Merged)
 
 > [!IMPORTANT]

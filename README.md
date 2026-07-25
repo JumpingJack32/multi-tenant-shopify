@@ -180,26 +180,32 @@ This starts:
 | Feature                     | Description                                                                    |
 | --------------------------- | ------------------------------------------------------------------------------ |
 | **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context                  |
+| **Navigation Menu**         | Dynamic per-tenant nav tree, admin drag-and-drop builder, storefront mega menu |
 | **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media                     |
 | **Customer Management**     | Segmentation, saved segments, store credit, timeline, import/export CSV        |
 | **Order Lifecycle**         | State machine, inventory deduction, refund-to-store-credit                     |
 | **Multi-Currency**          | Exchange rate conversion, storefront display, ledger capture                   |
-| **Tax Engine**              | Per-tenant configurable rates, half-up rounding, inclusive/exclusive           |
+| **Tax Engine**              | Per-tenant configurable rates (×10000), inclusive/exclusive, Stripe Tax codes  |
+| **Shipping**                | Flat-rate, free-threshold, weight-based tiers; admin configurable              |
 | **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard              |
-| **Dashboard & Analytics**   | Net revenue, time-series charts, period filters, action center                 |
+| **Dashboard & Analytics**   | Reports (sales/products/customers/carts), live view, custom SQL builder        |
+| **Storefront PLP/PDP**     | Catch-all taxonomy routes, sort/filter, image gallery, stock-aware variants   |
 | **Automated Campaigns**     | Background segment evaluation, campaign dispatch via Resend batch              |
 | **Campaign Dispatch**       | Scheduled sends via CampaignRunner, progress tracking, cancel/retry            |
 | **Email Templates**         | Unlayer visual editor, Jinja2 tokens, Resend delivery                          |
+| **Transactional Emails**    | Order confirmation + shipping notification via Resend (background tasks)       |
 | **Stripe Checkout**         | Hosted Checkout Sessions with Adapter Pattern, anyio thread safety             |
 | **Stripe Customer Portal**  | Self-serve billing management, saved cards, guest auth guard                   |
 | **AI Content Generation**   | FastAPI adapter (Ollama/OpenRouter/OpenAI), SSE streaming, bleach sanitization |
 | **Rich Text Editor**        | Unlayer-based WYSIWYG with merge tags for campaign templates                   |
 | **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                                  |
 | **Order Management**        | State machine with valid transitions, filtering, pagination                    |
+| **Customer Order History**  | Storefront account orders page with fulfillment tracking cards                 |
 | **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                               |
 | **Currency Switcher**       | Storefront multi-currency with price conversion                                |
 | **CSV Import**              | Bulk customer import with error resolution and inline correction UI            |
 | **Rate Limiting**           | In-memory (pluggable Redis)                                                    |
+| **Performance Caching**     | Next.js fetch cache with tenant-scoped tags, SWR, fire-and-forget revalidation |
 | **Error Tracking**          | Sentry (optional)                                                              |
 
 ---
