@@ -9,6 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
 from src.orm.models.category import Category
+from src.orm.models.inventory import InventoryNode, InventoryStock, InventoryTransfer
 from src.orm.models.product import Inventory, Location, Product, ProductImage, Variant
 from src.orm.models.purchase_order import Supplier
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
@@ -16,7 +17,14 @@ from src.orm.schemas.inventory import (
     InventoryItemCreateInput,
     InventoryItemPatchInput,
     InventoryItemResponse,
+    InventoryNodeCreate,
+    InventoryNodeResponse,
+    InventoryNodeUpdate,
     InventoryStatsResponse,
+    InventoryStockResponse,
+    InventoryStockUpdate,
+    InventoryTransferCreate,
+    InventoryTransferResponse,
     InventoryVariantResponse,
 )
 
@@ -443,3 +451,233 @@ async def delete_item(
 
     await db.delete(product)
     await db.flush()
+
+
+# ── Multi-Warehouse Nodes ─────────────────────────────────────────────
+
+
+@router.get("/admin/inventory/nodes", response_model=list[InventoryNodeResponse])
+async def list_nodes(
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    result = await db.exec(
+        select(InventoryNode)
+        .where(InventoryNode.tenant_id == tenant_id)
+        .order_by(InventoryNode.priority.asc())
+    )
+    return [InventoryNodeResponse.model_validate(n) for n in result.all()]
+
+
+@router.post("/admin/inventory/nodes", response_model=InventoryNodeResponse, status_code=201)
+async def create_node(
+    body: InventoryNodeCreate,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    node = InventoryNode(
+        tenant_id=tenant_id,
+        name=body.name,
+        type=body.type,
+        is_active=body.is_active,
+        priority=body.priority,
+        address=body.address,
+    )
+    db.add(node)
+    await db.commit()
+    await db.refresh(node)
+    return InventoryNodeResponse.model_validate(node)
+
+
+@router.put("/admin/inventory/nodes/{node_id}", response_model=InventoryNodeResponse)
+async def update_node(
+    node_id: UUID,
+    body: InventoryNodeUpdate,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    node = (
+        await db.exec(
+            select(InventoryNode).where(
+                InventoryNode.id == node_id,
+                InventoryNode.tenant_id == tenant_id,
+            )
+        )
+    ).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    for key, val in body.model_dump(exclude_unset=True).items():
+        setattr(node, key, val)
+    db.add(node)
+    await db.commit()
+    await db.refresh(node)
+    return InventoryNodeResponse.model_validate(node)
+
+
+@router.delete("/admin/inventory/nodes/{node_id}", status_code=204)
+async def deactivate_node(
+    node_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    node = (
+        await db.exec(
+            select(InventoryNode).where(
+                InventoryNode.id == node_id,
+                InventoryNode.tenant_id == tenant_id,
+            )
+        )
+    ).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+    node.is_active = False
+    db.add(node)
+    await db.commit()
+
+
+# ── Multi-Warehouse Stock ─────────────────────────────────────────────
+
+
+@router.get("/admin/inventory/nodes/{node_id}/stock", response_model=list[InventoryStockResponse])
+async def list_node_stock(
+    node_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    result = await db.exec(
+        select(InventoryStock).where(
+            InventoryStock.node_id == node_id,
+            InventoryStock.tenant_id == tenant_id,
+        )
+    )
+    return [
+        InventoryStockResponse(
+            id=s.id,
+            variant_id=s.variant_id,
+            node_id=s.node_id,
+            quantity=s.quantity,
+            reserved=s.reserved,
+            available=s.quantity - s.reserved,
+        )
+        for s in result.all()
+    ]
+
+
+@router.put("/admin/inventory/stock", response_model=InventoryStockResponse)
+async def update_stock(
+    body: InventoryStockUpdate,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.inventory_service import recompute_cache
+
+    existing = (
+        await db.exec(
+            select(InventoryStock).where(
+                InventoryStock.variant_id == body.variant_id,
+                InventoryStock.node_id == body.node_id,
+                InventoryStock.tenant_id == tenant_id,
+            )
+        )
+    ).first()
+
+    if existing:
+        existing.quantity = body.quantity
+        db.add(existing)
+    else:
+        existing = InventoryStock(
+            tenant_id=tenant_id,
+            variant_id=body.variant_id,
+            node_id=body.node_id,
+            quantity=body.quantity,
+            reserved=0,
+        )
+        db.add(existing)
+
+    await db.flush()
+    await recompute_cache(db, body.variant_id)
+    await db.refresh(existing)
+
+    return InventoryStockResponse(
+        id=existing.id,
+        variant_id=existing.variant_id,
+        node_id=existing.node_id,
+        quantity=existing.quantity,
+        reserved=existing.reserved,
+        available=existing.quantity - existing.reserved,
+    )
+
+
+# ── Multi-Warehouse Transfers ─────────────────────────────────────────
+
+
+@router.post("/admin/inventory/transfers", response_model=InventoryTransferResponse, status_code=201)
+async def create_transfer(
+    body: InventoryTransferCreate,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    from src.services.inventory_service import create_transfer as svc_transfer
+
+    await svc_transfer(
+        db=db,
+        tenant_id=tenant_id,
+        from_node_id=body.from_node_id,
+        to_node_id=body.to_node_id,
+        variant_id=body.variant_id,
+        quantity=body.quantity,
+        reason=body.reason,
+    )
+    await db.commit()
+
+    # Fetch the created transfer record
+    result = await db.exec(
+        select(InventoryTransfer)
+        .where(
+            InventoryTransfer.from_node_id == body.from_node_id,
+            InventoryTransfer.to_node_id == body.to_node_id,
+            InventoryTransfer.variant_id == body.variant_id,
+            InventoryTransfer.tenant_id == tenant_id,
+        )
+        .order_by(InventoryTransfer.created_at.desc())
+    )
+    transfer = result.first()
+    return InventoryTransferResponse.model_validate(transfer)
+
+
+@router.get("/admin/inventory/transfers", response_model=list[InventoryTransferResponse])
+async def list_transfers(
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    result = await db.exec(
+        select(InventoryTransfer)
+        .where(InventoryTransfer.tenant_id == tenant_id)
+        .order_by(InventoryTransfer.created_at.desc())
+    )
+    return [InventoryTransferResponse.model_validate(t) for t in result.all()]
+
+
+@router.patch("/admin/inventory/transfers/{transfer_id}", response_model=InventoryTransferResponse)
+async def update_transfer_status(
+    transfer_id: UUID,
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    tenant_id: UUID = Depends(get_current_tenant_id),
+):
+    transfer = (
+        await db.exec(
+            select(InventoryTransfer).where(
+                InventoryTransfer.id == transfer_id,
+                InventoryTransfer.tenant_id == tenant_id,
+            )
+        )
+    ).first()
+    if not transfer:
+        raise HTTPException(status_code=404, detail="Transfer not found")
+    if "status" in body:
+        transfer.status = body["status"]
+    db.add(transfer)
+    await db.commit()
+    await db.refresh(transfer)
+    return InventoryTransferResponse.model_validate(transfer)
