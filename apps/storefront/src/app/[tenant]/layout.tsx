@@ -10,6 +10,7 @@ import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CartHydrator } from "@/components/storefront/cart-hydrator";
 import { CartToggle } from "@/components/storefront/cart-toggle";
 import { CurrencySwitcher } from "@/components/storefront/currency-switcher";
+import { SearchDialog } from "@/components/storefront/search-dialog";
 import { SettingsHydrator } from "@/components/storefront/settings-hydrator";
 import { MobileNav, SiteNav } from "@/components/storefront/site-nav";
 import { getCartCookieName } from "@/lib/cart-cookie";
@@ -71,6 +72,7 @@ export default async function TenantLayout({
         </div>
         <SiteNav className="hidden lg:flex" tenant={tenant} />
         <div className="flex items-center gap-2">
+          <SearchDialog tenantSlug={tenant} />
           <CurrencySwitcher defaultCurrency={preferredCurrency ?? undefined} />
           <CartToggle />
         </div>
