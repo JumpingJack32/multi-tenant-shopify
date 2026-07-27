@@ -5,6 +5,7 @@ from src.orm.models.collection import Collection, ProductCollection  # noqa: F40
 from src.orm.models.dispatch import CampaignDispatch, CampaignDispatchRecipient  # noqa: F401
 from src.orm.models.event import Event  # noqa: F401
 from src.orm.models.fulfillment import Fulfillment, FulfillmentItem  # noqa: F401
+from src.orm.models.inventory import InventoryNode, InventoryStock, InventoryTransfer  # noqa: F401
 from src.orm.models.navigation import NavigationItem, NavigationMenu  # noqa: F401
 from src.orm.models.order import (  # noqa: F401
     Customer,

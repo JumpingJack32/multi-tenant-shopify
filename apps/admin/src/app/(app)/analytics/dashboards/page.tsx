@@ -1,3 +1,4 @@
+// apps/admin/src/app/(app)/analytics/dashboards/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,12 +7,12 @@ import {
   AreaChart,
   Bar,
   BarChart,
-  Cell,
   ComposedChart,
   Legend,
   Line,
   Pie,
   PieChart,
+  Sector,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -255,11 +256,11 @@ export default function AnalyticsDashboardPage() {
                     innerRadius={50}
                     outerRadius={80}
                     dataKey="value"
-                  >
-                    {categories.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
+                    shape={(props: any) => {
+                      const { index } = props;
+                      return <Sector {...props} fill={COLORS[(index ?? 0) % COLORS.length]} />;
+                    }}
+                  />
                   <Tooltip />
                 </PieChart>
                 <div className="space-y-1.5 text-sm">

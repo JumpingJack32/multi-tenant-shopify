@@ -1,3 +1,4 @@
+# services/backend-api/src/routes/webhooks.py
 import base64
 from datetime import datetime, timezone
 import hashlib
@@ -40,9 +41,14 @@ async def svix_webhook(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Svix webhooks not configured",
         )
-
     try:
-        wh = SvixWebhook(settings.svix_webhook_secret)
+        wh_secret = settings.svix_webhook_secret
+        if not wh_secret:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Svix webhook secret not configured",
+            )
+        wh = SvixWebhook(wh_secret)
         wh.verify(body, {
             "svix-signature": svix_signature,
             "svix-timestamp": svix_timestamp,

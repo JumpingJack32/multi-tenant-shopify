@@ -1,3 +1,4 @@
+// apps/admin/src/features/inventory/components/inventory-table.tsx
 import type { InventoryItem } from "@repo/tenant-orm/types";
 import {
   AlertDialog,
@@ -76,7 +77,7 @@ export function InventoryTable({
             <TableHead>Category</TableHead>
             <TableHead className="text-right">Stock</TableHead>
             <TableHead className="text-right">Value</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>

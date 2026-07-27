@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { Product } from "@repo/tenant-orm/types";
 import { ArrowLeftIcon, PackageIcon, PlusIcon } from "@repo/ui/icons";
 
@@ -21,7 +21,7 @@ import {
 
 import AddProductForm from "./components/add-product-form";
 
-export default function ProductsPage() {
+function ProductsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const view = searchParams.get("view") || "overview";
@@ -96,7 +96,7 @@ export default function ProductsPage() {
   const canDelete = can("delete");
 
   return (
-    <main
+    <div
       className="flex-1 overflow-y-auto p-6"
       style={{ backgroundImage: "url('/drew-beamer.jpg')" }}
     >
@@ -248,6 +248,14 @@ export default function ProductsPage() {
           </button>
         </div>
       )}
-    </main>
+    </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }
