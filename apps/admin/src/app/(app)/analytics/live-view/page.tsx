@@ -1,3 +1,4 @@
+// apps/admin/src/app/(app)/analytics/live-view/page.tsx
 "use client";
 
 import { Badge } from "@repo/ui/components/ui/badge";
@@ -42,7 +43,7 @@ export default function LiveViewPage() {
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-2xl font-bold">Live View</h1>
 
-      {/* KPI strip */}
+      {/* Key Performance Indicators (KPI) strip */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
