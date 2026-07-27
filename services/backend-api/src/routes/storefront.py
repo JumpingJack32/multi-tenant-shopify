@@ -554,6 +554,20 @@ async def checkout(
                 detail=f"Insufficient stock for variant {v.sku}: requested {ci.quantity}, available {v.inventory_quantity}",
             )
 
+    # Reserve inventory at best available node
+    from src.services.inventory_service import auto_allocate, reserve as reserve_stock
+
+    allocation: dict[UUID, UUID] = {}
+    for ci in cart.items:
+        node_id = await auto_allocate(db, tenant.tenant_id, ci.variant_id, ci.quantity)
+        if not node_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"No warehouse with sufficient stock for variant {ci.variant.sku}",
+            )
+        await reserve_stock(db, ci.variant_id, node_id, ci.quantity)
+        allocation[ci.variant_id] = node_id
+
     # Use consumer's preferred currency if available
     preferred = getattr(request.state, "target_currency", None)
     if preferred:
@@ -624,6 +638,7 @@ async def checkout(
         shipping_address=body.shipping_address or {},
         billing_address=body.billing_address or {},
         notes=body.notes,
+        options={"node_allocations": {str(k): str(v) for k, v in allocation.items()}},
     )
     db.add(order)
     await db.flush()

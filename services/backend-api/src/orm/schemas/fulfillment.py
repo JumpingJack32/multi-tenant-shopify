@@ -16,6 +16,7 @@ class FulfillmentCreate(BaseModel):
     tracking_number: Optional[str] = None
     tracking_url: Optional[str] = None
     notify_customer: bool = False
+    node_id: Optional[UUID] = None
 
 
 class FulfillmentItemResponse(BaseModel):

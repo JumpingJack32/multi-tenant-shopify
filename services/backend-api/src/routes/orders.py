@@ -425,6 +425,22 @@ async def cancel_order(
         await db.flush()
         await flush_events(staged)
         await db.refresh(order)
+
+        # Release inventory reservations
+        if order and order.items:
+            from src.services.inventory_service import release as release_stock
+
+            allocations = (order.options or {}).get("node_allocations", {})
+            for oi in order.items:
+                if oi.variant_id:
+                    node_id_str = allocations.get(str(oi.variant_id))
+                    node_id = UUID(node_id_str) if node_id_str else None
+                    if node_id:
+                        try:
+                            await release_stock(db, oi.variant_id, node_id, oi.quantity)
+                        except Exception:
+                            pass
+
         return order
     except Exception as e:
         from fastapi import status

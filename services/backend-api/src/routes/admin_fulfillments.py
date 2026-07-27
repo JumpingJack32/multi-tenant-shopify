@@ -39,6 +39,26 @@ async def create_fulfillment(
     await flush_events(staged)
     await db.refresh(fulfillment)
 
+    # Deduct inventory from the specified node
+    if body.node_id and body.items_to_pack:
+        from src.services.inventory_service import deduct as deduct_stock
+
+        order = (
+            await db.exec(
+                select(Order)
+                .options(selectinload(Order.items))
+                .where(Order.id == order_id, Order.tenant_id == tenant_id)
+            )
+        ).one_or_none()
+        if order:
+            for fi in body.items_to_pack:
+                oi = next((i for i in (order.items or []) if i.id == fi.order_item_id), None)
+                if oi and oi.variant_id:
+                    try:
+                        await deduct_stock(db, oi.variant_id, body.node_id, fi.quantity)
+                    except Exception:
+                        pass  # non-blocking: fulfillment already created
+
     # Send shipping notification in background
     if body.notify_customer:
         from src.orm.models.tenant import Tenant
