@@ -24,9 +24,10 @@ const STATUS_VARIANTS: Record<string, string> = {
 interface OrdersTableProps {
   orders: Order[];
   onRowClick: (id: string) => void;
+  apiBase?: string;
 }
 
-export function OrdersTable({ orders, onRowClick }: OrdersTableProps) {
+export function OrdersTable({ orders, onRowClick, apiBase }: OrdersTableProps) {
   if (!orders || orders.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -45,6 +46,7 @@ export function OrdersTable({ orders, onRowClick }: OrdersTableProps) {
           <TableHead>Payment</TableHead>
           <TableHead>Total</TableHead>
           <TableHead>Date</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -79,6 +81,18 @@ export function OrdersTable({ orders, onRowClick }: OrdersTableProps) {
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {new Date(order.created_at).toLocaleDateString()}
+            </TableCell>
+            <TableCell>
+              {apiBase && (
+                <a
+                  href={`${apiBase}/api/v1/admin/orders/${order.id}/pdf`}
+                  download
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  PDF
+                </a>
+              )}
             </TableCell>
           </TableRow>
         ))}
