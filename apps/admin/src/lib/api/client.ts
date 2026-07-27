@@ -357,6 +357,12 @@ export const api = {
         rest,
       );
     },
+    metrics(options?: { tenantId?: string | null }) {
+      return request<Record<string, unknown>>(
+        "/admin/dashboard/metrics",
+        options ?? {},
+      );
+    },
   },
 
   marketing: {
