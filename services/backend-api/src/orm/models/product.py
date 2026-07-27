@@ -34,6 +34,8 @@ class Product(BaseModel, table=True):
     weight: Optional[float] = Field(default=None)
     weight_unit: str = Field(default="kg", max_length=10)
     is_active: bool = Field(default=True)
+    avg_rating: int = Field(default=0)
+    review_count: int = Field(default=0)
     supplier_id: Optional[UUID] = Field(default=None, foreign_key="suppliers.id", nullable=True, ondelete="RESTRICT")
     specs: Optional[list[dict[str, str]]] = Field(
         default=None,
