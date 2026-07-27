@@ -22,13 +22,17 @@ import {
 } from "@/hooks/use-cart";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { useTenantStore } from "@/hooks/use-tenant-store";
-import { fetchShippingInfo } from "@/lib/storefront-api";
+import { fetchShippingInfo, validatePromoCode } from "@/lib/storefront-api";
 
 export function CartDrawer() {
   const { tenant } = useParams<{ tenant: string }>();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoMessage, setPromoMessage] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
   const cartId = useCartStore((s) => s.cartId);
   const isOpen = useCartStore((s) => s.isDrawerOpen);
   const closeDrawer = useCartStore((s) => s.closeDrawer);
@@ -77,6 +81,27 @@ export function CartDrawer() {
         },
       },
     );
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoMessage("");
+    const result = await validatePromoCode(tenant, promoCode, subtotal);
+    setPromoLoading(false);
+    if (result.valid && result.discount) {
+      setPromoDiscount(result.discount);
+      setPromoMessage(result.message ?? "Promo applied");
+    } else {
+      setPromoDiscount(0);
+      setPromoMessage(result.message ?? "Invalid code");
+    }
+  };
+
+  const handleClearPromo = () => {
+    setPromoCode("");
+    setPromoDiscount(0);
+    setPromoMessage("");
   };
 
   const handleRetry = () => {
@@ -217,6 +242,35 @@ export function CartDrawer() {
                 </div>
               )}
 
+              {/* Promo code */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Promo code"
+                  className="flex-1 border border-border rounded-sm px-3 py-2 text-sm bg-transparent"
+                />
+                {promoDiscount > 0 ? (
+                  <button onClick={handleClearPromo} className="text-xs text-destructive underline whitespace-nowrap">
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleApplyPromo}
+                    disabled={promoLoading || !promoCode.trim()}
+                    className="text-xs font-medium text-primary underline whitespace-nowrap disabled:opacity-50"
+                  >
+                    {promoLoading ? "..." : "Apply"}
+                  </button>
+                )}
+              </div>
+              {promoMessage && (
+                <p className={`text-xs ${promoDiscount > 0 ? "text-green-600" : "text-destructive"}`}>
+                  {promoMessage}
+                </p>
+              )}
+
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-mono font-semibold text-base">
@@ -227,6 +281,12 @@ export function CartDrawer() {
                   )}
                 </span>
               </div>
+              {promoDiscount > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-600">Discount</span>
+                  <span className="font-mono text-green-600">-{formatCents(promoDiscount, currency)}</span>
+                </div>
+              )}
               {taxTotal > 0 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Tax</span>

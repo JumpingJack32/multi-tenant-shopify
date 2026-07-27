@@ -131,6 +131,27 @@ export async function fetchStorefrontProduct(
   }
 }
 
+// ── Promotions ──
+
+export async function validatePromoCode(
+  tenantSlug: string,
+  code: string,
+  subtotal: number,
+): Promise<{ valid: boolean; discount?: number; message?: string }> {
+  try {
+    return await fetchJson(
+      `${API_URL}/api/v1/storefront/${tenantSlug}/promotions/validate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal }),
+      },
+    );
+  } catch {
+    return { valid: false, message: "Could not validate promo code" };
+  }
+}
+
 // ── Cart ──
 export async function createCart(
   tenantSlug: string,
