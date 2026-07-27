@@ -17,8 +17,8 @@ else:
     async_engine: AsyncEngine = sa_create_async_engine(
         settings.database_url,
         echo=settings.debug,
-        pool_size=20,
-        max_overflow=10,
+        pool_size=50,
+        max_overflow=25,
         pool_pre_ping=True,
         pool_recycle=1800,
     )
