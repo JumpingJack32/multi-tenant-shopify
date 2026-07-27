@@ -27,7 +27,7 @@ export default async function TaxonomyCategoryPage({
   const products = await fetchStorefrontProducts(tenant, { category: leafSlug });
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <nav className="text-sm text-muted-foreground mb-6">
           <Link href={`/${tenant}`} className="hover:text-foreground">Home</Link>
@@ -62,6 +62,6 @@ export default async function TaxonomyCategoryPage({
           />
         </Suspense>
       </div>
-    </main>
+    </div>
   );
 }

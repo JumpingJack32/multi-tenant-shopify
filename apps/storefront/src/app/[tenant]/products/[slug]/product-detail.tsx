@@ -8,6 +8,8 @@ import { formatCents } from "@repo/shared-utils/currency";
 import { ProductCard } from "@/app/[tenant]/products/product-card";
 import { AddToCartVariantButton } from "@/components/storefront/add-to-cart-button";
 import { ImageGallery } from "@/components/storefront/image-gallery";
+import { ReviewSection } from "@/components/storefront/review-section";
+import { ReviewStars } from "@/components/storefront/review-stars";
 import { ShippingEstimator } from "@/components/storefront/shipping-estimator";
 import { VariantSelector, type VariantWithImage } from "@/components/storefront/variant-selector";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -65,6 +67,11 @@ export function ProductDetail({ product, tenantSlug, relatedProducts = [] }: Pro
         <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
           <div>
             <h1 className="text-3xl font-bold">{product.name}</h1>
+            {(product as any).review_count > 0 && (
+              <div className="mt-1">
+                <ReviewStars rating={(product as any).avg_rating / 100} size="sm" showValue count={(product as any).review_count} />
+              </div>
+            )}
             <div className="mt-3 flex items-baseline gap-2">
               <p className="text-2xl font-mono">
                 {formatCents(displayPrice, currency)}
@@ -134,6 +141,13 @@ export function ProductDetail({ product, tenantSlug, relatedProducts = [] }: Pro
           </div>
         </section>
       )}
+
+      <ReviewSection
+        tenantSlug={tenantSlug}
+        productId={product.id}
+        avgRating={(product as any).avg_rating ?? 0}
+        reviewCount={(product as any).review_count ?? 0}
+      />
     </div>
   );
 }
