@@ -77,3 +77,67 @@ class InventoryItemPatchInput(BaseModel):
     supplier: Optional[str] = None
     price: Optional[int] = Field(None, ge=0)
     stock: Optional[int] = Field(None, ge=0)
+
+
+class InventoryNodeResponse(BaseModel):
+    id: UUID
+    name: str
+    type: str
+    is_active: bool
+    priority: int
+    address: dict
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryNodeCreate(BaseModel):
+    name: str
+    type: str = "warehouse"
+    is_active: bool = True
+    priority: int = 0
+    address: dict = {}
+
+
+class InventoryNodeUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    is_active: Optional[bool] = None
+    priority: Optional[int] = None
+    address: Optional[dict] = None
+
+
+class InventoryStockResponse(BaseModel):
+    id: UUID
+    variant_id: UUID
+    node_id: UUID
+    quantity: int
+    reserved: int
+    available: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryStockUpdate(BaseModel):
+    variant_id: UUID
+    node_id: UUID
+    quantity: int
+
+
+class InventoryTransferResponse(BaseModel):
+    id: UUID
+    from_node_id: UUID
+    to_node_id: UUID
+    variant_id: UUID
+    quantity: int
+    status: str
+    reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InventoryTransferCreate(BaseModel):
+    from_node_id: UUID
+    to_node_id: UUID
+    variant_id: UUID
+    quantity: int
+    reason: Optional[str] = None
