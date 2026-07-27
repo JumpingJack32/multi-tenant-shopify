@@ -16,6 +16,7 @@ import {
 import { Badge } from "@repo/ui/components/ui/badge";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -44,6 +45,7 @@ import {
   SectionCardsSkeleton,
 } from "@/features/dashboard/components/section-cards";
 import { useDashboard } from "@/features/dashboard/hooks/use-dashboard";
+import { useDashboardMetrics } from "@/hooks/use-dashboard-metrics";
 
 function formatPence(n: number): string {
   return `\u00A3 ${(n / 100).toFixed(2)}`;
@@ -70,6 +72,7 @@ export default function DashboardPage() {
   const period = searchParams.get("period") || "30d";
   const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
   const dashboardQuery = useDashboard(currentTenantId, period);
+  const metricsQuery = useDashboardMetrics(currentTenantId);
 
   if (tenantLoading || dashboardQuery.isPending) {
     return (
@@ -280,6 +283,66 @@ export default function DashboardPage() {
 
       {/* Category Breakdown */}
       <CategoryWidget tenantId={currentTenantId} period={period} />
+
+      {/* Operational Widgets */}
+      {metricsQuery.data && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Pending Fulfillments</CardTitle>
+              <CardDescription>Orders awaiting shipment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                {Number((metricsQuery.data as any).pending_fulfillments ?? 0)}
+              </p>
+              {(metricsQuery.data as any).oldest_pending_date && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Oldest: {new Date((metricsQuery.data as any).oldest_pending_date).toLocaleDateString()}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Revenue (30d)</CardTitle>
+              <CardDescription>Gross revenue last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                £ {((metricsQuery.data as any).revenue_30d / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              {(metricsQuery.data as any).trend_pct !== 0 && (
+                <p className={`text-xs mt-1 ${(metricsQuery.data as any).trend_pct > 0 ? "text-green-600" : "text-red-600"}`}>
+                  {(metricsQuery.data as any).trend_pct > 0 ? "↑" : "↓"} {Math.abs((metricsQuery.data as any).trend_pct)}% vs prev 30d
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Low Stock Items</CardTitle>
+              <CardDescription>Variants with &le;10 available</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {(metricsQuery.data as any).low_stock_items?.length > 0 ? (
+                <div className="space-y-1.5">
+                  {(metricsQuery.data as any).low_stock_items.slice(0, 5).map((item: any, i: number) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span className="font-mono">{item.sku}</span>
+                      <span className="text-destructive font-medium">{item.available} left</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">All stocked</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
@@ -447,6 +510,7 @@ function CategoryWidget({
             </div>
           </div>
         )}
+
       </div>
     </Card>
   );
