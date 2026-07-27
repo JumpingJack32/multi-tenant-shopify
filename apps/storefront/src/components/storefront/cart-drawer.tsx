@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -21,6 +22,7 @@ import {
 } from "@/hooks/use-cart";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { useTenantStore } from "@/hooks/use-tenant-store";
+import { fetchShippingInfo } from "@/lib/storefront-api";
 
 export function CartDrawer() {
   const { tenant } = useParams<{ tenant: string }>();
@@ -38,10 +40,24 @@ export function CartDrawer() {
   const clearError = useCallback(() => setCheckoutError(null), []);
   const checkoutMutation = useCheckout();
 
+  const { data: shippingInfo } = useQuery({
+    queryKey: ["shipping-info", tenant],
+    queryFn: () => fetchShippingInfo(tenant),
+    enabled: !!tenant,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const items = cart?.items ?? [];
   const itemCount = cart?.item_count ?? 0;
   const total = cart?.total ?? 0;
   const taxTotal = (cart as any)?.tax_total ?? 0;
+  const subtotal = total - taxTotal;
+
+  const threshold = shippingInfo?.free_shipping_threshold;
+  const thresholdCents = threshold ? Math.round(threshold * 100) : null;
+  const progress = thresholdCents && thresholdCents > 0 ? Math.min(subtotal / thresholdCents, 1) : 1;
+  const remaining = thresholdCents ? Math.max(0, thresholdCents - subtotal) : 0;
+  const showFreeShipping = thresholdCents !== null && thresholdCents > 0;
 
   const handleCheckout = () => {
     if (!cartId) return;
@@ -177,13 +193,37 @@ export function CartDrawer() {
             </div>
 
             <div className="border-t border-border pt-4 space-y-4">
+
+              {/* Free shipping progress bar */}
+              {showFreeShipping && subtotal > 0 && (
+                <div className="space-y-1.5">
+                  {progress >= 1 ? (
+                    <p className="text-xs font-medium text-green-600">
+                      You've unlocked FREE shipping!
+                    </p>
+                  ) : (
+                    <>
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{ width: `${Math.min(progress * 100, 100)}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Add {formatCents(remaining, currency)} more for FREE shipping
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-mono font-semibold text-base">
                   {isFetching ? (
                     <Loader2Icon className="h-4 w-4 animate-spin inline" />
                   ) : (
-                    formatCents(total - taxTotal, currency)
+                    formatCents(subtotal, currency)
                   )}
                 </span>
               </div>

@@ -31,6 +31,7 @@ from src.orm.schemas.cart import (
 )
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.order import OrderDetailResponse, OrderResponse
+from src.orm.schemas.shipping import ShippingRateResult
 from src.orm.schemas.storefront import (
     StorefrontImageResponse,
     StorefrontProductResponse,
@@ -281,6 +282,33 @@ async def get_tenant_settings(
         currency=tenant.settings.get("currency", "USD"),
         theme=tenant.settings.get("theme", {}),
     )
+
+
+@router.get("/{tenant_slug}/shipping-info")
+async def get_shipping_info(
+    tenant_slug: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Public shipping info — free shipping threshold and active methods."""
+    from src.orm.models.shipping import ShippingMethod
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    result = await db.exec(
+        select(ShippingMethod).where(
+            ShippingMethod.tenant_id == tenant.tenant_id,
+            ShippingMethod.is_active == True,
+        )
+    )
+    methods = result.all()
+    min_threshold = None
+    for m in methods:
+        if m.free_shipping_threshold is not None:
+            if min_threshold is None or m.free_shipping_threshold < min_threshold:
+                min_threshold = m.free_shipping_threshold
+    return {
+        "free_shipping_threshold": float(min_threshold) if min_threshold else None,
+        "methods": [{"name": m.name, "rate_type": m.rate_type, "base_price": float(m.base_price)} for m in methods],
+    }
 
 
 # ─── Cart CRUD ────────────────────────────────────────────────────────
