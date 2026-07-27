@@ -13,7 +13,7 @@ export default async function ProductsPage({
   const products = await fetchStorefrontProducts(tenant);
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-8">All Products</h1>
         {products.length === 0 ? (
@@ -30,6 +30,6 @@ export default async function ProductsPage({
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

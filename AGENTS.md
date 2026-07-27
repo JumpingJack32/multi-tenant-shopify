@@ -9,9 +9,7 @@
 # You MUST follow this sequence for every feature:
 
 # 1. Present spec → wait for "spec approved"
-
 # 2. Write plan → wait for "plan approved"
-
 # 3. ONLY THEN write code
 
 #
@@ -23,7 +21,6 @@
 # 🔴 CRITICAL RULE — ALWAYS USE FEATURE BRANCHES
 
 # Never commit or push directly to `main`. Every feature, fix, or change MUST:
-
 # 1. Start with `git checkout -b feat/<name>` or `fix/<name>` from `main`
 # 2. Commit all work to that branch
 # 3. Push the branch and open a Pull Request (PR)
