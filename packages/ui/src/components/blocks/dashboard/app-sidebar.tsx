@@ -82,7 +82,9 @@ const navManagement: NavItem[] = [
       { title: "Add Product", url: "/products?view=add" },
       { title: "Collections", url: "/collections" },
       { title: "Inventory", url: "/products/inventory" },
-      { title: "Transfers", url: "/transfers" },
+      { title: "Stock Levels", url: "/products/inventory/stock" },
+      { title: "Warehouses", url: "/products/inventory/nodes" },
+      { title: "Stock Transfers", url: "/products/inventory/transfers" },
     ],
   },
   {
