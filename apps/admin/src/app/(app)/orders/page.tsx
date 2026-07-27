@@ -89,6 +89,15 @@ export default function OrdersPage() {
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Orders</h1>
+        <div className="flex items-center gap-2">
+          <a
+            href={`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/orders/export/csv?status=${statusFilter}`}
+            download
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
+          >
+            Export CSV
+          </a>
+        </div>
       </div>
 
       <div className="mb-6 space-y-4">
@@ -142,6 +151,7 @@ export default function OrdersPage() {
       <OrdersTable
         orders={orders}
         onRowClick={(id) => router.push(`/orders/${id}`)}
+        apiBase={process.env.NEXT_PUBLIC_API_URL}
       />
 
       {pagination.total_pages > 1 && (
