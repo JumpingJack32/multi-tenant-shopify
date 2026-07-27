@@ -82,46 +82,47 @@ export function SearchDialog({ tenantSlug }: SearchDialogProps) {
       </button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder="Search products..."
-          value={query}
-          onValueChange={setQuery}
-          ref={inputRef}
-        />
-        <CommandList>
-          {isFetching && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2Icon className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          )}
-          {!isFetching && query && results.length === 0 && (
-            <CommandEmpty>No products found</CommandEmpty>
-          )}
-          {results.length > 0 && (
-            <CommandGroup heading="Products">
-              {results.map((p) => (
-                <CommandItem
-                  key={p.id}
-                  value={p.slug}
-                  onSelect={() => handleSelect(p.slug)}
-                  className="flex items-center gap-3 py-2"
-                >
-                  {p.images?.[0]?.url && (
-                    <div className="w-10 h-12 rounded bg-muted overflow-hidden shrink-0">
-                      <img src={p.images[0].url} alt={p.name} className="object-cover w-full h-full" />
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search products..."
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList>
+            {isFetching && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2Icon className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!isFetching && query && results.length === 0 && (
+              <CommandEmpty>No products found</CommandEmpty>
+            )}
+            {results.length > 0 && (
+              <CommandGroup heading="Products">
+                {results.map((p) => (
+                  <CommandItem
+                    key={p.id}
+                    value={p.slug}
+                    onSelect={() => handleSelect(p.slug)}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    {p.images?.[0]?.url && (
+                      <div className="w-10 h-12 rounded bg-muted overflow-hidden shrink-0">
+                        <img src={p.images[0].url} alt={p.name} className="object-cover w-full h-full" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{p.name}</p>
+                      <p className="text-xs font-mono text-muted-foreground">
+                        {formatCents(p.min_price, currency)}
+                      </p>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{p.name}</p>
-                    <p className="text-xs font-mono text-muted-foreground">
-                      {formatCents(p.min_price, currency)}
-                    </p>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-        </CommandList>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
       </CommandDialog>
     </>
   );
