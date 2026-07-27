@@ -220,6 +220,75 @@ async def list_storefront_products(
     )
 
 
+@router.get("/{tenant_slug}/products/search", response_model=list[StorefrontProductResponse])
+async def search_products(
+    tenant_slug: str,
+    request: Request,
+    q: str = Query(..., min_length=1, max_length=200),
+    limit: int = Query(default=10, le=50),
+    db: AsyncSession = Depends(get_db),
+):
+    """Full-text search across product names and descriptions."""
+    tenant = await _resolve_tenant(db, tenant_slug)
+    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
+    preferred = getattr(request.state, "target_currency", None)
+
+    result = await db.execute(
+        sql_text("""
+            SELECT p.id, p.name, p.slug, p.description, p.is_active
+            FROM products p, websearch_to_tsquery('english', :q) AS query
+            WHERE p.tenant_id = :tid
+              AND p.search_vector @@ query
+              AND LOWER(p.status::text) = 'published'
+            ORDER BY ts_rank(p.search_vector, query) DESC
+            LIMIT :lim
+        """),
+        {"q": q, "tid": tenant.tenant_id, "lim": limit},
+    )
+    rows = result.all()
+
+    products_list: list[StorefrontProductResponse] = []
+    for row in rows:
+        p = (await db.exec(
+            select(Product)
+            .options(
+                selectinload(Product.variants),
+                selectinload(Product.images),
+                selectinload(Product.category),
+                selectinload(Product.collections),
+            )
+            .where(Product.id == row[0])
+        )).first()
+        if p:
+            products_list.append(_build_storefront_product(p, preferred))
+
+    return products_list
+
+
+@router.get("/{tenant_slug}/products/suggest")
+async def suggest_products(
+    tenant_slug: str,
+    q: str = Query(..., min_length=1, max_length=100),
+    limit: int = Query(default=5, le=20),
+    db: AsyncSession = Depends(get_db),
+):
+    """Autocomplete suggestions matching prefix query."""
+    tenant = await _resolve_tenant(db, tenant_slug)
+    result = await db.execute(
+        sql_text("""
+            SELECT DISTINCT name
+            FROM products
+            WHERE tenant_id = :tid
+              AND search_vector @@ to_tsquery('english', :q || ':*')
+              AND LOWER(status::text) = 'published'
+            LIMIT :lim
+        """),
+        {"q": q, "tid": tenant.tenant_id, "lim": limit},
+    )
+    suggestions = [r[0] for r in result.all()]
+    return {"suggestions": suggestions}
+
+
 @router.get("/{tenant_slug}/products/{product_slug}", response_model=StorefrontProductResponse)
 async def get_storefront_product(
     tenant_slug: str,
@@ -263,70 +332,6 @@ async def get_storefront_product(
         return _build_storefront_product(product, preferred, display_prices)
 
     return _build_storefront_product(product)
-
-
-@router.get("/{tenant_slug}/products/search", response_model=list[StorefrontProductResponse])
-async def search_products(
-    tenant_slug: str,
-    request: Request,
-    q: str = Query(..., min_length=1, max_length=200),
-    limit: int = Query(default=10, le=50),
-    db: AsyncSession = Depends(get_db),
-):
-    """Full-text search across product names and descriptions."""
-    tenant = await _resolve_tenant(db, tenant_slug)
-    request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
-    preferred = getattr(request.state, "target_currency", None)
-
-    result = await db.execute(
-        sql_text("""
-            SELECT p.id, p.name, p.slug, p.description, p.is_active
-            FROM products p, websearch_to_tsquery('english', :q) AS query
-            WHERE p.tenant_id = :tid
-              AND p.search_vector @@ query
-              AND p.status = 'active'
-            ORDER BY ts_rank(p.search_vector, query) DESC
-            LIMIT :lim
-        """),
-        {"q": q, "tid": tenant.tenant_id, "lim": limit},
-    )
-    rows = result.all()
-
-    products: list[StorefrontProductResponse] = []
-    for row in rows:
-        p = (await db.exec(
-            select(Product)
-            .options(selectinload(Product.variants), selectinload(Product.images))
-            .where(Product.id == row[0])
-        )).first()
-        if p:
-            products.append(_build_storefront_product(p, preferred))
-
-    return products
-
-
-@router.get("/{tenant_slug}/products/suggest")
-async def suggest_products(
-    tenant_slug: str,
-    q: str = Query(..., min_length=1, max_length=100),
-    limit: int = Query(default=5, le=20),
-    db: AsyncSession = Depends(get_db),
-):
-    """Autocomplete suggestions matching prefix query."""
-    tenant = await _resolve_tenant(db, tenant_slug)
-    result = await db.execute(
-        sql_text("""
-            SELECT DISTINCT name
-            FROM products
-            WHERE tenant_id = :tid
-              AND search_vector @@ to_tsquery('english', :q || ':*')
-              AND status = 'active'
-            LIMIT :lim
-        """),
-        {"q": q, "tid": tenant.tenant_id, "lim": limit},
-    )
-    suggestions = [r[0] for r in result.all()]
-    return {"suggestions": suggestions}
 
 
 # ─── Tenant Settings ──────────────────────────────────────────────────
