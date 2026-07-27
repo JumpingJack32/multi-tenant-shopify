@@ -20,6 +20,18 @@
 
 # This rule is not optional.
 
+# 🔴 CRITICAL RULE — ALWAYS USE FEATURE BRANCHES
+
+# Never commit or push directly to `main`. Every feature, fix, or change MUST:
+
+# 1. Start with `git checkout -b feat/<name>` or `fix/<name>` from `main`
+# 2. Commit all work to that branch
+# 3. Push the branch and open a Pull Request (PR)
+# 4. Only merge to `main` after the PR is reviewed
+
+# This ensures broken code can be rolled back by reverting or closing the PR
+# without affecting the stable `main` branch.
+
 # Session Context — Saved 2026-07-25 (Full Storefront Commerce Loop — Complete)
 
 > [!IMPORTANT]
