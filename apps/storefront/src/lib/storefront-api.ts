@@ -60,6 +60,26 @@ export async function fetchNavigation(
   }
 }
 
+// ── Shipping Info ──
+
+export interface ShippingInfo {
+  free_shipping_threshold: number | null;
+  methods: Array<{ name: string; rate_type: string; base_price: number }>;
+}
+
+export async function fetchShippingInfo(
+  tenantSlug: string,
+): Promise<ShippingInfo | null> {
+  try {
+    return await fetchJson<ShippingInfo>(
+      `${API_URL}/api/v1/storefront/${tenantSlug}/shipping-info`,
+      { next: { revalidate: 300 } },
+    );
+  } catch {
+    return null;
+  }
+}
+
 // ── Settings ──
 
 export async function fetchSettings(

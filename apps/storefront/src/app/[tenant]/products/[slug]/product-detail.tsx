@@ -8,6 +8,7 @@ import { formatCents } from "@repo/shared-utils/currency";
 import { ProductCard } from "@/app/[tenant]/products/product-card";
 import { AddToCartVariantButton } from "@/components/storefront/add-to-cart-button";
 import { ImageGallery } from "@/components/storefront/image-gallery";
+import { ShippingEstimator } from "@/components/storefront/shipping-estimator";
 import { VariantSelector, type VariantWithImage } from "@/components/storefront/variant-selector";
 import { useNavigation } from "@/hooks/use-navigation";
 import { useTenantStore } from "@/hooks/use-tenant-store";
@@ -104,6 +105,8 @@ export function ProductDetail({ product, tenantSlug, relatedProducts = [] }: Pro
             {inStock && <p>✓ In stock — ships within 24 hours</p>}
             <p>✓ Free 30-day returns</p>
           </div>
+
+          <ShippingEstimator tenantSlug={tenantSlug} product={product} />
 
           {/* Description */}
           {product.description && (
