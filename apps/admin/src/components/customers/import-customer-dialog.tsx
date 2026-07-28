@@ -90,6 +90,9 @@ export function ImportCustomerDialog({
           {!result && (
             <div className="space-y-4 py-2">
               <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); document.getElementById("csv-file-input")?.click(); } }}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
                   dragOver
                     ? "border-primary bg-primary/5"

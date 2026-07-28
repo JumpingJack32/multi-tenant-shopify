@@ -252,6 +252,7 @@ export function FulfillmentSection({ orderId, items }: FulfillmentSectionProps) 
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-muted-foreground hover:text-foreground"
+                        aria-label="Open tracking link"
                       >
                         <ExternalLinkIcon className="h-3 w-3" />
                       </a>

@@ -175,7 +175,7 @@ export default function PromotionsPage() {
                   <Switch checked={p.is_active} onCheckedChange={(v) => toggleMutation.mutate({ id: p.id, is_active: v })} />
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon-xs" onClick={() => deleteMutation.mutate(p.id)}>
+                  <Button variant="ghost" size="icon-xs" onClick={() => deleteMutation.mutate(p.id)} aria-label="Delete promotion">
                     <TrashIcon className="h-3 w-3" />
                   </Button>
                 </TableCell>

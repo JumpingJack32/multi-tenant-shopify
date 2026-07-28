@@ -172,9 +172,9 @@ export default function CustomReportsPage() {
             {/* Filters */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Date Filters</label>
-              <Input type="date" placeholder="Start date" value={filters.start_date ?? ""} onChange={(e) => setFilters({ ...filters, start_date: e.target.value })} />
-              <Input type="date" placeholder="End date" value={filters.end_date ?? ""} onChange={(e) => setFilters({ ...filters, end_date: e.target.value })} />
-              <Input type="number" placeholder="Min total (cents)" value={filters.min_total ?? ""} onChange={(e) => setFilters({ ...filters, min_total: e.target.value })} />
+              <Input type="date" aria-label="Start date" placeholder="Start date" value={filters.start_date ?? ""} onChange={(e) => setFilters({ ...filters, start_date: e.target.value })} />
+              <Input type="date" aria-label="End date" placeholder="End date" value={filters.end_date ?? ""} onChange={(e) => setFilters({ ...filters, end_date: e.target.value })} />
+              <Input type="number" aria-label="Min total" placeholder="Min total (cents)" value={filters.min_total ?? ""} onChange={(e) => setFilters({ ...filters, min_total: e.target.value })} />
             </div>
 
             {/* Order By */}
@@ -182,7 +182,7 @@ export default function CustomReportsPage() {
               <div>
                 <label className="text-sm font-medium">Sort By</label>
                 <Select value={orderByColumn} onValueChange={(v: string | null) => v && setOrderByColumn(v)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Sort by">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,7 +209,7 @@ export default function CustomReportsPage() {
             {/* Limit */}
             <div>
               <label className="text-sm font-medium">Limit</label>
-              <Input type="number" value={limit} onChange={(e) => setLimit(e.target.value)} min={1} max={500} />
+              <Input type="number" aria-label="Limit" value={limit} onChange={(e) => setLimit(e.target.value)} min={1} max={500} />
             </div>
 
             <Button className="w-full" onClick={runReport} disabled={isLoading}>
