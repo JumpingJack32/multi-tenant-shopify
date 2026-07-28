@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { Customer } from "@repo/tenant-orm/types";
 import { ArrowLeftIcon } from "@repo/ui/icons";
 
@@ -40,7 +40,7 @@ interface FilterState {
   tag: string;
 }
 
-export default function CustomersPage() {
+function CustomersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
@@ -248,5 +248,13 @@ export default function CustomersPage() {
         tenantId={currentTenantId}
       />
     </div>
+  );
+}
+
+export default function CustomersPage() {
+  return (
+    <Suspense fallback={<div className="p-6"><div className="h-8 w-48 bg-muted rounded animate-pulse" /><div className="h-64 mt-4 bg-muted rounded animate-pulse" /></div>}>
+      <CustomersContent />
+    </Suspense>
   );
 }
