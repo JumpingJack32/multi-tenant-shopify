@@ -9,6 +9,7 @@ import { AppSidebar } from "@repo/ui/components/blocks/dashboard/app-sidebar";
 import { SiteHeader } from "@repo/ui/components/blocks/dashboard/site-header";
 import { SidebarInset, SidebarProvider } from "@repo/ui/components/ui/sidebar";
 
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { RbacProvider } from "@/contexts/rbac-context";
 import { TenantProvider } from "@/contexts/tenant-context";
@@ -57,7 +58,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         LinkComponent={Link}
       />
       <SidebarInset>
-        <SiteHeader title={title} />
+        <SiteHeader title={title} rightContent={<NotificationBell />} />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </SidebarInset>
     </SidebarProvider>
