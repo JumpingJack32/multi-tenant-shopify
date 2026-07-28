@@ -108,12 +108,12 @@ async def _insert_items(
                     id, tenant_id, menu_id, parent_id,
                     title, type, href, sort_order,
                     is_title_link, show_view_all, is_featured,
-                    created_at, updated_at
+                    open_in_new_tab, created_at, updated_at
                 ) VALUES (
                     :id, :tid, :menu_id, :parent_id,
                     :title, :type, :href, :sort_order,
                     :is_title_link, :show_view_all, :is_featured,
-                    NOW(), NOW()
+                    false, NOW(), NOW()
                 )
             """),
             {
