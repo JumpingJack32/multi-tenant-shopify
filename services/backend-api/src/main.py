@@ -222,6 +222,7 @@ from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
 from src.routes.admin_fulfillments import router as admin_fulfillments_router  # noqa: E402
 from src.routes.admin_dashboard import router as admin_dashboard_router  # noqa: E402
 from src.routes.admin_orders import router as admin_orders_router  # noqa: E402
+from src.routes.admin_subscriptions import router as admin_subscriptions_router  # noqa: E402
 from src.routes.admin_shipping import router as admin_shipping_router  # noqa: E402
 from src.routes.admin_webhooks import router as admin_webhooks_router  # noqa: E402
 from src.routes.ai import router as ai_router  # noqa: E402
@@ -266,6 +267,7 @@ app.include_router(admin_fulfillments_router)
 app.include_router(admin_shipping_router)
 app.include_router(admin_orders_router)
 app.include_router(admin_dashboard_router)
+app.include_router(admin_subscriptions_router)
 app.include_router(admin_webhooks_router)
 app.include_router(marketing_templates_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1/media")

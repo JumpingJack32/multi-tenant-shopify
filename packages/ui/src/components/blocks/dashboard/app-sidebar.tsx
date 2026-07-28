@@ -137,6 +137,7 @@ const navCommerce: NavItem[] = [
       { title: "Automatic Discounts", url: "/discounts/automatic" },
       { title: "Gift Cards / Store Credit", url: "/discounts/gift-cards" },
       { title: "Campaign Scheduler", url: "/discounts/scheduler" },
+      { title: "Subscriptions", url: "/subscriptions" },
     ],
   },
   {
