@@ -36,6 +36,59 @@ TENANTS = [
     {"slug": "initech", "name": "Initech", "plan": "enterprise"},
 ]
 
+SAAS_PLANS = [
+    {
+        "name": "Starter",
+        "slug": "starter",
+        "description": "Best for small stores getting started with e-commerce.",
+        "price_cents_monthly": 4900,
+        "price_cents_yearly": 47000,
+        "trial_days": 14,
+        "sort_order": 0,
+        "features": [
+            "Single warehouse management",
+            "Basic analytics dashboard",
+            "1 team seat",
+            "Standard support (48h response)",
+            "Up to 500 products",
+        ],
+    },
+    {
+        "name": "Pro",
+        "slug": "pro",
+        "description": "For growing brands that need multi-warehouse and subscriptions.",
+        "price_cents_monthly": 14900,
+        "price_cents_yearly": 143000,
+        "trial_days": 14,
+        "sort_order": 1,
+        "features": [
+            "Multi-warehouse fulfillment",
+            "Subscription engine",
+            "5 team seats",
+            "Priority support (24h response)",
+            "Unlimited products",
+            "Custom domain",
+        ],
+    },
+    {
+        "name": "Enterprise",
+        "slug": "enterprise",
+        "description": "For high-volume merchants requiring full platform access.",
+        "price_cents_monthly": 39900,
+        "price_cents_yearly": 383000,
+        "trial_days": 14,
+        "sort_order": 2,
+        "features": [
+            "Unlimited warehouses",
+            "Custom domain + API access",
+            "Dedicated account manager",
+            "White-label options",
+            "SLA-backed support",
+            "Custom integrations",
+        ],
+    },
+]
+
 # ── Catalog data ─────────────────────────────────────────────────────
 
 CATEGORY_NAMES = ["Outerwear", "Footwear", "Accessories", "Bottoms", "Tops"]
@@ -180,6 +233,29 @@ async def clear_data(session: AsyncSession) -> None:
     await session.execute(text("DELETE FROM tenants WHERE slug LIKE 'get-%'"))
     await session.execute(text("DELETE FROM tenants WHERE slug LIKE 'update-%'"))
     await session.execute(text("DELETE FROM tenants WHERE slug = 'test-tenant'"))
+
+
+async def seed_saas_plans(session: AsyncSession) -> None:
+    for plan in SAAS_PLANS:
+        await session.execute(
+            text("""
+                INSERT INTO saas_plans (id, tenant_id, name, slug, description, price_cents_monthly, price_cents_yearly, trial_days, sort_order, is_public, features, created_at, updated_at)
+                VALUES (:id, :tid, :name, :slug, :desc, :monthly, :yearly, :trial, :sort, true, CAST(:features AS jsonb), NOW(), NOW())
+                ON CONFLICT (slug) DO NOTHING
+            """),
+            {
+                "id": uuid.uuid4(),
+                "tid": uuid.uuid4(),
+                "name": plan["name"],
+                "slug": plan["slug"],
+                "desc": plan["description"],
+                "monthly": plan["price_cents_monthly"],
+                "yearly": plan["price_cents_yearly"],
+                "trial": plan["trial_days"],
+                "sort": plan["sort_order"],
+                "features": json.dumps(plan["features"]),
+            },
+        )
 
 
 async def seed_tenants(session: AsyncSession) -> dict[str, dict]:
@@ -912,6 +988,7 @@ async def main() -> None:
     async with AsyncSession(engine) as session:
         async with session.begin():
             await clear_data(session)
+            await seed_saas_plans(session)
             tenants = await seed_tenants(session)
             await seed_users(session, tenants)
             await seed_tax_configs(session, tenants)

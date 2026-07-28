@@ -12,7 +12,9 @@ from src.orm.models.cart import Cart
 from src.orm.models.category import Category
 from src.orm.models.collection import Collection
 from src.orm.models.product import Product
+from src.orm.models.saas_plan import SaaSPlan
 from src.orm.models.tenant import Tenant
+from src.orm.schemas.saas_plan import SaaSPlanResponse
 from src.orm.schemas.category import CategoryResponse
 from src.orm.schemas.collection import CollectionResponse
 from src.orm.schemas.product import ProductResponse
@@ -20,6 +22,20 @@ from src.orm.schemas.tenant import TenantPublicResponse
 from src.services.abandoned_cart import verify_unsubscribe_token
 
 router = APIRouter()
+
+
+@router.get("/plans", response_model=list[SaaSPlanResponse])
+async def list_plans(
+    db: AsyncSession = Depends(get_db),
+):
+    """List all public SaaS pricing plans."""
+    stmt = (
+        select(SaaSPlan)
+        .where(SaaSPlan.is_public == True)  # noqa: E712
+        .order_by(SaaSPlan.sort_order)
+    )
+    result = await db.exec(stmt)
+    return result.all()
 
 
 @router.get("/tenants/{slug}", response_model=TenantPublicResponse)
