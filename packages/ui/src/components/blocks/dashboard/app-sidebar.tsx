@@ -158,6 +158,7 @@ const navUtility: NavItem[] = [
     title: "Settings",
     icon: <Settings2Icon />,
     items: [
+      { title: "General", url: "/settings/general" },
       { title: "Users & Permissions", url: "/settings/users" },
       { title: "Store Details", url: "/settings/store-details" },
       { title: "Payments", url: "/settings/payments" },
