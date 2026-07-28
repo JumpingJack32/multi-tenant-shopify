@@ -51,7 +51,7 @@ export function NavMain({
               <SidebarMenuItem>
                 <CollapsibleTrigger
                   render={
-                    <SidebarMenuButton tooltip={item.title}>
+                    <SidebarMenuButton tooltip={item.title} render={item.url ? <Link href={item.url} /> : undefined}>
                       {item.icon}
                       <span>{item.title}</span>
                       <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
