@@ -79,8 +79,6 @@ const navManagement: NavItem[] = [
     url: "/products/getting-started",
     items: [
       { title: "All Products", url: "/products" },
-      { title: "Find Products to Sell", url: "/products?view=find" },
-      { title: "Add Product", url: "/products?view=add" },
       { title: "Collections", url: "/collections" },
       { title: "Inventory", url: "/products/inventory" },
       { title: "Stock Levels", url: "/products/inventory/stock" },
