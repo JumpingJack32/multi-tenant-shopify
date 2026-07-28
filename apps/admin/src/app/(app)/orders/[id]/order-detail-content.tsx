@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@repo/ui/components/ui/table";
 
+import { ProcessRefundModal } from "@/components/orders/process-refund-modal";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useTenantContext } from "@/contexts/tenant-context";
 import { FulfillmentSection } from "@/features/fulfillment/components/fulfillment-section";
@@ -67,6 +68,7 @@ export function OrderDetailContent({ id }: { id: string }) {
   const { currentTenantId, isLoading: tenantLoading } = useTenantContext();
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   const {
     data: order,
@@ -358,14 +360,13 @@ export function OrderDetailContent({ id }: { id: string }) {
                     Cancel Order
                   </Button>
                 )}
-              {(order.status === "delivered" || order.status === "shipped") && (
+              {(order.status === "delivered" || order.status === "shipped" || order.status === "paid" || order.status === "processing") && (
                 <Button
                   variant="destructive"
                   className="w-full"
-                  disabled={actionLoading}
-                  onClick={() => handleAction({ status: "refunded" })}
+                  onClick={() => setRefundOpen(true)}
                 >
-                  Refund
+                  Issue Refund / Return
                 </Button>
               )}
             </CardContent>
@@ -416,6 +417,20 @@ export function OrderDetailContent({ id }: { id: string }) {
           </Card>
         </div>
       </div>
+
+      <ProcessRefundModal
+        open={refundOpen}
+        onOpenChange={setRefundOpen}
+        orderId={order.id}
+        items={(order.items ?? []).map((i: any) => ({
+          id: i.id,
+          product_name: i.product_name,
+          variant_name: i.variant_name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+        }))}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }
