@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -66,7 +66,7 @@ const PERIODS = [
   { value: "12m", label: "Last 12 months" },
 ];
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const period = searchParams.get("period") || "30d";
@@ -344,6 +344,14 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-6"><div className="h-8 w-48 bg-muted rounded animate-pulse" /><div className="h-64 mt-4 bg-muted rounded animate-pulse" /></div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
 
