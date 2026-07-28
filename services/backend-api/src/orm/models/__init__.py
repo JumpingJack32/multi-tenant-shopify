@@ -9,6 +9,7 @@ from src.orm.models.inventory import InventoryNode, InventoryStock, InventoryTra
 from src.orm.models.navigation import NavigationItem, NavigationMenu  # noqa: F401
 from src.orm.models.promotion import Promotion  # noqa: F401
 from src.orm.models.review import ProductReview  # noqa: F401
+from src.orm.models.saas_plan import SaaSPlan  # noqa: F401
 from src.orm.models.order import (  # noqa: F401
     Customer,
     CustomerAddress,
