@@ -221,7 +221,7 @@ export function CartDrawer() {
 
               {/* Free shipping progress bar */}
               {showFreeShipping && subtotal > 0 && (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5" aria-live="polite" aria-atomic="true">
                   {progress >= 1 ? (
                     <p className="text-xs font-medium text-green-600">
                       You've unlocked FREE shipping!
@@ -266,7 +266,7 @@ export function CartDrawer() {
                 )}
               </div>
               {promoMessage && (
-                <p className={`text-xs ${promoDiscount > 0 ? "text-green-600" : "text-destructive"}`}>
+                <p className={`text-xs ${promoDiscount > 0 ? "text-green-600" : "text-destructive"}`} aria-live="polite" aria-atomic="true">
                   {promoMessage}
                 </p>
               )}
