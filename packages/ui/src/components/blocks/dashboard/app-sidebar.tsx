@@ -76,6 +76,7 @@ const navManagement: NavItem[] = [
   {
     title: "Products",
     icon: <PackageIcon />,
+    url: "/products/getting-started",
     items: [
       { title: "All Products", url: "/products" },
       { title: "Find Products to Sell", url: "/products?view=find" },

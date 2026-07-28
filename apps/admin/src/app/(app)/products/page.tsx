@@ -104,23 +104,14 @@ function ProductsContent() {
         <div>
           {products.length === 0 ? (
             <div className="mx-auto max-w-lg pt-16 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 <PackageIcon className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold">
-                Start listing your products
-              </h2>
+              <h2 className="text-lg font-semibold">No products yet</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Create your own custom inventory or source products from
-                suppliers to build your storefront.
+                Create your first product to start building your storefront.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/products?view=find")}
-                >
-                  Find Products to Sell
-                </Button>
+              <div className="mt-8">
                 <Button onClick={() => router.push("/products?view=add")}>
                   <PlusIcon className="mr-2 h-4 w-4" /> Add Product
                 </Button>
