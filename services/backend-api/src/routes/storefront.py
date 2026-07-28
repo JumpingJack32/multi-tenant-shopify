@@ -1160,4 +1160,67 @@ async def get_customer_orders(
     return list(orders)
 
 
+# ── Address Book ─────────────────────────────────────────────────────
+
+
+@router.get("/{tenant_slug}/customers/{customer_email}/addresses")
+async def list_addresses(
+    tenant_slug: str,
+    customer_email: str,
+    db: AsyncSession = Depends(get_db),
+):
+    from src.orm.models.order import CustomerAddress
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    result = await db.exec(
+        select(CustomerAddress).where(
+            CustomerAddress.tenant_id == tenant.tenant_id,
+            CustomerAddress.customer_id == None,  # linked by email for now
+        )
+    )
+    return [{"id": str(a.id), "line1": a.line1, "line2": a.line2, "city": a.city, "postal_code": a.postal_code, "country": a.country} for a in result.all()]
+
+
+@router.post("/{tenant_slug}/customers/{customer_email}/addresses", status_code=201)
+async def save_address(
+    tenant_slug: str,
+    customer_email: str,
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+):
+    from src.orm.models.order import CustomerAddress
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    addr = CustomerAddress(
+        tenant_id=tenant.tenant_id,
+        line1=body.get("line1", ""),
+        line2=body.get("line2"),
+        city=body.get("city", ""),
+        postal_code=body.get("postal_code", ""),
+        country=body.get("country", ""),
+    )
+    db.add(addr)
+    await db.commit()
+    await db.refresh(addr)
+    return {"id": str(addr.id), "line1": addr.line1, "line2": addr.line2, "city": addr.city, "postal_code": addr.postal_code, "country": addr.country}
+
+
+# ── Saved Payment Methods ────────────────────────────────────────────
+
+
+@router.get("/{tenant_slug}/payment-methods")
+async def list_payment_methods(
+    tenant_slug: str,
+    customer_email: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """List saved Stripe payment methods for a customer."""
+    from src.services.stripe_adapter import get_stripe_adapter
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+    adapter = get_stripe_adapter()
+    methods = await adapter.list_payment_methods(customer_email, tenant.tenant_id)
+    return methods
+
+
 

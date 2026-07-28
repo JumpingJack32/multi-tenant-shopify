@@ -60,6 +60,14 @@ class StripeAdapter(ABC):
         """Create a Stripe Customer Portal session URL."""
         ...
 
+    async def list_payment_methods(
+        self,
+        customer_email: str,
+        tenant_id: UUID,
+    ) -> list[dict]:
+        """List saved payment methods for a customer. Default returns empty."""
+        return []
+
 
 class CheckoutSessionAdapter(StripeAdapter):
     """Uses Stripe Checkout Sessions — hosted payment page, redirect flow."""
@@ -341,6 +349,38 @@ class CheckoutSessionAdapter(StripeAdapter):
             return session.url
 
         return await anyio.to_thread.run_sync(_sync_portal_flow)
+
+    async def list_payment_methods(
+        self,
+        customer_email: str,
+        tenant_id: UUID,
+    ) -> list[dict]:
+        def _sync_list() -> list[dict]:
+            import stripe
+            stripe.api_key = settings.stripe_secret_key
+
+            query = f"email:'{customer_email}' AND metadata['tenant_id']:'{tenant_id}'"
+            results = stripe.Customer.search(query=query)
+            if not results.data:
+                return []
+
+            customer = results.data[0]
+            methods = stripe.PaymentMethod.list(
+                customer=customer.id,
+                type="card",
+            )
+            return [
+                {
+                    "id": pm.id,
+                    "brand": pm.card.brand,
+                    "last4": pm.card.last4,
+                    "exp_month": pm.card.exp_month,
+                    "exp_year": pm.card.exp_year,
+                }
+                for pm in methods.data
+            ]
+
+        return await anyio.to_thread.run_sync(_sync_list)
 
 
 class PaymentIntentAdapter(StripeAdapter):
