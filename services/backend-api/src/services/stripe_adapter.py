@@ -19,6 +19,7 @@ from src.config import settings
 class CheckoutItem:
     variant_id: UUID
     quantity: int
+    subscription_plan_id: UUID | None = None
 
 
 @dataclass
@@ -150,6 +151,79 @@ class CheckoutSessionAdapter(StripeAdapter):
 
         return CheckoutResult(session_id=session.id, session_url=session.url)
 
+    async def create_subscription_checkout(
+        self,
+        tenant_id: UUID,
+        tenant_slug: str,
+        customer_email: str,
+        items: list[CheckoutItem],
+        success_url: str,
+        cancel_url: str,
+        db: AsyncSession,
+    ) -> CheckoutResult:
+        """Create a Stripe Checkout Session with recurring subscription prices."""
+        from fastapi import HTTPException
+
+        from src.config import settings
+        from src.orm.models.product import Variant
+        from src.orm.models.subscription import SubscriptionPlan
+
+        sub_line_items = []
+        for ci in items:
+            if not ci.subscription_plan_id:
+                raise HTTPException(status_code=400, detail="Subscription checkout requires subscription_plan_id on all items")
+
+            stmt = select(Variant).where(Variant.id == ci.variant_id).options(selectinload(Variant.product))
+            variant = (await db.exec(stmt)).first()
+            if not variant or not variant.is_active:
+                raise HTTPException(status_code=400, detail=f"Variant {ci.variant_id} not found")
+
+            plan = (await db.exec(select(SubscriptionPlan).where(SubscriptionPlan.id == ci.subscription_plan_id))).first()
+            if not plan or not plan.is_active:
+                raise HTTPException(status_code=400, detail="Subscription plan not found or inactive")
+
+            product_name = variant.product.name if variant.product else "Product"
+            sub_line_items.append({
+                "price_data": {
+                    "currency": "gbp",
+                    "product_data": {"name": product_name},
+                    "recurring": {
+                        "interval": plan.interval.lower(),
+                        "interval_count": plan.interval_count,
+                    },
+                    "unit_amount": variant.price,
+                },
+                "quantity": ci.quantity,
+            })
+
+        def _sync_create():
+            import stripe
+            stripe.api_key = settings.stripe_secret_key
+            return stripe.checkout.Session.create(
+                line_items=sub_line_items, mode="subscription",
+                customer_email=customer_email,
+                success_url=success_url, cancel_url=cancel_url,
+                metadata={"tenant_id": str(tenant_id)},
+            )
+
+        session = await anyio.to_thread.run_sync(_sync_create)
+
+        # Store the subscription reference
+        from src.orm.models.subscription import CustomerSubscription
+
+        for ci in items:
+            sub = CustomerSubscription(
+                tenant_id=tenant_id,
+                customer_email=customer_email,
+                subscription_plan_id=ci.subscription_plan_id,
+                stripe_subscription_id=session.id,
+                status="active",
+            )
+            db.add(sub)
+        await db.commit()
+
+        return CheckoutResult(session_id=session.id, session_url=session.url)
+
     async def handle_event(self, payload: bytes, sig_header: str, db: AsyncSession) -> str | None:
         from src.services.order_lifecycle import OrderLifecycleService
 
@@ -169,6 +243,73 @@ class CheckoutSessionAdapter(StripeAdapter):
             if order:
                 await db.commit()
                 return str(order.id)
+
+        if event["type"] == "invoice.payment_succeeded":
+            from src.orm.models.subscription import CustomerSubscription, SubscriptionPlan
+
+            invoice = event["data"]["object"]
+            sub_id = invoice.get("subscription")
+            lines = invoice.get("lines", {}).get("data", [])
+
+            if not sub_id or not lines:
+                return None
+
+            # Find the CustomerSubscription record
+            sub = (
+                await db.exec(
+                    select(CustomerSubscription).where(
+                        CustomerSubscription.stripe_subscription_id == sub_id
+                    )
+                )
+            ).first()
+
+            if not sub:
+                return None
+
+            # Create an order record for this recurring payment
+            from src.orm.models.order import Order, OrderItem as OrderItemModel, OrderStatus, PaymentStatus
+            from src.orm.models.product import Variant
+
+            plan = (await db.exec(
+                select(SubscriptionPlan).where(SubscriptionPlan.id == sub.subscription_plan_id)
+            )).first()
+            if not plan:
+                return None
+
+            # Get the variant associated with this product
+            variant = (await db.exec(
+                select(Variant).where(Variant.product_id == plan.product_id).limit(1)
+            )).first()
+            if not variant:
+                return None
+
+            total = int(invoice.get("total", 0) or 0)
+            order = Order(
+                tenant_id=sub.tenant_id,
+                customer_email=sub.customer_email,
+                order_number=f"SUB-{uuid4().hex[:12].upper()}",
+                status=OrderStatus.PAID,
+                payment_status=PaymentStatus.PAID,
+                total=total,
+                currency="GBP",
+                base_currency="GBP",
+            )
+            db.add(order)
+            await db.flush()
+
+            db.add(OrderItemModel(
+                order_id=order.id,
+                tenant_id=sub.tenant_id,
+                variant_id=variant.id,
+                product_id=plan.product_id,
+                product_name=variant.product.name if variant.product else "Subscription Item",
+                sku=variant.sku,
+                quantity=1,
+                unit_price=total,
+                total_price=total,
+            ))
+            await db.commit()
+            return str(order.id)
 
         return None
 

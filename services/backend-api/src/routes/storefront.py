@@ -960,8 +960,13 @@ async def create_storefront_checkout_session(
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
 
     adapter = get_stripe_adapter()
+    has_subscription = any(i.subscription_plan_id for i in payload.items)
     items = [
-        CheckoutItem(variant_id=UUID(i.variant_id), quantity=i.quantity)
+        CheckoutItem(
+            variant_id=UUID(i.variant_id),
+            quantity=i.quantity,
+            subscription_plan_id=UUID(i.subscription_plan_id) if i.subscription_plan_id else None,
+        )
         for i in payload.items
     ]
 
@@ -969,15 +974,26 @@ async def create_storefront_checkout_session(
     success_url = f"{base_url}/{tenant_slug}/checkout/success?session_id=" + "{CHECKOUT_SESSION_ID}"
     cancel_url = f"{base_url}/{tenant_slug}/checkout"
 
-    result = await adapter.create_checkout(
-        tenant_id=tenant.tenant_id,
-        tenant_slug=tenant_slug,
-        customer_email=payload.customer_email,
-        items=items,
-        success_url=success_url,
-        cancel_url=cancel_url,
-        db=db,
-    )
+    if has_subscription:
+        result = await adapter.create_subscription_checkout(
+            tenant_id=tenant.tenant_id,
+            tenant_slug=tenant_slug,
+            customer_email=payload.customer_email,
+            items=items,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            db=db,
+        )
+    else:
+        result = await adapter.create_checkout(
+            tenant_id=tenant.tenant_id,
+            tenant_slug=tenant_slug,
+            customer_email=payload.customer_email,
+            items=items,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            db=db,
+        )
 
     return {"session_id": result.session_id, "session_url": result.session_url}
 

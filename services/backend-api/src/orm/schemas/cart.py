@@ -48,6 +48,7 @@ class CheckoutRequest(BaseModel):
 class CheckoutIntentItem(BaseModel):
     variant_id: str
     quantity: int = Field(ge=1)
+    subscription_plan_id: Optional[str] = None
 
 
 class CheckoutIntentRequest(BaseModel):
