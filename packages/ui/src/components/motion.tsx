@@ -3,6 +3,7 @@
 import {
   motion as baseMotion,
   AnimatePresence as BaseAnimatePresence,
+  useReducedMotion as baseUseReducedMotion,
 } from "motion/react";
 
 import type { HTMLMotionProps, AnimatePresenceProps } from "motion/react";
@@ -14,6 +15,9 @@ export const motion: typeof baseMotion = baseMotion;
 export const AnimatePresence: React.ComponentType<
   React.PropsWithChildren<AnimatePresenceProps>
 > = BaseAnimatePresence;
+
+// 3. Reduced-motion hook for accessibility
+export const useReducedMotion: typeof baseUseReducedMotion = baseUseReducedMotion;
 
 // // 3. Your custom portable component
 // export function FadeIn({ children, className }: { children: React.ReactNode; className?: string }) {

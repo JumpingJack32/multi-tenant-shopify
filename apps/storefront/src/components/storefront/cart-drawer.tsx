@@ -178,7 +178,8 @@ export function CartDrawer() {
                           }
                         }}
                         disabled={isUpdating}
-                        className="w-7 h-7 flex items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-50"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-50"
+                        aria-label="Decrease quantity"
                       >
                         <MinusIcon className="h-3 w-3" />
                       </button>
@@ -195,7 +196,8 @@ export function CartDrawer() {
                           });
                         }}
                         disabled={isUpdating}
-                        className="w-7 h-7 flex items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-50"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded border border-border hover:bg-muted disabled:opacity-50"
+                        aria-label="Increase quantity"
                       >
                         <PlusIcon className="h-3 w-3" />
                       </button>
@@ -204,7 +206,8 @@ export function CartDrawer() {
                           clearError();
                           removeItem(item.id);
                         }}
-                        className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                        className="ml-auto text-muted-foreground hover:text-destructive transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        aria-label="Remove item"
                       >
                         <Trash2Icon className="h-4 w-4" />
                       </button>
@@ -252,14 +255,15 @@ export function CartDrawer() {
                   className="flex-1 border border-border rounded-sm px-3 py-2 text-sm bg-transparent"
                 />
                 {promoDiscount > 0 ? (
-                  <button onClick={handleClearPromo} className="text-xs text-destructive underline whitespace-nowrap">
+                  <button onClick={handleClearPromo} className="text-xs text-destructive underline whitespace-nowrap min-h-[44px]" aria-label="Remove promo code">
                     Remove
                   </button>
                 ) : (
                   <button
                     onClick={handleApplyPromo}
                     disabled={promoLoading || !promoCode.trim()}
-                    className="text-xs font-medium text-primary underline whitespace-nowrap disabled:opacity-50"
+                    className="text-xs font-medium text-primary underline whitespace-nowrap disabled:opacity-50 min-h-[44px]"
+                    aria-label="Apply promo code"
                   >
                     {promoLoading ? "..." : "Apply"}
                   </button>
@@ -331,7 +335,7 @@ export function CartDrawer() {
               <button
                 onClick={handleCheckout}
                 disabled={checkoutMutation.isPending}
-                className="w-full bg-primary text-primary-foreground py-3 rounded font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full bg-primary text-primary-foreground min-h-[44px] rounded font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {checkoutMutation.isPending ? (
                   <Loader2Icon className="h-4 w-4 animate-spin mx-auto" />
@@ -341,13 +345,13 @@ export function CartDrawer() {
               </button>
               <button
                 onClick={closeDrawer}
-                className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="w-full min-h-[44px] text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Continue Shopping
               </button>
               <button
                 onClick={() => cartId && clear(cartId)}
-                className="w-full py-1 text-xs text-muted-foreground hover:text-destructive transition-colors underline"
+                className="w-full min-h-[44px] text-xs text-muted-foreground hover:text-destructive transition-colors underline"
               >
                 Clear Cart
               </button>

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+// import { Button } from "@repo/ui/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +15,8 @@ import { cn } from "@repo/ui/lib/utils";
 
 import { useTenantContext } from "@/contexts/tenant-context";
 import { request } from "@/lib/api/client";
+
+import { Button } from "../ui/button";
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   low_stock: <AlertTriangleIcon className="h-4 w-4 text-yellow-500" />,
@@ -50,7 +52,7 @@ export function NotificationBell() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button variant="ghost" size="icon" className="relative" aria-label="Notifications" />}>
+      <PopoverTrigger render={<Button variant="icon-ghost" size="sm" className="relative" aria-label="Notifications" />}>
         <BellIcon className="h-5 w-5" />
         {list.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">

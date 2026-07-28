@@ -13,6 +13,12 @@ vi.mock("next-cloudinary", () => ({
   ),
 }));
 
+vi.mock("next/image", () => ({
+  default: ({ width: _w, height: _h, ...rest }: Record<string, unknown>) => (
+    <img {...rest} />
+  ),
+}));
+
 describe("ProductGallery", () => {
   it("renders hero image with alt text", () => {
     const images = [

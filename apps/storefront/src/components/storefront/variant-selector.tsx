@@ -106,7 +106,7 @@ export function VariantSelector({ variants, onVariantChange, selectedVariantId: 
                   onClick={() => handleSelect(key, value)}
                   disabled={!available}
                   className={cn(
-                    "px-4 py-2 text-sm rounded border transition-colors",
+                    "px-4 min-h-[44px] min-w-[44px] text-sm rounded border transition-colors",
                     active
                       ? "border-primary bg-primary text-primary-foreground"
                       : available
@@ -128,7 +128,8 @@ export function VariantSelector({ variants, onVariantChange, selectedVariantId: 
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
-              size="icon-sm"
+              size="icon"
+              className="min-h-[44px] min-w-[44px]"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}
             >
@@ -137,7 +138,8 @@ export function VariantSelector({ variants, onVariantChange, selectedVariantId: 
             <span className="w-8 text-center text-sm font-mono">{quantity}</span>
             <Button
               variant="outline"
-              size="icon-sm"
+              size="icon"
+              className="min-h-[44px] min-w-[44px]"
               onClick={() => setQuantity(quantity + 1)}
             >
               +

@@ -3,7 +3,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
 import type { Product } from "@repo/tenant-orm/types";
-import { motion, AnimatePresence } from "@repo/ui/components/motion";
+import { motion, AnimatePresence, useReducedMotion } from "@repo/ui/components/motion";
 
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 
@@ -17,6 +17,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
   const params = useParams();
   const tenant = params.tenant as string;
   const [isHovered, setIsHovered] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const primaryImage = product.images?.[0]?.url;
   const secondaryImage = product.images?.[1]?.url;
@@ -50,7 +51,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
             >
               <StorefrontImage
                 src={

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "@repo/ui/components/motion";
+import { motion, AnimatePresence, useReducedMotion } from "@repo/ui/components/motion";
 
 import { StorefrontImage } from "@/components/storefront/storefront-image";
 
@@ -16,6 +16,7 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images, name }: ProductGalleryProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   if (!images || images.length === 0) {
     return (
@@ -45,7 +46,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           >
             <StorefrontImage
               src={
@@ -81,7 +82,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               >
                 <StorefrontImage
                   src={

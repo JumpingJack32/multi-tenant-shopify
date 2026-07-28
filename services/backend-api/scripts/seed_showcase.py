@@ -152,38 +152,67 @@ async def seed() -> None:
             # Create categories
             cat_map = {}
             for cat in CATEGORIES:
-                cid = uuid.uuid4()
-                await session.execute(
-                    text("""
-                        INSERT INTO categories (id, tenant_id, name, slug, sort_order, is_active, created_at, updated_at)
-                        VALUES (:id, :tid, :name, :slug, 0, true, NOW(), NOW())
-                    """),
-                    {"id": cid, "tid": tenant_id, "name": cat["name"], "slug": cat["slug"]},
-                )
-                cat_map[cat["slug"]] = cid
+                existing = (
+                    await session.execute(
+                        text("SELECT id FROM categories WHERE tenant_id = :tid AND slug = :slug"),
+                        {"tid": tenant_id, "slug": cat["slug"]},
+                    )
+                ).first()
+                if existing:
+                    cat_map[cat["slug"]] = existing.id
+                else:
+                    cid = uuid.uuid4()
+                    await session.execute(
+                        text("""
+                            INSERT INTO categories (id, tenant_id, name, slug, sort_order, is_active, created_at, updated_at)
+                            VALUES (:id, :tid, :name, :slug, 0, true, NOW(), NOW())
+                        """),
+                        {"id": cid, "tid": tenant_id, "name": cat["name"], "slug": cat["slug"]},
+                    )
+                    cat_map[cat["slug"]] = cid
 
             # Create products
             for p in PRODUCTS:
                 pid = uuid.uuid4()
-                cat_id = cat_map.get(p["category"].lower().replace(" & ", "-").replace(" ", "-"))
-                await session.execute(
-                    text("""
-                        INSERT INTO products (id, tenant_id, name, slug, description, status, is_active, category_id, weight_unit, created_at, updated_at)
-                        VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', true, :cid, 'kg', NOW(), NOW())
-                    """),
-                    {"id": pid, "tid": tenant_id, "name": p["name"], "slug": p["slug"], "desc": p["description"], "cid": cat_id},
-                )
+                cat_slug = p["category"].lower().replace(" & ", "-").replace(" ", "-")
+                cat_id = cat_map.get(cat_slug)
+                # Skip product if it already exists
+                existing_p = (
+                    await session.execute(
+                        text("SELECT id FROM products WHERE tenant_id = :tid AND slug = :slug"),
+                        {"tid": tenant_id, "slug": p["slug"]},
+                    )
+                ).first()
+                if not existing_p:
+                    await session.execute(
+                        text("""
+                            INSERT INTO products (id, tenant_id, name, slug, description, status, is_active, category_id, weight_unit, created_at, updated_at)
+                            VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', true, :cid, 'kg', NOW(), NOW())
+                        """),
+                        {"id": pid, "tid": tenant_id, "name": p["name"], "slug": p["slug"], "desc": p["description"], "cid": cat_id},
+                    )
+                else:
+                    pid = existing_p.id
 
                 # Variants
                 for v in p["variants"]:
-                    vid = uuid.uuid4()
-                    await session.execute(
-                        text("""
-                            INSERT INTO variants (id, tenant_id, product_id, sku, price, inventory_quantity, is_active, options, weight_unit, created_at, updated_at)
-                            VALUES (:id, :tid, :pid, :sku, :price, :stock, true, :opts, 'kg', NOW(), NOW())
-                        """),
-                        {"id": vid, "tid": tenant_id, "pid": pid, "sku": v["sku"], "price": p["price"], "stock": v["stock"], "opts": json.dumps(v["options"])},
-                    )
+                    existing_v = (
+                        await session.execute(
+                            text("SELECT id FROM variants WHERE tenant_id = :tid AND sku = :sku"),
+                            {"tid": tenant_id, "sku": v["sku"]},
+                        )
+                    ).first()
+                    if existing_v:
+                        vid = existing_v.id
+                    else:
+                        vid = uuid.uuid4()
+                        await session.execute(
+                            text("""
+                                INSERT INTO variants (id, tenant_id, product_id, sku, price, inventory_quantity, is_active, options, weight_unit, created_at, updated_at)
+                                VALUES (:id, :tid, :pid, :sku, :price, :stock, true, :opts, 'kg', NOW(), NOW())
+                            """),
+                            {"id": vid, "tid": tenant_id, "pid": pid, "sku": v["sku"], "price": p["price"], "stock": v["stock"], "opts": json.dumps(v["options"])},
+                        )
 
                     # Stock in main warehouse
                     node = (
@@ -202,7 +231,18 @@ async def seed() -> None:
                             {"id": uuid.uuid4(), "tid": tenant_id, "vid": vid, "nid": node.id, "qty": v["stock"]},
                         )
 
-                print(f"  Created product: {p['name']}")
+                # Images
+                for idx, img_url in enumerate(p.get("images", [])):
+                    await session.execute(
+                        text("""
+                            INSERT INTO product_images (id, tenant_id, product_id, url, sort_order, created_at, updated_at)
+                            VALUES (:id, :tid, :pid, :url, :idx, NOW(), NOW())
+                            ON CONFLICT DO NOTHING
+                        """),
+                        {"id": uuid.uuid4(), "tid": tenant_id, "pid": pid, "url": img_url, "idx": idx},
+                    )
+
+                print(f"  Synced product: {p['name']}")
 
     print(f"\nShowcase catalog seeded successfully under tenant '{TENANT_SLUG}'!")
 
