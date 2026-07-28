@@ -168,8 +168,8 @@ async def seed() -> None:
                 cat_id = cat_map.get(p["category"].lower().replace(" & ", "-").replace(" ", "-"))
                 await session.execute(
                     text("""
-                        INSERT INTO products (id, tenant_id, name, slug, description, status, is_active, category_id, weight_unit, created_at, updated_at)
-                        VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', true, :cid, 'kg', NOW(), NOW())
+                        INSERT INTO products (id, tenant_id, name, slug, description, status, is_active, category_id, weight_unit, avg_rating, review_count, created_at, updated_at)
+                        VALUES (:id, :tid, :name, :slug, :desc, 'PUBLISHED', true, :cid, 'kg', 0, 0, NOW(), NOW())
                     """),
                     {"id": pid, "tid": tenant_id, "name": p["name"], "slug": p["slug"], "desc": p["description"], "cid": cat_id},
                 )
