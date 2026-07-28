@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
 from src.core.tenant_isolation import set_tenant_context
-from src.dependencies import get_db
+from src.dependencies import get_db, get_current_user
 from src.orm.models.cart import Cart
 from src.orm.models.category import Category
 from src.orm.models.collection import Collection
@@ -15,6 +15,13 @@ from src.orm.models.product import Product
 from src.orm.models.saas_plan import SaaSPlan
 from src.orm.models.tenant import Tenant
 from src.orm.schemas.saas_plan import SaaSPlanResponse
+from src.orm.schemas.signup import (
+    SignupRequest,
+    SignupResponse,
+    SlugCheckRequest,
+    SlugCheckResponse,
+)
+from src.services.saas_service import check_slug_available, signup_tenant
 from src.orm.schemas.category import CategoryResponse
 from src.orm.schemas.collection import CollectionResponse
 from src.orm.schemas.product import ProductResponse
@@ -36,6 +43,57 @@ async def list_plans(
     )
     result = await db.exec(stmt)
     return result.all()
+
+
+@router.post("/tenants/check-slug", response_model=SlugCheckResponse)
+async def check_tenant_slug(
+    body: SlugCheckRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Check if a tenant subdomain slug is available."""
+    available = await check_slug_available(body.slug, db)
+    return SlugCheckResponse(available=available)
+
+
+@router.post("/tenants", response_model=SignupResponse, status_code=201)
+async def create_tenant_signup(
+    body: SignupRequest,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Self-serve tenant sign-up with plan selection and Stripe billing setup."""
+    # Validate slug availability
+    if not await check_slug_available(body.slug, db):
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Slug '{body.slug}' is already taken",
+        )
+
+    try:
+        result = await signup_tenant(
+            name=body.name,
+            slug=body.slug,
+            plan_slug=body.plan_slug,
+            clerk_user_id=user["user_id"],
+            email=user.get("email", ""),
+            stripe_payment_method_id=body.stripe_payment_method_id,
+            db=db,
+        )
+    except ValueError as e:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return SignupResponse(
+        tenant_id=result["tenant_id"],
+        slug=result["slug"],
+        name=result["name"],
+        admin_url=result["admin_url"],
+        trial_ends_at=result["trial_ends_at"],
+    )
 
 
 @router.get("/tenants/{slug}", response_model=TenantPublicResponse)
