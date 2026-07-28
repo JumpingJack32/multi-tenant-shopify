@@ -30,7 +30,12 @@ export function SearchDialog({ tenantSlug }: SearchDialogProps) {
   const currency = useTenantStore((s) => s.currency);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,13 +49,13 @@ export function SearchDialog({ tenantSlug }: SearchDialogProps) {
   }, []);
 
   const { data, isFetching } = useQuery({
-    queryKey: ["search", tenantSlug, query],
+    queryKey: ["search", tenantSlug, debouncedQuery],
     queryFn: async () => {
-      if (!query.trim()) return [];
-      const r = await fetch(`${API_URL}/api/v1/storefront/${tenantSlug}/products/search?q=${encodeURIComponent(query)}&limit=8`);
+      if (!debouncedQuery.trim()) return [];
+      const r = await fetch(`${API_URL}/api/v1/storefront/${tenantSlug}/products/search?q=${encodeURIComponent(debouncedQuery)}&limit=8`);
       return r.json();
     },
-    enabled: query.trim().length > 0,
+    enabled: debouncedQuery.trim().length > 0,
     staleTime: 30_000,
   });
 
