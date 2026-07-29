@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import type { ElementType, ReactNode } from "react";
 
 import {
@@ -36,6 +37,7 @@ export function NavMain({
   LinkComponent?: ElementType;
 }) {
   const Link = LinkComponent ?? "a";
+  const router = useRouter();
 
   return (
     <SidebarGroup>
@@ -51,7 +53,7 @@ export function NavMain({
                 <SidebarMenuItem>
                   <CollapsibleTrigger
                     onClick={() => {
-                      if (item.url) { window.location.href = item.url; }
+                      if (item.url) { router.push(item.url); }
                     }}
                     render={
                       <SidebarMenuButton tooltip={item.title}>
