@@ -202,6 +202,17 @@ async def seed() -> None:
                             {"id": uuid.uuid4(), "tid": tenant_id, "vid": vid, "nid": node.id, "qty": v["stock"]},
                         )
 
+                # Images
+                for idx, img_url in enumerate(p.get("images", [])):
+                    await session.execute(
+                        text("""
+                            INSERT INTO product_images (id, tenant_id, product_id, url, sort_order, created_at, updated_at)
+                            VALUES (:id, :tid, :pid, :url, :idx, NOW(), NOW())
+                            ON CONFLICT DO NOTHING
+                        """),
+                        {"id": uuid.uuid4(), "tid": tenant_id, "pid": pid, "url": img_url, "idx": idx},
+                    )
+
                 print(f"  Created product: {p['name']}")
 
     print(f"\nShowcase catalog seeded successfully under tenant '{TENANT_SLUG}'!")
