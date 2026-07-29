@@ -43,6 +43,7 @@
     "jsdom": "^26.0.0",
     "lint-staged": "^17.0.8",
     "prettier": "^3.6.0",
+    "tailwindcss": "^4.3.3",
     "turbo": "^2.5.0",
     "vitest": "^3.0.0"
   },

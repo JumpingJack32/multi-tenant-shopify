@@ -2,10 +2,20 @@
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
-@source "../../../../apps/**/*.{ts,tsx}";
-@source "../../../../components/**/*.{ts,tsx}";
-@source "../**/*.{ts,tsx}";
-@source "../../../packages/editor/**/*.{ts,tsx}";
+/* Force Tailwind v4 to scan your apps and components */
+@source "../../../../apps/admin/src/**/*.{ts,tsx,js,jsx}";
+@source "../../../../apps/storefront/src/**/*.{ts,tsx,js,jsx}";
+@source "../../src/**/*.{ts,tsx,js,jsx}";
+@source "../../components/**/*.{ts,tsx}";
+
+/* @source "../../../../apps*.{ts,tsx}"; */
+/* @source "..*.{ts,tsx}"; */
+/* @source "../../../packages/editor*.{js,ts,jsx,tsx}"; */
+/* @source "../../../../apps/admin/src*.{js,ts,jsx,tsx}"; */
+/* @source "../../../../apps/storefront/src*.{js,ts,jsx,tsx}"; */
+
+/* @source "../../../apps/admin/src*.{js,ts,jsx,tsx}"; */
+/* @source "../../../apps/storefront/src*.{js,ts,jsx,tsx}"; */
 
 :root {
   --background: oklch(1 0 0);
