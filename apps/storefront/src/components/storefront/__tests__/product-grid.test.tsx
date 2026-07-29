@@ -12,6 +12,12 @@ vi.mock("next-cloudinary", () => ({
   ),
 }));
 
+vi.mock("next/image", () => ({
+  default: ({ width: _w, height: _h, ...rest }: Record<string, unknown>) => (
+    <img {...rest} />
+  ),
+}));
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ tenant: "test-tenant" }),
   useRouter: () => ({ push: mockPush }),

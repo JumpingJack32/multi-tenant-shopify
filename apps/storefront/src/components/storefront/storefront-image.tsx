@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import type { CldImageProps } from "next-cloudinary";
 
@@ -16,26 +17,45 @@ const variantDefaults: Record<Variant, { width: number; height: number }> = {
   original: { width: 1200, height: 1200 },
 };
 
+function isCloudinaryUrl(src: string): boolean {
+  return src.includes("res.cloudinary.com");
+}
+
 export function StorefrontImage({
   src,
   alt,
   variant = "original",
   width,
   height,
-  ...props
+  className,
 }: StorefrontImageProps) {
   const defaults = variantDefaults[variant];
+  const w = width ?? defaults.width;
+  const h = height ?? defaults.height;
+
+  if (isCloudinaryUrl(src)) {
+    return (
+      <CldImage
+        src={src}
+        alt={alt}
+        width={w}
+        height={h}
+        crop="fill"
+        quality="auto"
+        format="auto"
+        className={className}
+      />
+    );
+  }
 
   return (
-    <CldImage
+    <Image
       src={src}
       alt={alt}
-      width={width ?? defaults.width}
-      height={height ?? defaults.height}
-      crop="fill"
-      quality="auto"
-      format="auto"
-      {...props}
+      width={w}
+      height={h}
+      className={className}
+      style={{ objectFit: "cover", width: "100%", height: "100%" }}
     />
   );
 }
