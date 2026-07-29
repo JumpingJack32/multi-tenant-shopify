@@ -43,21 +43,24 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) =>
           item.items ? (
-            <Collapsible
-              key={item.title}
-              defaultOpen={false}
-              className="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger
-                  render={
-                    <SidebarMenuButton tooltip={item.title} render={item.url ? <Link href={item.url} /> : undefined}>
-                      {item.icon}
-                      <span>{item.title}</span>
-                      <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
-                  }
-                />
+              <Collapsible
+                key={item.title}
+                defaultOpen={false}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger
+                    onClick={() => {
+                      if (item.url) { window.location.href = item.url; }
+                    }}
+                    render={
+                      <SidebarMenuButton tooltip={item.title}>
+                        {item.icon}
+                        <span>{item.title}</span>
+                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    }
+                  />
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.map((sub) => (
