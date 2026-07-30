@@ -16,7 +16,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "clean": "turbo run clean && del-cli node_modules/*/**/node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md,css,scss}\"",
+    "format": "prettier --write \"{apps,packages}/**/*.{ts,tsx,js,jsx,json,css}\"",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -42,7 +42,9 @@
     "husky": "^9.1.7",
     "jsdom": "^26.0.0",
     "lint-staged": "^17.0.8",
-    "prettier": "^3.6.0",
+    "prettier": "^3.8.4",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
     "turbo": "^2.5.0",
     "vitest": "^3.0.0"
   },

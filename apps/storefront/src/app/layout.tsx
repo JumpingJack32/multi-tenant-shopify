@@ -40,6 +40,11 @@ const fontMono: NextFontWithVariable = Geist_Mono({
   variable: "--font-mono",
 });
 
+// const fontSerif: NextFontWithVariable = Georgia({
+//   subsets: ["latin"],
+//   variable: "--font-serif",
+// });
+
 export const metadata: Metadata = {
   title: "Storefront",
   description: "Multi-tenant Shopify storefront",

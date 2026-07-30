@@ -111,7 +111,7 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-4">
         <SheetHeader className="border-b border-border pb-4">
           <SheetTitle>
             {isLoading
