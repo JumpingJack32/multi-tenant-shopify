@@ -28,7 +28,7 @@ On `localhost`, multi-tenant subdomain routing (`tenant.platform.com`), wildcard
 
 Since you mentioned you have a Vercel community account but haven't used it much, here is how a modern hybrid SaaS deployment typically looks:
 
-```
+```plaintext
                           ┌─────────────────────────────┐
                           │   DNS / Custom Domain       │
                           │   (*.yourdomain.com)        │
