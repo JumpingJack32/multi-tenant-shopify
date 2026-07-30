@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StoreFooter } from "@/components/marketing/store-footer";
 
 const FEATURES = [
   {
@@ -121,20 +122,7 @@ export default function MarketingLanding() {
         </section>
       </main>
 
-      <footer className="border-t border-border/40 py-8">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Multi-tenant Shopify. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-              <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-              <Link href="/showcase" className="hover:text-foreground transition-colors">Showcase</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <StoreFooter />
     </div>
   );
 }
