@@ -116,7 +116,7 @@ export function ZoomParallax() {
 
   return (
     <section ref={container} className="relative h-[300vh]">
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden bg-neutral-950">
+      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden bg-background">
         {pictures.map(({ src, alt, scale, styleContainer }, index) => (
           <motion.div
             key={index}
@@ -137,10 +137,10 @@ export function ZoomParallax() {
 
         {/* Overlay headline + CTAs */}
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-4 text-center">
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-white md:text-6xl">
+          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-6xl">
             The e-commerce platform for independent brands
           </h1>
-          <p className="max-w-xl text-lg text-white/80 md:text-xl">
+          <p className="max-w-xl text-lg text-muted-foreground md:text-xl">
             Multi-warehouse inventory, subscriptions, global payments, and
             analytics — all in one platform.
           </p>
@@ -153,7 +153,7 @@ export function ZoomParallax() {
             </Link>
             <Link
               href="/showcase"
-              className="inline-flex h-12 items-center justify-center rounded-md border border-white/30 px-8 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-border px-8 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
               View Showcase Store
             </Link>

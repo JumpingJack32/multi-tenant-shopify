@@ -94,14 +94,14 @@ export function ParallaxGallery() {
   ];
 
   return (
-    <section className="relative bg-neutral-950 text-white">
+    <section className="relative bg-background">
       {/* Top spacer */}
       <div className="h-screen w-full" />
 
       {/* Gallery container */}
       <div
         ref={gallery}
-        className="relative flex h-[175vh] w-full gap-[2vw] overflow-hidden bg-neutral-800 p-[2vw]"
+        className="relative flex h-[175vh] w-full gap-[2vw] overflow-hidden bg-background p-[2vw]"
       >
         {columns.map((col, index) => (
           <Column
