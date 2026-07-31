@@ -19,12 +19,13 @@ export default async function ProductsPage({
         {products.length === 0 ? (
           <p className="text-muted-foreground">No products available yet.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {products.map((product, i) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 tenantSlug={tenant}
+                index={i}
               />
             ))}
           </div>
