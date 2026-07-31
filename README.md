@@ -1,6 +1,35 @@
-# Multi-Tenant Shopify Platform
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/header/graph.svg?title=Multi-Tenant+Shopify&subtitle=Production-grade+multi-tenant+e-commerce+platform&logo=vercel&mode=dark&theme=slate" />
+    <img alt="Multi-Tenant Shopify" src="https://shieldcn.dev/header/graph.svg?title=Multi-Tenant+Shopify&subtitle=Production-grade+multi-tenant+e-commerce+platform&logo=vercel&mode=light&theme=slate" />
+  </picture>
+</p>
 
-A production-grade multi-tenant SaaS platform modeled after Shopify's e-commerce architecture. Built on a **Turborepo monorepo** with a **Next.js** frontend ecosystem and a **FastAPI (Python)** backend, enforcing strict tenant data isolation via PostgreSQL Row-Level Security (RLS).
+<p align="center">
+  <a href="https://github.com/JumpingJack32/multi-tenant-shopify/stargazers">
+    <img src="https://shieldcn.dev/github/stars/JumpingJack32/multi-tenant-shopify.svg?variant=secondary" alt="GitHub stars" />
+  </a>
+  <a href="https://github.com/JumpingJack32/multi-tenant-shopify/actions">
+    <img src="https://shieldcn.dev/github/ci/JumpingJack32/multi-tenant-shopify.svg?variant=secondary" alt="CI status" />
+  </a>
+  <a href="https://github.com/JumpingJack32/multi-tenant-shopify/blob/main/LICENSE">
+    <img src="https://shieldcn.dev/github/license/JumpingJack32/multi-tenant-shopify.svg?variant=secondary" alt="License" />
+  </a>
+  <a href="https://github.com/JumpingJack32/multi-tenant-shopify/issues">
+    <img src="https://shieldcn.dev/github/issues/JumpingJack32/multi-tenant-shopify.svg?variant=secondary" alt="GitHub issues" />
+  </a>
+  <a href="https://github.com/JumpingJack32/multi-tenant-shopify/commits/main">
+    <img src="https://shieldcn.dev/github/last-commit/JumpingJack32/multi-tenant-shopify.svg?variant=secondary" alt="Last commit" />
+  </a>
+</p>
+
+---
+
+A production-grade **multi-tenant SaaS platform** modeled after Shopify's e-commerce architecture. Built on a **Turborepo monorepo** with a **Next.js** frontend ecosystem and a **FastAPI (Python)** backend, enforcing strict tenant data isolation via PostgreSQL Row-Level Security (RLS).
+
+- **Self-serve onboarding** — 3-step wizard, subdomain pre-flight, Stripe 14-day trial
+- **Marketing landing page** — hero, feature grid, interactive pricing matrix
+- **Flagship showcase store** — curated catalog, variant matrices, multi-warehouse stock
 
 ---
 
@@ -28,16 +57,9 @@ A production-grade multi-tenant SaaS platform modeled after Shopify's e-commerce
                       Row-Level Security enforced
                       Validated at 50,000+ orders
                       Sub-10ms P95 query latencies
-
-   ┌─────────────────────────────────────────────────────────────────────┐
-   │                          Packages                                   │
-   │  auth │ ui │ editor │ tenant-orm │ email │ middleware │ shared-utils│
-   └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Multi-Tenant Data Isolation
-
-This platform uses **shared-schema multi-tenancy** enforced at the database level:
 
 - Every table includes a mandatory `tenant_id` foreign key column
 - PostgreSQL Row-Level Security (RLS) automatically scopes all queries
@@ -71,27 +93,12 @@ This platform uses **shared-schema multi-tenancy** enforced at the database leve
 
 ---
 
-## Prerequisites
-
-- **Node.js** >= 22
-- **pnpm** >= 11
-- **uv** (Python package manager)
-- **Python** >= 3.14
-- **Docker** (for local Supabase/Redis)
-- **Doppler CLI** (for secrets)
-- **Ollama** (optional — for AI features)
-  ```bash
-  ollama pull qwen2.5:7b
-  ```
-
----
-
 ## Getting Started
 
 ### 1. Clone and install
 
 ```bash
-git clone <repo-url> multi-tenant-shopify
+git clone https://github.com/JumpingJack32/multi-tenant-shopify.git
 cd multi-tenant-shopify
 pnpm install
 ```
@@ -101,13 +108,6 @@ pnpm install
 ```bash
 doppler setup  # links your Doppler project
 doppler run -- pnpm turbo run dev
-```
-
-Or copy the example env for local development:
-
-```bash
-cp .env.example .env
-# Fill in your Supabase, Clerk, and other credentials
 ```
 
 **Note:** Secrets are managed via Doppler. Never hardcode or commit `.env` files.
@@ -147,7 +147,6 @@ This starts:
 - **Storefront** → [http://localhost:3000](http://localhost:3000)
 - **Backend API** → [http://localhost:8000](http://localhost:8000)
 - **API docs** → [http://localhost:8000/docs](http://localhost:8000/docs)
-- **API redoc** → [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 ---
 
@@ -160,7 +159,6 @@ This starts:
 ├── packages/
 │   ├── auth/               # Clerk auth utilities, JWT helpers, middleware factory
 │   ├── codegen/            # Auto-generated TypeScript types & Zod schemas from OpenAPI
-│   ├── db/                 # Raw migration scripts and schema setup
 │   ├── editor/             # Shared Unlayer email editor wrapper (react-email-editor)
 │   ├── eslint-config/      # Shared ESLint configuration
 │   ├── middleware/          # Webhook signature verification, rate limiting, CORS
@@ -180,6 +178,8 @@ This starts:
 | Feature                     | Description                                                                    |
 | --------------------------- | ------------------------------------------------------------------------------ |
 | **Multi-Tenant**            | Strict tenant isolation via shared-schema RLS, tenant context                  |
+| **SaaS Onboarding**         | 3-step wizard, subdomain pre-flight, Stripe trial subscription                 |
+| **Pricing Tiers**           | Interactive pricing matrix, monthly/annual toggle, `SaaSPlan` model            |
 | **Navigation Menu**         | Dynamic per-tenant nav tree, admin drag-and-drop builder, storefront mega menu |
 | **Product Management**      | Full CRUD with variants, pricing (cents), Cloudinary media                     |
 | **Customer Management**     | Segmentation, saved segments, store credit, timeline, import/export CSV        |
@@ -189,24 +189,15 @@ This starts:
 | **Shipping**                | Flat-rate, free-threshold, weight-based tiers; admin configurable              |
 | **Split Fulfillment**       | Multi-package shipments, carrier tracking, over-fulfillment guard              |
 | **Dashboard & Analytics**   | Reports (sales/products/customers/carts), live view, custom SQL builder        |
-| **Storefront PLP/PDP**     | Catch-all taxonomy routes, sort/filter, image gallery, stock-aware variants   |
+| **Storefront PLP/PDP**      | Catch-all taxonomy routes, sort/filter, image gallery, stock-aware variants   |
 | **Automated Campaigns**     | Background segment evaluation, campaign dispatch via Resend batch              |
-| **Campaign Dispatch**       | Scheduled sends via CampaignRunner, progress tracking, cancel/retry            |
 | **Email Templates**         | Unlayer visual editor, Jinja2 tokens, Resend delivery                          |
-| **Transactional Emails**    | Order confirmation + shipping notification via Resend (background tasks)       |
 | **Stripe Checkout**         | Hosted Checkout Sessions with Adapter Pattern, anyio thread safety             |
 | **Stripe Customer Portal**  | Self-serve billing management, saved cards, guest auth guard                   |
 | **AI Content Generation**   | FastAPI adapter (Ollama/OpenRouter/OpenAI), SSE streaming, bleach sanitization |
 | **Rich Text Editor**        | Unlayer-based WYSIWYG with merge tags for campaign templates                   |
-| **Media Upload**            | Drag-and-drop images + videos, Cloudinary CDN                                  |
-| **Order Management**        | State machine with valid transitions, filtering, pagination                    |
-| **Customer Order History**  | Storefront account orders page with fulfillment tracking cards                 |
 | **Abandoned Cart Recovery** | Scheduled email reminders (Resend), unsubscribes                               |
-| **Currency Switcher**       | Storefront multi-currency with price conversion                                |
-| **CSV Import**              | Bulk customer import with error resolution and inline correction UI            |
-| **Rate Limiting**           | In-memory (pluggable Redis)                                                    |
 | **Performance Caching**     | Next.js fetch cache with tenant-scoped tags, SWR, fire-and-forget revalidation |
-| **Error Tracking**          | Sentry (optional)                                                              |
 
 ---
 
@@ -219,7 +210,6 @@ This starts:
 | `pnpm turbo run lint`                           | Lint all workspaces              |
 | `pnpm turbo run typecheck`                      | Type-check all workspaces        |
 | `pnpm turbo run test`                           | Run all tests                    |
-| `pnpm turbo run clean`                          | Clean build artifacts            |
 | `cd services/backend-api && uv run pytest`      | Run backend tests only           |
 | `uv run alembic upgrade head`                   | Apply pending DB migrations      |
 | `doppler run -- uv run python seed_database.py` | Seed test data                   |
@@ -238,44 +228,14 @@ uv run alembic upgrade head                                  # Migrations (no se
 
 ---
 
-## Usage
-
-### Admin Dashboard ([http://localhost:3001](http://localhost:3001))
-
-Sign in with Clerk, then manage tenants, products, orders, and settings. Tenant switching is handled via the sidebar dropdown. Full product management with rich text editing, media upload, and variant configuration.
-
-### Storefront ([http://localhost:3000](http://localhost:3000))
-
-Tenant-aware e-commerce storefront. Access via `http://localhost:3000/<tenant-slug>`. Multi-currency support, product galleries, and abandoned cart recovery.
-
----
-
-## Safety & Development Guide
-
-See `docs/superpowers/DEVELOPMENT_SAFETY.md` for:
-
-- **Test database isolation** — pytest uses a separate database, dev data never touched
-- **DDL destruction blocker** — PostgreSQL event trigger blocking accidental DROP/TRUNCATE
-- **Pre-commit hook** — intercepts destructive SQL patterns before commit
-- **Seed confirmation gate** — requires `DESTROY AND RESEED` with Doppler environment guard
-- **Specs & plans** — `docs/superpowers/specs/` and `docs/superpowers/plans/` for architectural decisions
-
----
-
-### API ([http://localhost:8000](http://localhost:8000))
-
-FastAPI backend with auto-generated OpenAPI docs at `/docs`. All tenant-scoped requests must include a valid Clerk JWT and will be isolated via RLS.
-
----
-
 ## CI/CD
 
 GitHub Actions runs on every push/PR to `main` with four jobs:
 
 1. **Lint** — Ruff (Python), ESLint (admin + storefront)
 2. **TypeCheck** — `tsc --noEmit` for admin + storefront
-3. **Frontend Tests** — Vitest across all packages (167 tests across 42 test files)
-4. **Backend Tests** — Pytest with separate test database (214 tests, 0 skipped, isolated from dev data)
+3. **Frontend Tests** — Vitest across all packages
+4. **Backend Tests** — Pytest with separate test database (isolated from dev data)
 5. **AI Smoke Tests** — Backend `/api/v1/ai/generate` endpoint verified via pytest integration
 
 ---
