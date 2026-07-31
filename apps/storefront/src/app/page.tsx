@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LayerParallax } from "@/components/marketing/layer-parallax";
+import { ParallaxGallery } from "@/components/marketing/parallax-gallery";
 import { StoreFooter } from "@/components/marketing/store-footer";
 import { ZoomParallax } from "@/components/marketing/zoom-parallax";
 
@@ -82,6 +83,9 @@ export default function MarketingLanding() {
 
         {/* Layer parallax — floating images + letter displacement */}
         <LayerParallax />
+
+        {/* Multi-column parallax gallery */}
+        <ParallaxGallery />
 
         {/* Final CTA */}
         <section className="border-t border-border/40 py-24">
