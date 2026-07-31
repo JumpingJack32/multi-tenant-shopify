@@ -39,7 +39,7 @@ export function ProductCard({ product, categorySlug }: ProductCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       className="cursor-pointer"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-black">
+      <div className="relative aspect-4/5 overflow-hidden bg-black">
         {primaryImage ? (
           <AnimatePresence mode="wait">
             <motion.div

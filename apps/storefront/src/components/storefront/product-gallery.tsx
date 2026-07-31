@@ -19,7 +19,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="flex aspect-[16/9] items-center justify-center bg-muted p-4 text-center text-muted-foreground">
+      <div className="flex aspect-video items-center justify-center bg-muted p-4 text-center text-muted-foreground">
         {name}
       </div>
     );
@@ -32,7 +32,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
   return (
     <div>
       <div
-        className="relative aspect-[16/9] overflow-hidden bg-background"
+        className="relative aspect-video overflow-hidden bg-background"
         onMouseEnter={() => setHoveredIndex(0)}
         onMouseLeave={() => setHoveredIndex(null)}
       >
@@ -66,7 +66,7 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
         return (
           <div
             key={img.url}
-            className="relative aspect-[4/5] overflow-hidden bg-background"
+            className="relative aspect-4/5 overflow-hidden bg-background"
             onMouseEnter={() => setHoveredIndex(actualIndex)}
             onMouseLeave={() => setHoveredIndex(null)}
           >

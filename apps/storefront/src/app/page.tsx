@@ -1,5 +1,8 @@
 import Link from "next/link";
+
 import { StoreFooter } from "@/components/marketing/store-footer";
+
+// import { ColorPreview } from "@/components/color/color-preview";
 
 const FEATURES = [
   {
@@ -121,7 +124,67 @@ export default function MarketingLanding() {
           </div>
         </section>
       </main>
+      {/* --- begin color preview --- */}
+      <div className="min-h-screen  flex items-center justify-center py-12">
+        <div className="w-full max-w-4xl mx-auto grid md:grid-cols-2 gap-8 p-4">
 
+          {/* LIGHT THEME PREVIEW */}
+          <div className="bg-parchment-light rounded-2xl p-8 shadow-sm border border-black/5 text-charcoal flex flex-col justify-between min-h-[350px]">
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-xs font-bold uppercase tracking-wider text-olive bg-white/60 px-2.5 py-1 rounded-full border border-olive/10">
+                  Light Theme
+                </span>
+                <span className="text-xs font-mono text-olive/70 font-semibold">#FAF9F1</span>
+              </div>
+
+              <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Unified Design</h2>
+              <p className="text-olive font-medium mb-6 text-sm">Secondary heading in Deep Olive (#3A3C30).</p>
+
+              <p className="leading-relaxed text-sm opacity-90">
+                This body text is rendered in Dark Charcoal (#1E1F1A). It provides a comfortable, high-contrast reading experience that avoids the harshness of pure black text on a light background.
+              </p>
+            </div>
+
+            <div className="pt-6">
+              <button className="bg-terracotta text-white font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+                Terracotta Button
+              </button>
+            </div>
+          </div>
+
+          {/* DARK THEME PREVIEW */}
+          <div className="bg-parchment-dark rounded-2xl p-8 shadow-sm text-parchment-light flex flex-col justify-between min-h-[350px]">
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-400 bg-parchment-surface px-2.5 py-1 rounded-full border border-white/5">
+                  Dark Theme
+                </span>
+                <span className="text-xs font-mono text-gray-400 font-semibold">#14140F</span>
+              </div>
+
+              <h2 className="text-3xl font-extrabold mb-2 tracking-tight text-white">Unified Design</h2>
+              <p className="text-gray-400 font-medium mb-6 text-sm">Secondary heading using muted text.</p>
+
+              {/* Surface Layer Card */}
+              <div className="bg-parchment-surface border border-white/5 rounded-xl p-4">
+                <p className="text-xs font-mono text-gray-500 mb-1">Surface Card (#1E1F18)</p>
+                <p className="leading-relaxed text-sm text-gray-300">
+                  Your original color (#FAF9F1) serves perfectly here as the primary high-contrast text layer.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <button className="bg-terracotta text-white font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-opacity w-full md:w-auto">
+                Terracotta Button
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      {/* --- end color preview --- */}
       <StoreFooter />
     </div>
   );
