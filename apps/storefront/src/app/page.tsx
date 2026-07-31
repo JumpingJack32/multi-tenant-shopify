@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LayerParallax } from "@/components/marketing/layer-parallax";
 import { StoreFooter } from "@/components/marketing/store-footer";
 import { ZoomParallax } from "@/components/marketing/zoom-parallax";
 
@@ -60,7 +61,7 @@ export default function MarketingLanding() {
         <ZoomParallax />
 
         {/* Feature Grid */}
-        <section className="py-24 md:py-32">
+        <section className="border-b border-border/40 py-24 md:py-32">
           <div className="mx-auto max-w-7xl px-4 md:px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight">Everything you need to grow</h2>
@@ -78,6 +79,9 @@ export default function MarketingLanding() {
             </div>
           </div>
         </section>
+
+        {/* Layer parallax — floating images + letter displacement */}
+        <LayerParallax />
 
         {/* Final CTA */}
         <section className="border-t border-border/40 py-24">
