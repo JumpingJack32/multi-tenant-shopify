@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -13,6 +12,7 @@ import {
 import { BellIcon, Loader2Icon, PackageIcon, AlertTriangleIcon, CreditCardIcon } from "@repo/ui/icons";
 import { cn } from "@repo/ui/lib/utils";
 
+import { Button } from "@/components/ui/button";
 import { useTenantContext } from "@/contexts/tenant-context";
 import { request } from "@/lib/api/client";
 
