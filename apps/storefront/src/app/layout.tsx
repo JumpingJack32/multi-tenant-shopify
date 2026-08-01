@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import "@repo/ui/globals.css";
 import { cn } from "@repo/shared-utils/cn";
 
+import { ClerkLoadErrorBanner } from "@/components/auth/clerk-load-error";
 import { Providers } from "@/components/providers";
 
 const InstrumentTitleHeading: NextFontWithVariable = Instrument_Serif({
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             fontMono.variable,
           )}
         >
+          <ClerkLoadErrorBanner />
           <Providers>{children}</Providers>
         </body>
       </html>

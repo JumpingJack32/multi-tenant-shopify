@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import "@repo/ui/globals.css";
 
 import { AdminCommandMenu } from "@/components/admin-command-menu";
+import { ClerkLoadErrorBanner } from "@/components/auth/clerk-load-error";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             {children}
             <Toaster richColors closeButton />
             <AdminCommandMenu />
+            <ClerkLoadErrorBanner />
           </ThemeProvider>
         </body>
       </html>
