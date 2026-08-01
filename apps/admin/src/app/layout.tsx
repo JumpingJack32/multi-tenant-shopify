@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
@@ -7,6 +6,7 @@ import "@repo/ui/globals.css";
 
 import { AdminCommandMenu } from "@/components/admin-command-menu";
 import { ClerkLoadErrorBanner } from "@/components/auth/clerk-load-error";
+import { ClerkProviderPinned } from "@/components/auth/clerk-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProviderPinned>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
           <ThemeProvider
@@ -37,6 +37,6 @@ export default function RootLayout({
           </ThemeProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </ClerkProviderPinned>
   );
 }
