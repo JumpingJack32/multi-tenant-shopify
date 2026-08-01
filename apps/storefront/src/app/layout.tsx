@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import type { NextFontWithVariable } from "next/dist/compiled/@next/font";
 import {
@@ -12,6 +11,8 @@ import type { ReactNode } from "react";
 import "@repo/ui/globals.css";
 import { cn } from "@repo/shared-utils/cn";
 
+import { ClerkLoadErrorBanner } from "@/components/auth/clerk-load-error";
+import { ClerkProviderPinned } from "@/components/auth/clerk-provider";
 import { Providers } from "@/components/providers";
 
 const InstrumentTitleHeading: NextFontWithVariable = Instrument_Serif({
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProviderPinned>
       <html lang="en" suppressHydrationWarning>
         <body
           className={cn(
@@ -64,9 +65,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             fontMono.variable,
           )}
         >
+          <ClerkLoadErrorBanner />
           <Providers>{children}</Providers>
         </body>
       </html>
-    </ClerkProvider>
+    </ClerkProviderPinned>
   );
 }
