@@ -7,8 +7,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import selectinload
-from sqlmodel import func, select
-from sqlmodel import text as sql_text
+from sqlmodel import func, select, text as sql_text
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.pricing.interceptor import CurrencyAwareRoute
@@ -773,6 +772,7 @@ async def checkout(
     # Send order confirmation email in background
     if order.customer_email:
         import asyncio
+
         from src.services.email_service import create_email_service
 
         email_svc = create_email_service()

@@ -7,13 +7,16 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
 from src.core.tenant_isolation import set_tenant_context
-from src.dependencies import get_db, get_current_user
+from src.dependencies import get_current_user, get_db
 from src.orm.models.cart import Cart
 from src.orm.models.category import Category
 from src.orm.models.collection import Collection
 from src.orm.models.product import Product
 from src.orm.models.saas_plan import SaaSPlan
 from src.orm.models.tenant import Tenant
+from src.orm.schemas.category import CategoryResponse
+from src.orm.schemas.collection import CollectionResponse
+from src.orm.schemas.product import ProductResponse
 from src.orm.schemas.saas_plan import SaaSPlanResponse
 from src.orm.schemas.signup import (
     SignupRequest,
@@ -21,12 +24,9 @@ from src.orm.schemas.signup import (
     SlugCheckRequest,
     SlugCheckResponse,
 )
-from src.services.saas_service import check_slug_available, signup_tenant
-from src.orm.schemas.category import CategoryResponse
-from src.orm.schemas.collection import CollectionResponse
-from src.orm.schemas.product import ProductResponse
 from src.orm.schemas.tenant import TenantPublicResponse
 from src.services.abandoned_cart import verify_unsubscribe_token
+from src.services.saas_service import check_slug_available, signup_tenant
 
 router = APIRouter()
 

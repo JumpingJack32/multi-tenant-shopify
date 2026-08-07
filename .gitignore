@@ -78,6 +78,9 @@ coverage/
 # database dumps
 *.dump
 
+# Supabase local runtime state (generated credentials + CLI cache)
+supabase/.temp/
+
 # misc
 *.log
 .DS_Store
