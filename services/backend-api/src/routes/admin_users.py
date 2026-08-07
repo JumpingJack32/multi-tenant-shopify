@@ -262,6 +262,28 @@ async def get_permission_catalog(
     )
 
 
+@router.get("/tenants")
+async def list_all_tenants(
+    db: AsyncSession = Depends(get_db),
+    _: TenantUser = Depends(get_current_tenant_user),
+    actor: TenantUser = Depends(get_current_tenant_user),
+):
+    """List all tenants — platform superuser only."""
+    if not actor.is_platform_superuser:
+        raise HTTPException(status_code=403, detail="Superuser access required")
+    result = await db.exec(select(Tenant).order_by(Tenant.name))
+    return [
+        {
+            "id": str(t.id),
+            "tenant_id": str(t.tenant_id),
+            "name": t.name,
+            "slug": t.slug,
+            "status": t.status.value if hasattr(t.status, "value") else str(t.status),
+        }
+        for t in result.all()
+    ]
+
+
 @router.get("/audit-logs", response_model=list[AuditLogResponse])
 async def list_audit_logs(
     db: AsyncSession = Depends(get_db),
