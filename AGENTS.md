@@ -21,7 +21,8 @@
 # 🔴 CRITICAL RULE — ALWAYS USE FEATURE BRANCHES
 
 # Never commit or push directly to `main`. Every feature, fix, or change MUST:
-# 1. Start with `git checkout -b feat/<name>` or `fix/<name>` from `main`
+# 1. Start with `git switch -c feat/<name>` or `git switch -c fix/<name>` from `main`
+#    (use `git switch` / `git switch -c`, NOT `git checkout` / `git checkout -b`)
 # 2. Commit all work to that branch
 # 3. Push the branch and open a Pull Request (PR)
 # 4. Only merge to `main` after the PR is reviewed
