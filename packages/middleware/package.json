@@ -16,7 +16,7 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.19.21"
-  },
-  "peerDependencies": {}
+    "@types/node": "^22.19.21",
+    "typescript": "6.0.3"
+  }
 }

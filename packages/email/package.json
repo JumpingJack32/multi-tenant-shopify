@@ -17,9 +17,9 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.2",
-    "postcss": "^8.5.3",
     "@types/react": "^19.0.0",
+    "postcss": "^8.5.3",
     "tsx": "^4.0.0",
-    "typescript": "^5.8.0"
+    "typescript": "^6.0.3"
   }
 }
