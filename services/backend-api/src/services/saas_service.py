@@ -1,7 +1,7 @@
 """SaaS sign-up service — orchestrates tenant provisioning with Stripe billing."""
 
+from datetime import datetime, timedelta, timezone
 import uuid
-from datetime import datetime, timezone, timedelta
 
 import anyio
 from sqlalchemy import text

@@ -8,10 +8,10 @@ Usage:
 
 import argparse
 import asyncio
+from dataclasses import dataclass, field
 import random
 import statistics
 import time
-from dataclasses import dataclass, field
 from typing import Optional
 
 import httpx

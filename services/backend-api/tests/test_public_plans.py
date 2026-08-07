@@ -2,8 +2,8 @@
 
 from uuid import UUID
 
+from httpx import ASGITransport, AsyncClient
 import pytest
-from httpx import AsyncClient, ASGITransport
 from sqlalchemy import text
 from sqlmodel.ext.asyncio.session import AsyncSession
 

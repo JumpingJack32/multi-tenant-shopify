@@ -10,10 +10,9 @@ from sqlmodel import select, text as sql_text
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.dependencies import get_current_tenant_id, get_db
-from src.orm.models.order import Order, OrderItem
-from src.orm.models.product import Product, Variant
 from src.orm.models.cart import Cart
-from src.orm.models.order import Customer
+from src.orm.models.order import Customer, Order, OrderItem
+from src.orm.models.product import Product, Variant
 from src.orm.schemas.analytics import (
     CartAbandonmentPoint,
     CartReportRow,

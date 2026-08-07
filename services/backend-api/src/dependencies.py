@@ -7,6 +7,8 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.core.rbac import has_permission, is_owner, validate_permission
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 current_tenant_id: ContextVar[UUID] = ContextVar("current_tenant_id", default=UUID("00000000-0000-0000-0000-000000000000"))
 
@@ -125,3 +127,78 @@ async def require_admin(
 
     # TODO: Verify user has admin role in tenant
     return user
+
+
+async def get_current_tenant_user(
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Resolve the authenticated Clerk user to an active TenantUser row."""
+    from src.orm.models.tenant import Tenant, TenantUser
+
+    business_tenant_id = user.get("tenant_id")
+    if not business_tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing tenant context",
+        )
+
+    try:
+        business_uuid = UUID(str(business_tenant_id))
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid tenant context",
+        )
+
+    # Resolve business tenant_id -> tenants.id (PK). TenantUser.tenant_id
+    # references tenants.id, while Clerk claims carry Tenant.tenant_id.
+    tenant = (
+        await db.exec(select(Tenant).where(Tenant.tenant_id == business_uuid))
+    ).one_or_none()
+    if not tenant or tenant.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant not found or inactive",
+        )
+
+    stmt = select(TenantUser).where(
+        TenantUser.tenant_id == tenant.id,
+        TenantUser.clerk_user_id == user["user_id"],
+    )
+    tu = (await db.exec(stmt)).one_or_none()
+    if not tu or not tu.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No active membership in this tenant",
+        )
+    return tu
+
+
+def require_permission(permission: str):
+    """Route dependency factory — enforce a single permission key."""
+    validate_permission(permission)
+
+    async def dep(
+        tu: TenantUser = Depends(get_current_tenant_user),
+    ):
+        if not has_permission(tu.role, permission, tu.is_platform_superuser):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Missing permission: {permission}",
+            )
+        return tu
+
+    return dep
+
+
+async def require_owner(
+    tu: TenantUser = Depends(get_current_tenant_user),
+):
+    """Owner (or platform superuser) access only."""
+    if not is_owner(tu.role, tu.is_platform_superuser):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Owner access required",
+        )
+    return tu

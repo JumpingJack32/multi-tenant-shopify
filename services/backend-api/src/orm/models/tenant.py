@@ -62,8 +62,12 @@ class TenantUser(SQLModel, table=True):
     email: str = Field(max_length=255)
     password_hash: str = Field(max_length=255)
     role: str = Field(default="member", max_length=50)
+    status: str = Field(default="active", max_length=20)
     is_active: bool = Field(default=True)
     is_platform_superuser: bool = Field(default=False)
+    invited_by: Optional[UUID] = Field(default=None)
+    invited_at: Optional[datetime] = Field(default=None)
+    last_login_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now())
     updated_at: datetime = Field(default_factory=lambda: datetime.now())
 

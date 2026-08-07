@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import JSON, Column, Index
+from sqlalchemy import Column, Index, JSON
 from sqlmodel import Field
 
 from src.orm.base import BaseModel

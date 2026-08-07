@@ -1,77 +1,74 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import { createContext, useContext, type ReactNode, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-export type Role = "admin" | "member" | "viewer";
+import { useTenantContext } from "@/contexts/tenant-context";
+import { request } from "@/lib/api/client";
 
-export const ROLES = {
-  ADMIN: "admin" as Role,
-  MEMBER: "member" as Role,
-  VIEWER: "viewer" as Role,
-} as const;
-
-export type Permission = "create" | "read" | "update" | "delete";
-
-interface RolePermissions {
-  create: boolean;
-  read: boolean;
-  update: boolean;
-  delete: boolean;
+interface PermissionCatalog {
+  permission_keys: string[];
+  role_permissions: Record<string, string[]>;
+  my_permissions: string[];
+  my_role: string;
 }
 
-const PERMISSIONS: Record<Role, RolePermissions> = {
-  admin: { create: true, read: true, update: true, delete: true },
-  member: { create: true, read: true, update: true, delete: false },
-  viewer: { create: false, read: true, update: false, delete: false },
-};
-
 interface RbacContextValue {
-  role: Role;
-  hasPermission: (action: Permission) => boolean;
-  can: (action: Permission) => boolean;
-  roles: typeof ROLES;
+  role: string;
+  permissions: string[];
+  can: (permission: string) => boolean;
+  isSuperuser: boolean;
+  loading: boolean;
+  refresh: () => void;
 }
 
 const RbacContext = createContext<RbacContextValue | null>(null);
 
-function extractRole(sessionClaims: unknown): Role {
-  if (!sessionClaims || typeof sessionClaims !== "object") {
-    return ROLES.VIEWER;
-  }
-
-  const claims = sessionClaims as Record<string, unknown>;
-  const metadata = claims.metadata as Record<string, unknown> | null;
-  const roles = metadata?.roles as string[] | undefined;
-
-  if (!roles || !Array.isArray(roles) || roles.length === 0) {
-    return ROLES.VIEWER;
-  }
-
-  const highestPriority = ["admin", "member", "viewer"];
-  for (const priority of highestPriority) {
-    if (roles.includes(priority)) {
-      return priority as Role;
-    }
-  }
-
-  return ROLES.VIEWER;
-}
-
 export function RbacProvider({ children }: { children: ReactNode }) {
-  const { sessionClaims } = useAuth();
+  const { currentTenantId } = useTenantContext();
+  const [catalog, setCatalog] = useState<PermissionCatalog | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const role = useMemo(() => extractRole(sessionClaims), [sessionClaims]);
+  const load = useMemo(
+    () => async () => {
+      if (!currentTenantId) return;
+      setLoading(true);
+      try {
+        const data = await request<PermissionCatalog>("/admin/permissions", {
+          tenantId: currentTenantId,
+        });
+        setCatalog(data);
+      } catch {
+        setCatalog(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentTenantId],
+  );
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const value = useMemo<RbacContextValue>(() => {
-    const perms = PERMISSIONS[role];
+    const perms = catalog?.my_permissions ?? [];
+    const role = catalog?.my_role ?? "viewer";
     return {
       role,
-      hasPermission: (action: Permission) => perms[action] ?? false,
-      can: (action: Permission) => perms[action] ?? false,
-      roles: ROLES,
+      permissions: perms,
+      can: (permission: string) => perms.includes(permission),
+      isSuperuser: role === "superuser",
+      loading,
+      refresh: () => load(),
     };
-  }, [role]);
+  }, [catalog, loading, load]);
 
   return (
     <RbacContext.Provider value={value}>

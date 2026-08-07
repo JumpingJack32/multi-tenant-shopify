@@ -219,13 +219,15 @@ async def tenant_isolation_middleware(request: Request, call_next):
 from src.core.exchange_rates.router import router as exchange_rates_router  # noqa: E402
 from src.routes.admin import router as admin_router  # noqa: E402
 from src.routes.admin_auth import router as admin_auth_router  # noqa: E402
-from src.routes.admin_fulfillments import router as admin_fulfillments_router  # noqa: E402
 from src.routes.admin_dashboard import router as admin_dashboard_router  # noqa: E402
+from src.routes.admin_fulfillments import router as admin_fulfillments_router  # noqa: E402
 from src.routes.admin_notifications import router as admin_notifications_router  # noqa: E402
 from src.routes.admin_orders import router as admin_orders_router  # noqa: E402
-from src.routes.admin_subscriptions import router as admin_subscriptions_router  # noqa: E402
+from src.routes.admin_rma import router as admin_rma_router  # noqa: E402
 from src.routes.admin_settings import router as admin_settings_router  # noqa: E402
 from src.routes.admin_shipping import router as admin_shipping_router  # noqa: E402
+from src.routes.admin_subscriptions import router as admin_subscriptions_router  # noqa: E402
+from src.routes.admin_users import router as admin_users_router  # noqa: E402
 from src.routes.admin_webhooks import router as admin_webhooks_router  # noqa: E402
 from src.routes.ai import router as ai_router  # noqa: E402
 from src.routes.analytics import router as analytics_router  # noqa: E402
@@ -241,16 +243,15 @@ from src.routes.navigation_admin import router as navigation_admin_router  # noq
 from src.routes.orders import router as orders_router  # noqa: E402
 from src.routes.product_images import router as product_images_router  # noqa: E402
 from src.routes.products import router as products_router  # noqa: E402
-from src.routes.public import router as public_router  # noqa: E402
 from src.routes.promotions import router as promotions_router  # noqa: E402
-from src.routes.admin_rma import router as admin_rma_router  # noqa: E402
+from src.routes.public import router as public_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
 from src.routes.reviews import router as reviews_router  # noqa: E402
 from src.routes.segments import router as segments_router  # noqa: E402
 from src.routes.settings import router as settings_router  # noqa: E402
 from src.routes.stock_transfers import router as stock_transfers_router  # noqa: E402
-from src.routes.subscriptions import router as subscriptions_router  # noqa: E402
 from src.routes.storefront import router as storefront_router  # noqa: E402
+from src.routes.subscriptions import router as subscriptions_router  # noqa: E402
 from src.routes.suppliers import router as suppliers_router  # noqa: E402
 from src.routes.tenants import router as tenants_router  # noqa: E402
 from src.routes.webhooks import router as webhooks_router  # noqa: E402
@@ -292,6 +293,7 @@ app.include_router(purchase_orders_router, prefix="/api/v1")
 app.include_router(promotions_router, prefix="/api/v1")
 app.include_router(reviews_router, prefix="/api/v1")
 app.include_router(admin_rma_router)
+app.include_router(admin_users_router)
 app.include_router(stock_transfers_router, prefix="/api/v1")
 
 
