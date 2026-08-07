@@ -1,6 +1,6 @@
 """Team management & RBAC admin endpoints."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -94,14 +94,14 @@ async def invite_user(
         # Idempotent re-invite: resend, refresh timestamps, return existing
         existing.status = "invited"
         existing.role = payload.role
-        existing.invited_at = datetime.now(timezone.utc)
+        existing.invited_at = datetime.now()
         existing.invited_by = actor.id
         db.add(existing)
-        await db.commit()
+        await db.flush()
         await db.refresh(existing)
         from src.services.audit_service import record_audit
         record_audit(
-            db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+            tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
             action="settings.manage_staff.invite", resource_type="tenant_user",
             resource_id=str(existing.id), details={"email": email, "role": payload.role},
         )
@@ -116,14 +116,14 @@ async def invite_user(
         status="invited",
         is_active=True,
         invited_by=actor.id,
-        invited_at=datetime.now(timezone.utc),
+        invited_at=datetime.now(),
     )
     db.add(new_user)
-    await db.commit()
+    await db.flush()
     await db.refresh(new_user)
     from src.services.audit_service import record_audit
     record_audit(
-        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
         action="settings.manage_staff.invite", resource_type="tenant_user",
         resource_id=str(new_user.id), details={"email": email, "role": payload.role},
     )
@@ -162,11 +162,11 @@ async def update_user(
         target.is_active = payload.is_active
 
     db.add(target)
-    await db.commit()
+    await db.flush()
     await db.refresh(target)
     from src.services.audit_service import record_audit
     record_audit(
-        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
         action="settings.manage_staff.update", resource_type="tenant_user",
         resource_id=str(target.id), details=payload.model_dump(exclude_none=True),
     )
@@ -194,10 +194,10 @@ async def remove_user(
         raise HTTPException(status_code=400, detail="Cannot remove the owner")
 
     await db.delete(target)
-    await db.commit()
+    await db.flush()
     from src.services.audit_service import record_audit
     record_audit(
-        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
         action="settings.manage_staff.remove", resource_type="tenant_user",
         resource_id=str(target.id), details={"email": target.email},
     )
@@ -226,17 +226,17 @@ async def transfer_ownership(
     if not target:
         raise HTTPException(status_code=404, detail="Target user not found")
 
-    async with db.begin():
-        actor.role = "admin"
-        db.add(actor)
-        target.role = "owner"
-        db.add(target)
-        await db.flush()
-
+    # get_db already wraps the session in a transaction — demote + promote
+    # atomically within it, then commit.
+    actor.role = "admin"
+    db.add(actor)
+    target.role = "owner"
+    db.add(target)
+    await db.flush()
     await db.refresh(target)
     from src.services.audit_service import record_audit
     record_audit(
-        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
         action="settings.transfer_ownership", resource_type="tenant_user",
         resource_id=str(target.id), details={"from": str(actor.id), "to": str(target.id)},
     )

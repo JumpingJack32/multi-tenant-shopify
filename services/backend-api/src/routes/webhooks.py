@@ -1,6 +1,6 @@
 # services/backend-api/src/routes/webhooks.py
 import base64
-from datetime import datetime, timezone
+from datetime import datetime
 import hashlib
 import hmac
 import json
@@ -142,7 +142,7 @@ async def _activate_tenant_user(
     else:
         user.status = "active"
         user.is_active = True
-        user.last_login_at = datetime.now(timezone.utc)
+        user.last_login_at = datetime.now()
         if role:
             user.role = role
         db.add(user)
