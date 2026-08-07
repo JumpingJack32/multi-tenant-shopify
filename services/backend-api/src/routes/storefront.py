@@ -765,7 +765,7 @@ async def checkout(
     cart.email = body.customer_email
     cart.status = CartStatus.COMPLETED
     cart.completed_at = datetime.now(timezone.utc)
-    order.customer_email = body.customer_email
+    order.customer_email = (body.customer_email or "").lower().strip() or None
     await db.flush()
     await db.refresh(order, ["items"])
 
