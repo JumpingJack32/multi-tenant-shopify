@@ -99,6 +99,12 @@ async def invite_user(
         db.add(existing)
         await db.commit()
         await db.refresh(existing)
+        from src.services.audit_service import record_audit
+        record_audit(
+            db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+            action="settings.manage_staff.invite", resource_type="tenant_user",
+            resource_id=str(existing.id), details={"email": email, "role": payload.role},
+        )
         return _user_response(existing)
 
     new_user = TenantUser(
@@ -115,6 +121,12 @@ async def invite_user(
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
+    from src.services.audit_service import record_audit
+    record_audit(
+        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        action="settings.manage_staff.invite", resource_type="tenant_user",
+        resource_id=str(new_user.id), details={"email": email, "role": payload.role},
+    )
     return _user_response(new_user)
 
 
@@ -152,6 +164,12 @@ async def update_user(
     db.add(target)
     await db.commit()
     await db.refresh(target)
+    from src.services.audit_service import record_audit
+    record_audit(
+        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        action="settings.manage_staff.update", resource_type="tenant_user",
+        resource_id=str(target.id), details=payload.model_dump(exclude_none=True),
+    )
     return _user_response(target)
 
 
@@ -177,6 +195,12 @@ async def remove_user(
 
     await db.delete(target)
     await db.commit()
+    from src.services.audit_service import record_audit
+    record_audit(
+        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        action="settings.manage_staff.remove", resource_type="tenant_user",
+        resource_id=str(target.id), details={"email": target.email},
+    )
     return None
 
 
@@ -210,6 +234,12 @@ async def transfer_ownership(
         await db.flush()
 
     await db.refresh(target)
+    from src.services.audit_service import record_audit
+    record_audit(
+        db, tenant_id=actor.tenant_id, actor_user_id=actor.id, actor_email=actor.email,
+        action="settings.transfer_ownership", resource_type="tenant_user",
+        resource_id=str(target.id), details={"from": str(actor.id), "to": str(target.id)},
+    )
     return _user_response(target)
 
 
