@@ -244,6 +244,7 @@ from src.routes.products import router as products_router  # noqa: E402
 from src.routes.public import router as public_router  # noqa: E402
 from src.routes.promotions import router as promotions_router  # noqa: E402
 from src.routes.admin_rma import router as admin_rma_router  # noqa: E402
+from src.routes.admin_users import router as admin_users_router  # noqa: E402
 from src.routes.purchase_orders import router as purchase_orders_router  # noqa: E402
 from src.routes.reviews import router as reviews_router  # noqa: E402
 from src.routes.segments import router as segments_router  # noqa: E402
@@ -292,6 +293,7 @@ app.include_router(purchase_orders_router, prefix="/api/v1")
 app.include_router(promotions_router, prefix="/api/v1")
 app.include_router(reviews_router, prefix="/api/v1")
 app.include_router(admin_rma_router)
+app.include_router(admin_users_router)
 app.include_router(stock_transfers_router, prefix="/api/v1")
 
 

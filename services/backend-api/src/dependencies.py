@@ -134,25 +134,36 @@ async def get_current_tenant_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Resolve the authenticated Clerk user to an active TenantUser row."""
-    from src.orm.models.tenant import TenantUser
+    from src.orm.models.tenant import Tenant, TenantUser
 
-    tenant_id = user.get("tenant_id")
-    if not tenant_id:
+    business_tenant_id = user.get("tenant_id")
+    if not business_tenant_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing tenant context",
         )
 
     try:
-        tenant_uuid = UUID(str(tenant_id))
+        business_uuid = UUID(str(business_tenant_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid tenant context",
         )
 
+    # Resolve business tenant_id -> tenants.id (PK). TenantUser.tenant_id
+    # references tenants.id, while Clerk claims carry Tenant.tenant_id.
+    tenant = (
+        await db.exec(select(Tenant).where(Tenant.tenant_id == business_uuid))
+    ).one_or_none()
+    if not tenant or tenant.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tenant not found or inactive",
+        )
+
     stmt = select(TenantUser).where(
-        TenantUser.tenant_id == tenant_uuid,
+        TenantUser.tenant_id == tenant.id,
         TenantUser.clerk_user_id == user["user_id"],
     )
     tu = (await db.exec(stmt)).one_or_none()
