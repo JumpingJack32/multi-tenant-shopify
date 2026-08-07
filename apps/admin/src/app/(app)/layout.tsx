@@ -38,7 +38,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const sidebarUser: AppSidebarUser = {
     name: user?.fullName ?? user?.username ?? "Admin User",
     email: user?.primaryEmailAddress?.emailAddress ?? "admin@example.com",
-    avatar: user?.imageUrl ?? "",
+    avatar: user?.imageUrl ?? null,
   };
 
   return (

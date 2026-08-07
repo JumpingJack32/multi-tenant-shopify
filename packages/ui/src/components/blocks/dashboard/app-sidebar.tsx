@@ -46,7 +46,7 @@ export interface SidebarNavItem {
 export interface AppSidebarUser {
   name: string;
   email: string;
-  avatar: string;
+  avatar: string | null;
 }
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -182,7 +182,7 @@ export function AppSidebar({
   const fallbackUser: AppSidebarUser = {
     name: "Admin User",
     email: "admin@example.com",
-    avatar: "",
+    avatar: null,
   };
 
   return (
