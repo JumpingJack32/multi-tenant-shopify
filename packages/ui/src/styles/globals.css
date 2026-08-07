@@ -1,18 +1,22 @@
-@import "tailwindcss";
-@plugin "tailwindcss-animate";
+@import 'tailwindcss';
+@plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));
 /* Force Tailwind v4 to scan your apps and components */
-@source "../../../../apps/admin/src/**/*.{ts,tsx,js,jsx}";
-@source "../../../../apps/storefront/src/**/*.{ts,tsx,js,jsx}";
-@source "../../src/**/*.{ts,tsx,js,jsx}";
-@source "../../components/**/*.{ts,tsx}";
+@source '../../../../apps/admin/src/**/*.{ts,tsx,js,jsx}';
+@source '../../../../apps/storefront/src/**/*.{ts,tsx,js,jsx}';
+@source '../../src/**/*.{ts,tsx,js,jsx}';
+@source '../../components/**/*.{ts,tsx}';
 
 :root {
+  --dark-moss: oklch(21.567% 0.02942 140.727);
+  --ivory: oklch(98.069% 0.01049 100.928);
   --dusty-olive: oklch(55.847% 0.01507 111.607);
-  --background: oklch(1 0 0);
+  --background: oklch(98.069% 0.01049 100.928);
+  /* --background: oklch(1 0 0); */
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: oklch(99% 0.005 100.928);
+  /* --card: oklch(1 0 0); */
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -45,7 +49,9 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(29.178% 0.04191 140.815);
+  /* --background: oklch(23.453% 0.03485 139.836); */
+  /* --background: oklch(0.145 0 0); */
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -79,14 +85,29 @@
 }
 
 @theme inline {
+  /* Theme-specific custom colors */
+  --color-parchment-light: oklch(98.069% 0.01049 100.928);
+  --color-parchment-dark: oklch(18.934% 0.00975 107.338);
+  --color-parchment-surface: oklch(23.569% 0.01302 114.059);
+
+  /* Accent and Text System */
+  --color-charcoal: oklch(23.636% 0.00941 116.384);
+  --color-olive: oklch(35.033% 0.02026 115.191);
+  --color-terracotta: oklch(51.454% 0.14073 37.611);
+
+  /* Extended design tokens for footer */
+  --color-dusty-olive: var(--dusty-olive);
+  --color-ivory: var(--ivory);
+
+  /*-----  */
+
   /* Extended design tokens custom to your architecture */
   --animate-in: enter;
   --animate-out: exit;
   /* Radix UI Menu custom configurations if needed */
   --animate-scale-in: scale-in 0.2s ease-out;
   --animate-marquee: marquee 30s linear infinite;
-  /* Extended design tokens for footer */
-  --color-dusty-olive: var(--dusty-olive);
+
   /* Base UI Menu standard configurations */
   --color-background: var(--background);
   --color-foreground: var(--foreground);

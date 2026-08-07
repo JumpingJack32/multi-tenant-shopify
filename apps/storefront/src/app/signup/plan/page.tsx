@@ -32,7 +32,7 @@ function PlanSelection() {
     fetch(`${API_URL}/api/v1/public/plans`)
       .then((r) => r.json())
       .then(setPlans)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleSelect = async (planSlug: string) => {
@@ -104,7 +104,7 @@ function PlanSelection() {
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${annual ? "bg-primary" : "bg-muted-foreground/30"}`}
                 aria-label="Toggle annual billing"
               >
-                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${annual ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${annual ? "translate-x-5.5" : "translate-x-0.5"}`} />
               </button>
               <span className={`text-sm ${annual ? "text-foreground font-medium" : "text-muted-foreground"}`}>Annual</span>
               {annual && <span className="text-xs text-green-600 font-medium">Save 20%</span>}
@@ -149,8 +149,8 @@ export default function PlanPage() {
     <div className="flex min-h-screen flex-col bg-background text-foreground antialiased selection:bg-primary/10">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Multi-tenant Shopify
+          <Link href="/" className="font-title text-lg font-bold tracking-tight">
+            Amao & Agou
           </Link>
         </div>
       </header>

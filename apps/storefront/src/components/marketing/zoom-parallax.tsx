@@ -138,22 +138,22 @@ export function ZoomParallax() {
         {/* Overlay headline + CTAs */}
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-6 px-4 text-center">
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-foreground md:text-6xl">
-            The e-commerce platform for independent brands
+            {/* The e-commerce platform for independent brands */}
           </h1>
           <p className="max-w-xl text-lg text-muted-foreground md:text-xl">
-            Multi-warehouse inventory, subscriptions, global payments, and
-            analytics — all in one platform.
+            {/* Multi-warehouse inventory, subscriptions, global payments, and
+            analytics — all in one platform. */}
           </p>
           <div className="pointer-events-auto mt-2 flex flex-col items-center gap-4 sm:flex-row">
             <Link
               href="/signup"
               className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Start Your 14-Day Free Trial
+              Start Shopping Now
             </Link>
             <Link
               href="/showcase"
-              className="inline-flex h-12 items-center justify-center rounded-md border border-border px-8 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-border px-8 text-sm font-semibold text-foreground transition-colors bg-muted hover:bg-muted/90"
             >
               View Showcase Store
             </Link>

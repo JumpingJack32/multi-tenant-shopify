@@ -37,8 +37,8 @@ export default function MarketingLanding() {
     <div className="flex min-h-screen flex-col bg-background text-foreground antialiased selection:bg-primary/10">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Multi-tenant Shopify
+          <Link href="/" className="text-lg font-bold tracking-tight font-title">
+            Amao & Agou
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -51,7 +51,7 @@ export default function MarketingLanding() {
               href="/signup"
               className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
             >
-              Start Free Trial
+              Start Shopping Now
             </Link>
           </nav>
         </div>
@@ -84,22 +84,42 @@ export default function MarketingLanding() {
         {/* Layer parallax — floating images + letter displacement */}
         <LayerParallax />
 
+        {/* Feature Grid 2 */}
+        <section className="border-b border-border/40 py-24 md:py-32">
+          <div className="mx-auto max-w-7xl px-4 md:px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight">Everything you need to grow</h2>
+              <p className="mt-4 text-muted-foreground">
+                Built for brands that outgrow basic e-commerce tools.
+              </p>
+            </div>
+            <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((f) => (
+                <div key={f.title} className="rounded-lg border border-border/40 p-6">
+                  <h3 className="font-semibold">{f.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{f.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Multi-column parallax gallery */}
         <ParallaxGallery />
 
         {/* Final CTA */}
         <section className="border-t border-border/40 py-24">
           <div className="mx-auto max-w-2xl px-4 text-center md:px-6">
-            <h2 className="text-3xl font-bold tracking-tight">Ready to launch your store?</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Ready to explore the store?</h2>
             <p className="mt-4 text-muted-foreground">
-              Join brands using Multi-tenant Shopify to power their e-commerce operations.
+              Join brands using Amao & Agou to power and subscribe to out catalogue.
             </p>
             <div className="mt-8">
               <Link
                 href="/signup"
                 className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
               >
-                Start Free Trial
+                Start Shopping Now
               </Link>
             </div>
           </div>
@@ -121,7 +141,7 @@ function ColorPreview() {
     <div className="w-full max-w-4xl mx-auto grid md:grid-cols-2 gap-8 p-4">
 
       {/* LIGHT THEME PREVIEW */}
-      <div className="bg-parchment-light rounded-2xl p-8 shadow-sm border border-black/5 text-charcoal flex flex-col justify-between min-h-[350px]">
+      <div className="bg-parchment-light rounded-2xl p-8 shadow-sm border border-black/5 text-charcoal flex flex-col justify-between min-h-87.5">
         <div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-xs font-bold uppercase tracking-wider text-olive bg-white/60 px-2.5 py-1 rounded-full border border-olive/10">
@@ -146,7 +166,7 @@ function ColorPreview() {
       </div>
 
       {/* DARK THEME PREVIEW */}
-      <div className="bg-parchment-dark rounded-2xl p-8 shadow-sm text-parchment-light flex flex-col justify-between min-h-[350px]">
+      <div className="bg-parchment-dark rounded-2xl p-8 shadow-sm text-parchment-light flex flex-col justify-between min-h-87.5">
         <div>
           <div className="flex justify-between items-center mb-6">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400 bg-parchment-surface px-2.5 py-1 rounded-full border border-white/5">

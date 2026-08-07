@@ -31,14 +31,14 @@ export default async function TenantLandingPage({
       <section className="mx-auto max-w-6xl px-4 py-24">
         <div className="grid gap-8 md:grid-cols-2">
           <Link href={`/${tenant}/shop/rucksacks`} className="group">
-            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+            <div className="aspect-4/5 bg-zinc-900 flex items-center justify-center">
               <span className="text-6xl text-white/20">✦</span>
             </div>
             <h3 className="mt-4 text-xl font-medium">Rucksacks</h3>
             <p className="text-sm text-white/40">Built for the journey.</p>
           </Link>
           <Link href={`/${tenant}/shop/gadgets`} className="group">
-            <div className="aspect-[4/5] bg-zinc-900 flex items-center justify-center">
+            <div className="aspect-4/5 bg-zinc-900 flex items-center justify-center">
               <span className="text-6xl text-white/20">✦</span>
             </div>
             <h3 className="mt-4 text-xl font-medium">Gadgets</h3>

@@ -200,7 +200,7 @@ export function StoreFooter() {
           <div className="col-span-1 w-full lg:hidden">
             <Accordion className="w-full">
               <AccordionItem className="border-stone-200">
-                <AccordionTrigger className="py-4 text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
+                <AccordionTrigger className="py-4 font-title text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
                   Customer Services
                 </AccordionTrigger>
                 <AccordionContent>
@@ -219,7 +219,7 @@ export function StoreFooter() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem className="border-stone-200">
-                <AccordionTrigger className="py-4 text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
+                <AccordionTrigger className="py-4 font-title text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
                   About Us
                 </AccordionTrigger>
                 <AccordionContent>
@@ -238,7 +238,7 @@ export function StoreFooter() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem className="border-stone-200">
-                <AccordionTrigger className="py-4 text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
+                <AccordionTrigger className="py-4 font-title text-xs font-semibold tracking-widest text-stone-100 uppercase hover:no-underline">
                   My Account
                 </AccordionTrigger>
                 <AccordionContent>
