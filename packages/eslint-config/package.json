@@ -16,5 +16,8 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-react-hooks": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
   }
 }

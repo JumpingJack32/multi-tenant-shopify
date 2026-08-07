@@ -18,7 +18,8 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.19.21"
+    "@types/node": "^22.19.21",
+    "typescript": "6.0.3"
   },
   "scripts": {
     "test": "pnpm -w vitest run --project tenant-orm",
