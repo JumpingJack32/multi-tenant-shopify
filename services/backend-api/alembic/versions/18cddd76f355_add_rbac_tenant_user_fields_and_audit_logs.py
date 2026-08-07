@@ -37,7 +37,7 @@ def upgrade() -> None:
         sa.Column("action", sa.String(length=100), nullable=False),
         sa.Column("resource_type", sa.String(length=50), nullable=True),
         sa.Column("resource_id", sa.String(length=100), nullable=True),
-        sa.Column("metadata", sa.JSON(), nullable=False),
+        sa.Column("details", sa.JSON(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
