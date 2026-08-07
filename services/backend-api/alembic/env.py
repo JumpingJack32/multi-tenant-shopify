@@ -1,5 +1,7 @@
+import os
 from logging.config import fileConfig
 
+from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -24,7 +26,7 @@ target_metadata = BaseModel.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -39,10 +41,13 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    from sqlalchemy import engine_from_config, pool
+    config_dict = config.get_section(config.config_ini_section, {})
+    url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    if url:
+        config_dict["sqlalchemy.url"] = url
 
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        config_dict,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
