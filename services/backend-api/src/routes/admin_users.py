@@ -1,21 +1,29 @@
 """Team management & RBAC admin endpoints."""
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.core.rbac import ALL_PERMISSIONS, MANAGEABLE_ROLES, ROLE_PERMISSIONS
 from src.dependencies import get_current_tenant_user, get_db, require_owner, require_permission
 from src.orm.models.tenant import Tenant, TenantUser
+from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.user_management import (
     AuditLogResponse,
     InviteUserRequest,
     PermissionCatalogResponse,
     RoleUpdateRequest,
     UserResponse,
+)
+from src.services.audit_service import (
+    AuditLogFilters,
+    build_audit_log_query,
+    count_audit_logs,
+    export_audit_logs_csv,
 )
 
 router = APIRouter(tags=["admin-users"])
@@ -284,20 +292,78 @@ async def list_all_tenants(
     ]
 
 
-@router.get("/audit-logs", response_model=list[AuditLogResponse])
+@router.get("/audit-logs", response_model=PaginatedResponse[AuditLogResponse])
 async def list_audit_logs(
     db: AsyncSession = Depends(get_db),
     _: TenantUser = Depends(require_permission("audit_logs.read")),
     actor: TenantUser = Depends(get_current_tenant_user),
+    action: Annotated[str | None, Query()] = None,
+    actor_email: Annotated[str | None, Query()] = None,
+    resource_type: Annotated[str | None, Query()] = None,
+    resource_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
-    """List audit log entries for the tenant."""
+    """Paginated, filterable audit log for the tenant."""
     from src.orm.models.audit_log import AuditLog
 
+    filters = AuditLogFilters(
+        action=action,
+        actor_email=actor_email,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    total = await count_audit_logs(db, actor.tenant_id, filters)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+
     stmt = (
-        select(AuditLog)
-        .where(AuditLog.tenant_id == actor.tenant_id)
-        .order_by(AuditLog.created_at.desc())
-        .limit(200)
+        build_audit_log_query(actor.tenant_id, filters)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
     )
     result = await db.exec(stmt)
-    return [AuditLogResponse.model_validate(a) for a in result.all()]
+    rows = result.all()
+
+    return PaginatedResponse[AuditLogResponse](
+        data=[AuditLogResponse.model_validate(a) for a in rows],
+        pagination=PaginationMeta(
+            page=page,
+            page_size=page_size,
+            total=total,
+            total_pages=total_pages,
+        ),
+    )
+
+
+@router.get("/audit-logs/export")
+async def export_audit_logs(
+    db: AsyncSession = Depends(get_db),
+    _: TenantUser = Depends(require_permission("audit_logs.read")),
+    actor: TenantUser = Depends(get_current_tenant_user),
+    action: Annotated[str | None, Query()] = None,
+    actor_email: Annotated[str | None, Query()] = None,
+    resource_type: Annotated[str | None, Query()] = None,
+    resource_id: Annotated[str | None, Query()] = None,
+    start_date: Annotated[str | None, Query()] = None,
+    end_date: Annotated[str | None, Query()] = None,
+):
+    """Export tenant audit logs as CSV (filter-aware, injection-safe)."""
+    filters = AuditLogFilters(
+        action=action,
+        actor_email=actor_email,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    csv_content = await export_audit_logs_csv(db, actor.tenant_id, filters)
+    filename = f"audit-logs-{actor.tenant_id}-{datetime.now().strftime('%Y%m%d')}.csv"
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
