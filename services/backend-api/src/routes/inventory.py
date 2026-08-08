@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.dependencies import get_current_tenant_id, get_db
+from src.dependencies import get_current_tenant_id, get_db, get_optional_tenant_user
 from src.orm.models.category import Category
 from src.orm.models.inventory import InventoryNode, InventoryStock, InventoryTransfer
 from src.orm.models.product import Inventory, Location, Product, ProductImage, Variant
@@ -355,7 +355,20 @@ async def update_item(
     data: InventoryItemPatchInput,
     tenant_id: UUID = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db),
+    actor=Depends(get_optional_tenant_user),
 ):
+    from src.services.audit_service import record_audit
+
+    if actor and "inventory_quantity" in data.model_dump(exclude_unset=True):
+        record_audit(
+            tenant_id=tenant_id,
+            actor_user_id=actor.id,
+            actor_email=actor.email,
+            action="inventory.override",
+            resource_type="variant",
+            resource_id=str(item_id),
+            details=data.model_dump(exclude_unset=True),
+        )
     stmt = (
         select(Product)
         .options(

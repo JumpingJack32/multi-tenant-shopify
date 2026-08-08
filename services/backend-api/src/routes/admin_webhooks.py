@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.dependencies import get_current_tenant_id, get_db
+from src.dependencies import get_current_tenant_id, get_db, get_optional_tenant_user
 from src.orm.models.event import Event
 from src.orm.models.webhook import WebhookSubscriber
+from src.services.audit_service import record_audit
 
 router = APIRouter(tags=["admin"])
 
@@ -16,7 +17,17 @@ async def create_webhook(
     body: dict,
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
+    actor=Depends(get_optional_tenant_user),
 ):
+    if actor:
+        record_audit(
+            tenant_id=tenant_id,
+            actor_user_id=actor.id,
+            actor_email=actor.email,
+            action="settings.manage_webhooks",
+            resource_type="webhook",
+            details={"op": "create", "url": body.get("url")},
+        )
     sub = WebhookSubscriber(
         tenant_id=tenant_id,
         url=body["url"],
@@ -48,11 +59,22 @@ async def update_webhook(
     body: dict,
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
+    actor=Depends(get_optional_tenant_user),
 ):
     stmt = select(WebhookSubscriber).where(WebhookSubscriber.id == webhook_id, WebhookSubscriber.tenant_id == tenant_id)
     sub = (await db.exec(stmt)).one_or_none()
     if not sub:
         raise HTTPException(status_code=404, detail="Webhook not found")
+    if actor:
+        record_audit(
+            tenant_id=tenant_id,
+            actor_user_id=actor.id,
+            actor_email=actor.email,
+            action="settings.manage_webhooks",
+            resource_type="webhook",
+            resource_id=str(webhook_id),
+            details={"op": "update", "fields": list(body.keys())},
+        )
     if "url" in body:
         sub.url = body["url"]
     if "secret" in body:
@@ -72,11 +94,22 @@ async def delete_webhook(
     webhook_id: UUID,
     db: AsyncSession = Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
+    actor=Depends(get_optional_tenant_user),
 ):
     stmt = select(WebhookSubscriber).where(WebhookSubscriber.id == webhook_id, WebhookSubscriber.tenant_id == tenant_id)
     sub = (await db.exec(stmt)).one_or_none()
     if not sub:
         raise HTTPException(status_code=404, detail="Webhook not found")
+    if actor:
+        record_audit(
+            tenant_id=tenant_id,
+            actor_user_id=actor.id,
+            actor_email=actor.email,
+            action="settings.manage_webhooks",
+            resource_type="webhook",
+            resource_id=str(webhook_id),
+            details={"op": "delete"},
+        )
     await db.delete(sub)
 
 

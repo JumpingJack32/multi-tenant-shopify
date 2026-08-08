@@ -9,7 +9,7 @@ from sqlalchemy import func as sa_func, or_
 from sqlalchemy.orm import selectinload
 from sqlmodel import select, text
 
-from src.dependencies import get_current_tenant_id, get_db
+from src.dependencies import get_current_tenant_id, get_db, get_optional_tenant_user
 from src.orm.models.order import Customer, CustomerAddress, CustomerTimelineEvent, StoreCreditTransaction
 from src.orm.schemas.customer import (
     CustomerAddressCreate,
@@ -383,6 +383,7 @@ async def add_customer_credit(
 async def export_customers_csv(
     db=Depends(get_db),
     tenant_id: UUID = Depends(get_current_tenant_id),
+    actor=Depends(get_optional_tenant_user),
     search: str | None = None,
     status: str | None = None,
     location: str | None = None,
@@ -393,6 +394,18 @@ async def export_customers_csv(
     sort_order: str = Query(default="desc"),
 ):
     """Export filtered customers as CSV download."""
+
+    from src.services.audit_service import record_audit
+
+    if actor:
+        record_audit(
+            tenant_id=tenant_id,
+            actor_user_id=actor.id,
+            actor_email=actor.email,
+            action="customers.export",
+            resource_type="customer",
+            details={"search": search, "status": status, "location": location},
+        )
     stmt = select(Customer).where(Customer.tenant_id == tenant_id)
 
     if search:

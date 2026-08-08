@@ -175,6 +175,44 @@ async def get_current_tenant_user(
     return tu
 
 
+async def get_optional_tenant_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Resolve the actor TenantUser when a Clerk Bearer token is present.
+
+    Returns None for header-only (X-Tenant-ID) callers so existing routes keep
+    working, while still capturing the actor for audit logs when available.
+    """
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None
+    try:
+        from src.orm.models.tenant import Tenant, TenantUser
+
+        user = await get_current_user(request)
+        business_tenant_id = user.get("tenant_id")
+        if not business_tenant_id:
+            return None
+        business_uuid = UUID(str(business_tenant_id))
+        tenant = (
+            await db.exec(select(Tenant).where(Tenant.tenant_id == business_uuid))
+        ).one_or_none()
+        if not tenant:
+            return None
+        tu = (
+            await db.exec(
+                select(TenantUser).where(
+                    TenantUser.tenant_id == tenant.id,
+                    TenantUser.clerk_user_id == user["user_id"],
+                )
+            )
+        ).one_or_none()
+        return tu
+    except Exception:
+        return None
+
+
 def require_permission(permission: str):
     """Route dependency factory — enforce a single permission key."""
     validate_permission(permission)
