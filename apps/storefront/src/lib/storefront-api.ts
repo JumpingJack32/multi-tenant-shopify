@@ -285,3 +285,52 @@ export async function checkoutCart(
     },
   );
 }
+
+// ── Customer Portal ──
+
+export interface PortalSession {
+  url: string;
+  verified: boolean;
+}
+
+export interface SavedPaymentMethod {
+  id: string;
+  brand: string;
+  last4: string;
+  exp_month: number;
+  exp_year: number;
+}
+
+export async function createCustomerPortal(
+  tenantSlug: string,
+  body: { customer_email?: string; order_number?: string; shipping_zip?: string },
+  signal?: AbortSignal,
+): Promise<PortalSession> {
+  return fetchJson<PortalSession>(
+    `${API_URL}/api/v1/storefront/${tenantSlug}/customer-portal`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+      credentials: "include",
+    },
+  );
+}
+
+export async function fetchPaymentMethods(
+  tenantSlug: string,
+  email?: string,
+  signal?: AbortSignal,
+): Promise<SavedPaymentMethod[]> {
+  const url = new URL(`${API_URL}/api/v1/storefront/${tenantSlug}/payment-methods`);
+  if (email) url.searchParams.set("email", email);
+  try {
+    return await fetchJson<SavedPaymentMethod[]>(url.toString(), {
+      signal,
+      credentials: "include",
+    });
+  } catch {
+    return [];
+  }
+}

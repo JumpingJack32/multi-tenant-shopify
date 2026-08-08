@@ -144,16 +144,37 @@ class CheckoutSessionAdapter(StripeAdapter):
         def _sync_create_session():
             import stripe
             stripe.api_key = settings.stripe_secret_key
-            return stripe.checkout.Session.create(
+
+            # Find or create a Stripe Customer so the id can be persisted on the
+            # order for later portal sessions (idempotent by email + tenant).
+            customer_id = None
+            if customer_email:
+                normalized_email = (customer_email or "").lower().strip()
+                query = f"email:'{normalized_email}' AND metadata['tenant_id']:'{tenant_id}'"
+                customers = stripe.Customer.search(query=query, limit=1)
+                if customers.data:
+                    customer_id = customers.data[0].id
+                else:
+                    customer = stripe.Customer.create(
+                        email=normalized_email,
+                        metadata={"tenant_id": str(tenant_id)},
+                    )
+                    customer_id = customer.id
+
+            session = stripe.checkout.Session.create(
                 line_items=line_items, mode="payment",
                 customer_email=customer_email,
+                customer=customer_id,
                 success_url=success_url, cancel_url=cancel_url,
                 metadata={"tenant_id": str(tenant_id), "order_id": str(order.id)},
             )
+            return session, customer_id
 
-        session = await anyio.to_thread.run_sync(_sync_create_session)
+        session, customer_id = await anyio.to_thread.run_sync(_sync_create_session)
 
         order.payment_intent_id = session.id
+        if customer_id:
+            order.stripe_customer_id = customer_id
         db.add(order)
         await db.commit()
 
@@ -331,14 +352,14 @@ class CheckoutSessionAdapter(StripeAdapter):
             import stripe
             stripe.api_key = settings.stripe_secret_key
 
-            query = f"email:'{customer_email}' AND metadata['tenant_id']:'{tenant_id}'"
+            query = f"email:'{(customer_email or '').lower().strip()}' AND metadata['tenant_id']:'{tenant_id}'"
             results = stripe.Customer.search(query=query)
 
             if results.data:
                 customer = results.data[0]
             else:
                 customer = stripe.Customer.create(
-                    email=customer_email,
+                    email=(customer_email or "").lower().strip(),
                     metadata={"tenant_id": str(tenant_id)},
                 )
 
@@ -359,7 +380,7 @@ class CheckoutSessionAdapter(StripeAdapter):
             import stripe
             stripe.api_key = settings.stripe_secret_key
 
-            query = f"email:'{customer_email}' AND metadata['tenant_id']:'{tenant_id}'"
+            query = f"email:'{(customer_email or '').lower().strip()}' AND metadata['tenant_id']:'{tenant_id}'"
             results = stripe.Customer.search(query=query)
             if not results.data:
                 return []

@@ -49,6 +49,7 @@ class Order(BaseModel, table=True):
     payment_method: Optional[str] = Field(default=None, max_length=50)
     payment_intent_id: Optional[str] = Field(default=None, max_length=255, index=True, unique=True)
     stripe_client_secret: Optional[str] = Field(default=None, max_length=255)
+    stripe_customer_id: Optional[str] = Field(default=None, max_length=255, index=True)
     subtotal: int = Field(default=0, ge=0)
     tax: int = Field(default=0, ge=0)
     shipping: int = Field(default=0, ge=0)

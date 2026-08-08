@@ -28,13 +28,13 @@ async def reserve(db: AsyncSession, variant_id: UUID, node_id: UUID, quantity: i
     )
     if result.rowcount == 0:
         stock = (
-            await db.execute(
+            await db.scalars(
                 select(InventoryStock).where(
                     InventoryStock.variant_id == variant_id,
                     InventoryStock.node_id == node_id,
                 )
             )
-        ).scalar_one_or_none()
+        ).first()
         available = (stock.quantity - stock.reserved) if stock else 0
         raise InsufficientStockError(variant_id, available, quantity)
 
@@ -84,7 +84,7 @@ async def auto_allocate(
     3. Sufficient available stock (quantity - reserved >= requested)
     """
     nodes = (
-        await db.execute(
+        await db.scalars(
             select(InventoryNode)
             .where(
                 InventoryNode.tenant_id == tenant_id,
@@ -95,18 +95,19 @@ async def auto_allocate(
     ).all()
 
     for node in nodes:
+        node_id = node.id
         stock = (
-            await db.execute(
+            await db.scalars(
                 select(InventoryStock).where(
                     InventoryStock.variant_id == variant_id,
-                    InventoryStock.node_id == node.id,
+                    InventoryStock.node_id == node_id,
                 )
             )
-        ).scalar_one_or_none()
+        ).first()
 
         available = (stock.quantity - stock.reserved) if stock else 0
         if available >= quantity:
-            return node.id
+            return node_id
 
     return None
 

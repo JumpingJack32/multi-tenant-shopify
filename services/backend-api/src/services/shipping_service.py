@@ -44,7 +44,7 @@ async def calculate_shipping_rates(
 
         for cart_item in items:
             v = (
-                await db.exec(select(Variant).where(Variant.id == cart_item["variant_id"]))
+                await db.scalars(select(Variant).where(Variant.id == cart_item["variant_id"]))
             ).first()
             if v and v.weight:
                 unit = (v.weight_unit or "kg").lower()

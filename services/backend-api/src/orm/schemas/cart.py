@@ -62,6 +62,12 @@ class CheckoutIntentResponse(BaseModel):
     currency: str
 
 
+class PortalRequest(BaseModel):
+    customer_email: str = ""
+    order_number: str | None = None
+    shipping_zip: str | None = None
+
+
 class CreateOrderRequest(BaseModel):
     payment_intent_id: str
     customer_email: str

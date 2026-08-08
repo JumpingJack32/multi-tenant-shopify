@@ -185,22 +185,32 @@ async def seed() -> None:
                         {"id": vid, "tid": tenant_id, "pid": pid, "sku": v["sku"], "price": p["price"], "stock": v["stock"], "opts": json.dumps(v["options"])},
                     )
 
-                    # Stock in main warehouse
+                    # Stock in main warehouse — create the node if missing
                     node = (
                         await session.execute(
                             text("SELECT id FROM inventory_nodes WHERE tenant_id = :tid AND name = 'Main Warehouse' LIMIT 1"),
                             {"tid": tenant_id},
                         )
                     ).first()
-                    if node:
+                    if not node:
+                        nid = uuid.uuid4()
                         await session.execute(
                             text("""
-                                INSERT INTO inventory_stocks (id, tenant_id, variant_id, node_id, quantity, reserved, created_at, updated_at)
-                                VALUES (:id, :tid, :vid, :nid, :qty, 0, NOW(), NOW())
-                                ON CONFLICT (variant_id, node_id) DO UPDATE SET quantity = EXCLUDED.quantity
+                                INSERT INTO inventory_nodes (id, tenant_id, name, type, is_active, priority, address, created_at, updated_at)
+                                VALUES (:id, :tid, 'Main Warehouse', 'warehouse', true, 0, '{}'::jsonb, NOW(), NOW())
+                                ON CONFLICT DO NOTHING
                             """),
-                            {"id": uuid.uuid4(), "tid": tenant_id, "vid": vid, "nid": node.id, "qty": v["stock"]},
+                            {"id": nid, "tid": tenant_id},
                         )
+                        node = {"id": nid}
+                    await session.execute(
+                        text("""
+                            INSERT INTO inventory_stocks (id, tenant_id, variant_id, node_id, quantity, reserved, created_at, updated_at)
+                            VALUES (:id, :tid, :vid, :nid, :qty, 0, NOW(), NOW())
+                            ON CONFLICT (variant_id, node_id) DO UPDATE SET quantity = EXCLUDED.quantity
+                        """),
+                        {"id": uuid.uuid4(), "tid": tenant_id, "vid": vid, "nid": node["id"], "qty": v["stock"]},
+                    )
 
                 # Images
                 for idx, img_url in enumerate(p.get("images", [])):
