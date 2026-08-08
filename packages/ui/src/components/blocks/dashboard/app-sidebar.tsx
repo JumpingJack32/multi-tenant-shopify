@@ -159,6 +159,7 @@ const navUtility: NavItem[] = [
     items: [
       { title: "General", url: "/settings/general" },
       { title: "Users & Permissions", url: "/settings/users" },
+      { title: "Audit Logs", url: "/settings/audit-logs" },
       { title: "Store Details", url: "/settings/store-details" },
       { title: "Payments", url: "/settings/payments" },
       { title: "Checkout", url: "/settings/checkout" },
