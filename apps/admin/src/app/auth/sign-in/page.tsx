@@ -54,7 +54,7 @@ export default function SignInPage() {
   };
 
   const handleSocialLogin = (strategy: "oauth_google" | "oauth_github") => {
-    window.location.href = `/sign-in?strategy=${strategy}`;
+    window.location.href = `/auth/sign-in?strategy=${strategy}`;
   };
 
   return (

@@ -1,25 +1,11 @@
 // apps/admin/src/proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+// Deny-by-default: only sign-in and webhooks are public. Every other admin
+// route (dashboard, orders, settings, products, ...) requires a Clerk session.
 const isPublicRoute = createRouteMatcher([
-  "/",
   "/auth/sign-in(.*)",
   "/api/webhooks/(.*)",
-  "/api/v1/(.*)",
-  "/dashboard(.*)",
-  "/analytics(.*)",
-  "/products(.*)",
-  "/customers(.*)",
-  "/marketing(.*)",
-  "/inventory(.*)",
-  "/orders(.*)",
-  "/settings(.*)",
-  "/sales-channel(.*)",
-  "/finances(.*)",
-  "/discounts(.*)",
-  "/suppliers(.*)",
-  "/transfers(.*)",
-  "/content(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
