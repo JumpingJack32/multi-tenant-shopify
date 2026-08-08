@@ -1087,7 +1087,6 @@ async def list_payment_methods(
     from src.services.portal_service import (
         normalize_email,
         parse_guest_portal_token,
-        verify_guest,
     )
 
     if not settings.stripe_enabled:
@@ -1108,20 +1107,18 @@ async def list_payment_methods(
             pass
 
     if not clerk_verified:
-        # Guest: use the signed cookie token, or fall back to email-only with
-        # a PAID order check (no order-number required for read-only preview).
+        # Guest: require the signed guest_customer cookie issued at portal
+        # verification. There is no email-only fallback — that would allow
+        # unverified enumeration of saved cards.
         guest_token = request.cookies.get("guest_customer")
-        if guest_token:
-            payload = parse_guest_portal_token(guest_token)
-            if payload and payload.get("tenant_id") == str(tenant.tenant_id):
-                email = payload.get("guest_customer") or ""
-        if not email:
-            email = normalize_email(request.query_params.get("email") or "")
+        if not guest_token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        payload = parse_guest_portal_token(guest_token)
+        if not payload or payload.get("tenant_id") != str(tenant.tenant_id):
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        email = payload.get("guest_customer") or ""
         if not email:
             raise HTTPException(status_code=401, detail="Not authenticated")
-        verified = await verify_guest(db, tenant_id=tenant.tenant_id, email=email)
-        if not verified:
-            raise HTTPException(status_code=403, detail="No paid orders found for this email")
 
     adapter = get_stripe_adapter()
     return await adapter.list_payment_methods(

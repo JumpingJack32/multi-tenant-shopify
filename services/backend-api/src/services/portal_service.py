@@ -46,10 +46,11 @@ async def verify_guest(
     if order_number:
         stmt = stmt.where(Order.order_number == order_number.strip().upper())
     if shipping_zip:
+        clean_zip = shipping_zip.strip().upper()
         stmt = stmt.where(
             or_(
-                Order.shipping_address["postal_code"].as_string() == shipping_zip.strip(),
-                Order.shipping_address["zip"].as_string() == shipping_zip.strip(),
+                Order.shipping_address["postal_code"].as_string() == clean_zip,
+                Order.shipping_address["zip"].as_string() == clean_zip,
             )
         )
     stmt = stmt.limit(1)
