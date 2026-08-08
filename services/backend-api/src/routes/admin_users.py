@@ -325,11 +325,23 @@ async def list_audit_logs(
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
-    result = await db.exec(stmt)
+    result = await db.scalars(stmt)
     rows = result.all()
 
+    def _audit_response(a) -> AuditLogResponse:
+        return AuditLogResponse(
+            id=a.id,
+            tenant_id=a.tenant_id,
+            actor_email=a.actor_email,
+            action=a.action,
+            resource_type=a.resource_type,
+            resource_id=a.resource_id,
+            details=a.details or {},
+            created_at=a.created_at,
+        )
+
     return PaginatedResponse[AuditLogResponse](
-        data=[AuditLogResponse.model_validate(a) for a in rows],
+        data=[_audit_response(a) for a in rows],
         pagination=PaginationMeta(
             page=page,
             page_size=page_size,

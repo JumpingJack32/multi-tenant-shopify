@@ -68,21 +68,30 @@ def build_audit_log_query(
 
 async def count_audit_logs(db: AsyncSession, tenant_id: UUID, filters: AuditLogFilters) -> int:
     """Count matching audit logs for pagination metadata."""
-    count_stmt = build_audit_log_query(tenant_id, filters).with_only_columns(func.count())
-    result = await db.exec(count_stmt)
+    base = build_audit_log_query(tenant_id, filters)
+    count_stmt = select(func.count()).select_from(base.subquery())
+    result = await db.scalars(count_stmt)
     return result.one()
+
+
+def _sanitize_csv_cell(value: str) -> str:
+    """Prevent spreadsheet formula injection by neutralizing leading = + - @."""
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
 
 
 async def export_audit_logs_csv(db: AsyncSession, tenant_id: UUID, filters: AuditLogFilters) -> str:
     """Stream audit logs as CSV with formula-injection-safe details column.
 
-    details is JSON-serialized and written through csv.writer, which quotes
-    cells beginning with = + - @ to prevent spreadsheet formula injection.
+    details is JSON-serialized and written through csv.writer; cells whose first
+    character is = + - @ are prefixed with a single quote to prevent spreadsheet
+    formula injection.
     """
     import json
 
     stmt = build_audit_log_query(tenant_id, filters)
-    rows = (await db.exec(stmt)).all()
+    rows = (await db.scalars(stmt)).all()
 
     buffer = io.StringIO()
     writer = csv.writer(buffer)
@@ -92,11 +101,11 @@ async def export_audit_logs_csv(db: AsyncSession, tenant_id: UUID, filters: Audi
     for log in rows:
         writer.writerow([
             log.created_at.isoformat() if log.created_at else "",
-            log.actor_email or "",
-            log.action,
-            log.resource_type or "",
-            log.resource_id or "",
-            json.dumps(log.details, ensure_ascii=False) if log.details else "",
+            _sanitize_csv_cell(log.actor_email or ""),
+            _sanitize_csv_cell(log.action),
+            _sanitize_csv_cell(log.resource_type or ""),
+            _sanitize_csv_cell(log.resource_id or ""),
+            _sanitize_csv_cell(json.dumps(log.details, ensure_ascii=False) if log.details else ""),
         ])
     return buffer.getvalue()
 
