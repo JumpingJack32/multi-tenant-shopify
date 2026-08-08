@@ -199,6 +199,7 @@ has_wildcard = "*" in origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=settings.allowed_origin_regex,
     allow_credentials=not has_wildcard,
     allow_methods=["*"],
     allow_headers=["*"],
