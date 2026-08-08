@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     debug: bool = False
     allowed_origins: str = "*"
+    allowed_origin_regex: Optional[str] = None
     tenant_isolation_enabled: bool = True
 
     @property
