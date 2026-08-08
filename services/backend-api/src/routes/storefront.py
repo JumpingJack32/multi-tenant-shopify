@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, select, text as sql_text
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -28,6 +28,7 @@ from src.orm.schemas.cart import (
     CheckoutIntentResponse,
     CheckoutRequest,
     CreateOrderRequest,
+    PortalRequest,
 )
 from src.orm.schemas.common import PaginatedResponse, PaginationMeta
 from src.orm.schemas.order import OrderDetailResponse, OrderResponse
@@ -1002,15 +1003,24 @@ async def create_storefront_checkout_session(
 async def create_customer_portal(
     tenant_slug: str,
     request: Request,
-    body: CheckoutIntentRequest,
+    body: PortalRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     _: None = Depends(throttle_checkout),
 ):
-    """Create a Stripe Customer Portal session for managing saved cards/billing."""
-    from sqlalchemy import or_
+    """Create a Stripe Customer Portal session for managing saved cards/billing.
 
+    Verification is tiered:
+      - Registered user (Clerk Bearer token) → verified via identity
+      - Guest → email + (order_number OR shipping zip) must match a PAID order
+    """
     from src.config import settings
-    from src.orm.models.order import Order, OrderStatus
+    from src.services.portal_service import (
+        build_guest_cookie,
+        create_guest_portal_token,
+        normalize_email,
+        verify_guest,
+    )
 
     if not settings.stripe_enabled:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
@@ -1018,34 +1028,106 @@ async def create_customer_portal(
     tenant = await _resolve_tenant(db, tenant_slug)
     request.state.base_currency = (tenant.settings or {}).get("currency", "GBP")
 
-    email = body.customer_email
-    if not email:
-        raise HTTPException(status_code=400, detail="customer_email required")
+    # Attempt Clerk identity first (registered user)
+    email = ""
+    clerk_verified = False
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            from src.dependencies import get_current_user
+            claims = await get_current_user(request)
+            email = normalize_email(claims.get("email") or "")
+            if email:
+                clerk_verified = True
+        except Exception:
+            pass
 
-    # Verify this email has a completed/pending order for this tenant
-    stmt = (
-        select(Order.id)
-        .where(
-            Order.tenant_id == tenant.tenant_id,
-            Order.customer_email == email,
-            or_(Order.status == OrderStatus.PAID, Order.status == OrderStatus.PENDING_PAYMENT),
+    # Guest path
+    if not clerk_verified:
+        email = normalize_email(body.customer_email)
+        if not email:
+            raise HTTPException(status_code=400, detail="customer_email required")
+        verified = await verify_guest(
+            db,
+            tenant_id=tenant.tenant_id,
+            email=email,
+            order_number=body.order_number,
+            shipping_zip=body.shipping_zip,
         )
-        .limit(1)
-    )
-    result = await db.exec(stmt)
-    if not result.first():
-        raise HTTPException(status_code=403, detail="No active orders found for this email")
+        if not verified:
+            raise HTTPException(status_code=403, detail="Verification failed — email must match a paid order")
 
     adapter = get_stripe_adapter()
     base_url = str(request.base_url).rstrip("/")
-    return_url = f"{base_url}/{tenant_slug}/account"
+    return_url = f"{base_url}/{tenant_slug}/account?billing=1"
+
+    if not clerk_verified:
+        # Issue a short-lived guest identity cookie
+        token = create_guest_portal_token(email, tenant.tenant_id)
+        response.set_cookie(**build_guest_cookie(token))
+
     url = await adapter.create_customer_portal_session(
         customer_email=email,
         tenant_id=tenant.tenant_id,
         return_url=return_url,
     )
 
-    return {"url": url}
+    return {"url": url, "verified": True}
+
+
+@router.get("/{tenant_slug}/payment-methods")
+async def list_payment_methods(
+    tenant_slug: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    _: None = Depends(throttle_storefront),
+):
+    """List saved payment methods (sanitized preview) for the verified customer."""
+    from src.config import settings
+    from src.services.portal_service import (
+        normalize_email,
+        parse_guest_portal_token,
+        verify_guest,
+    )
+
+    if not settings.stripe_enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Checkout unavailable")
+
+    tenant = await _resolve_tenant(db, tenant_slug)
+
+    email = ""
+    clerk_verified = False
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            from src.dependencies import get_current_user
+            claims = await get_current_user(request)
+            email = normalize_email(claims.get("email") or "")
+            clerk_verified = bool(email)
+        except Exception:
+            pass
+
+    if not clerk_verified:
+        # Guest: use the signed cookie token, or fall back to email-only with
+        # a PAID order check (no order-number required for read-only preview).
+        guest_token = request.cookies.get("guest_customer")
+        if guest_token:
+            payload = parse_guest_portal_token(guest_token)
+            if payload and payload.get("tenant_id") == str(tenant.tenant_id):
+                email = payload.get("guest_customer") or ""
+        if not email:
+            email = normalize_email(request.query_params.get("email") or "")
+        if not email:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        verified = await verify_guest(db, tenant_id=tenant.tenant_id, email=email)
+        if not verified:
+            raise HTTPException(status_code=403, detail="No paid orders found for this email")
+
+    adapter = get_stripe_adapter()
+    return await adapter.list_payment_methods(
+        customer_email=email,
+        tenant_id=tenant.tenant_id,
+    )
 
 
 @router.post("/webhooks/stripe")
