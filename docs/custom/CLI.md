@@ -13,7 +13,7 @@ SERVICE_TOKEN=$(curl -sS --request POST \
 
 echo "DOPPLER_TOKEN=$SERVICE_TOKEN"
 
-DOPPLER_TOKEN=dp.st.dev.Q4U4RBsEssQKcxFm5jzgplKB4MHilKPzNX4paFVacO5
+
 ```
 
 ## 1. Get your CLI / personal token (for scripting the Doppler API itself) ￼
